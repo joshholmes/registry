@@ -149,7 +149,7 @@ describe('principals endpoint', function() {
             assert.ifError(err);
 
             console.dir(body);
-            assert.equal(resp.statusCode, 401);
+            assert.equal(resp.statusCode, 403);
             assert.notEqual(body.error.message, undefined);
 
             done();

@@ -25,8 +25,12 @@ exports.changePassword = function(req, res) {
     // even though we have an accesstoken to validate this request, we still want the 
     // user to provide a password to reauthenticate such that we know it is them, and not a hijacked
     // browser window that is making the change password request.
+
+    // but if this fails, send back a 403 not 401 to match up that the operation is not authorized but
+    // signal that the session itself is still authenticated.
+
     services.principals.authenticate(req.body, function(err, principal) {
-        if (err) return utils.handleError(res, err);
+        if (err) return utils.handleError(res, utils.authorizationError("Current password passed for change password was not accepted."));
 
         if (!principal.is('user')) return utils.handleError(res, utils.badRequest("principal must be of type user to change password."));
 
