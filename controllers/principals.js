@@ -28,6 +28,8 @@ exports.changePassword = function(req, res) {
     services.principals.authenticate(req.body, function(err, principal) {
         if (err) return utils.handleError(res, err);
 
+        if (!principal.is('user')) return utils.handleError(res, utils.badRequest("principal must be of type user to change password."));
+
         services.principals.changePassword(principal, req.body.new_password, function(err, principal, accessToken) {
             if (err) return utils.handleError(res, err);
 

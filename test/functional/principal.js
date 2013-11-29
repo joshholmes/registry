@@ -138,6 +138,24 @@ describe('principals endpoint', function() {
         });
     });
 
+    it('you should not be able to change a password without knowing the current password', function(done) {
+        fixtures.models.principals.user.new_password = 'HAXXER';
+
+        request.post({ 
+            json: fixtures.models.principals.user,
+            headers: { Authorization: fixtures.models.accessTokens.user.toAuthHeader() },
+            url: config.principals_endpoint + "/password" 
+        }, function(err, resp, body) {
+            assert.ifError(err);
+
+            console.dir(body);
+            assert.equal(resp.statusCode, 401);
+            assert.notEqual(body.error.message, undefined);
+
+            done();
+        });
+    });
+
     it('should reject requests for a principal without access token', function(done) {
         request({ url: config.principals_endpoint + '/' + fixtures.models.principals.device.id, json: true }, function(get_err, get_resp, get_body) {
             assert.equal(get_err, null);
@@ -257,5 +275,4 @@ describe('principals endpoint', function() {
                 done();
             });
     });
-
 });
