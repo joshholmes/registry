@@ -41,8 +41,10 @@ RedisPubSubProvider.prototype.createSubscription = function(subscription, callba
     });
 };
 
+// TODO: Use straw.js to queue the item with the subscription system?
+
 RedisPubSubProvider.prototype.publish = function(type, item, callback) {
-    log.info("subscriptions: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.info("redis: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
     var self = this;
 
     // iterate over each redis server
