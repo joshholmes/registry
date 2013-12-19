@@ -30,8 +30,8 @@ exports.changePassword = function(req, res) {
     // signal that the session itself is still authenticated.
 
     services.principals.authenticate(req.body, function(err, principal) {
-        if (err) return utils.handleError(res, utils.authorizationError("Current password passed for change password was not accepted."));
-
+        if (err) return utils.handleError(res, utils.authorizationError("The current password was not accepted by the service."));
+ 
         if (!principal.is('user')) return utils.handleError(res, utils.badRequest("principal must be of type user to change password."));
 
         services.principals.changePassword(principal, req.body.new_password, function(err, principal, accessToken) {
