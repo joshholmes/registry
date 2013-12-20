@@ -71,7 +71,7 @@ We also set a expires timestamp on this message for 5 minutes after the sunset. 
 
 There is a free hosted Nitrogen service running in the cloud if you'd like to get started quickly with building a device.  Go to [https://admin.nitrogen.io](https://admin.nitrogen.io) to sign up for an account and then follow the [first devicewalkthrough](docs/walkthrough.md) to see how to get a device up and running.
 
-If at any time you run into issues, plesae file an issue with this project or email me directly at timfpark@gmail.com.  It is incredibly helpful to know what is hard for beginners to understand so please don't hesitate to reach out.
+If at any time you run into issues, please file an issue with this project or email me directly at timfpark@gmail.com.  It is incredibly helpful to know what is hard for beginners to understand so please don't hesitate to reach out.
 
 To run a Nitrogen service locally:
 
