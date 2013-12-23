@@ -474,7 +474,7 @@ var updateVisibleTo = function(principalId, callback) {
     log.info("updating visible_to for: " + principalId);
     findById(services.principals.servicePrincipal, principalId, function(err, principal) {
         if (err) return callback(err);
-        if (!principal) return callback(new Error('principal.service:updateVisibleTo: passed principal not found'));
+        if (!principal) return callback();
         log.info("updating visible_to for principal id: " + principalId);
 
         if (!principal.public) {
