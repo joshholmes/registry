@@ -202,7 +202,6 @@ var createUserCredentials = function(principal, callback) {
 
 var filterForPrincipal = function(principal, filter) {
     if (principal && principal.is('service')) return filter;
-    if (!principal) log.warn("principals service: filterForPrincipal called without principal.");
 
     var visibilityClauses = [ { public: true } ];
     if (principal) {
