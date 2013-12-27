@@ -197,7 +197,7 @@ var stream = function(socket, subscription) {
             });
         },
         function(err) {
-            if (err) log.error(err);
+            if (err) log.error("subscription service: receive loop resulted in error: " + err);
 
             log.info("subscription service: stream for " + subscription.clientId + " disconnected.");
         }
