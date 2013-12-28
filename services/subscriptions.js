@@ -153,9 +153,11 @@ var start = function(socket, spec, callback) {
             return;
         }
 
-        log.info('subscriptions: connecting subscription: ' + subscription.id);
+        log.info('subscriptions: connecting subscription: ' + subscription.id + ' with clientId: ' + spec.id);
 
-        socket.subscriptions[spec.id] = subscription;
+        subscription.clientId = spec.id;
+        
+        socket.subscriptions[subscription.clientId] = subscription;
 
         stream(socket, subscription);
         if (callback) return callback(null, subscription);
@@ -176,8 +178,12 @@ var stop = function(subscription, callback) {
 
 var stream = function(socket, subscription) {
     async.whilst(
-        function() { return socket.subscriptions[subscription.clientId] !== undefined; },
+        function() { 
+            log.warn("subscription service: checking to see if we should continue " + subscription.clientId);
+            return socket.subscriptions[subscription.clientId] !== undefined; 
+        },
         function(callback) {
+            log.warn("subscription service: starting receive for " + subscription.clientId);
             receive(subscription, function(err, item) {
                 if (err) return callback(err);
 
@@ -199,7 +205,7 @@ var stream = function(socket, subscription) {
         function(err) {
             if (err) log.error("subscription service: receive loop resulted in error: " + err);
 
-            log.info("subscription service: stream for " + subscription.clientId + " disconnected.");
+            log.warn("subscription service: stream for " + subscription.clientId + " disconnected.");
         }
     );
 };
