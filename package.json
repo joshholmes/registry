@@ -13,7 +13,7 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   ],
-  "engines": {"node": "0.10.24"},
+  "engines": {"node": "0.10.21"},
   "dependencies": {
     "async": "~0.2.9",
     "express": "~3.2.6",
