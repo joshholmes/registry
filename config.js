@@ -105,13 +105,13 @@ config.email_provider = new providers.local.NullEmailProvider(config);
 //    config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
 // }
 
-//config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
+config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
 
 config.redis_servers = {
     'localhost': { port: 6379, host: '127.0.0.1', id: 'localhost' }
 };
 
-config.pubsub_provider = new providers.redis.RedisPubSubProvider(config);
+// config.pubsub_provider = new providers.redis.RedisPubSubProvider(config);
 
 // config.email_provider = new providers.sendgrid.SendgridEmailProvider(config);
 
