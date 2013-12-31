@@ -1,5 +1,4 @@
 var async = require('async')
-  , cron = require('cron')
   , fs = require('fs')
   , log = require('../log')
   , models = require('../models')
@@ -52,7 +51,6 @@ var execute = function(agents, callback) {
             // TODO: factor this out into some sort of configurable whitelist.
             var context = {
                 async: async,
-                cron: cron,
                 log: log,
                 nitrogen: nitrogen,
                 params: agent.params,
