@@ -41,6 +41,7 @@ var dateMinutesFromNow = function(minutes) {
 var handleError = function(res, err) {
     if (err instanceof ServiceError) {
         var statusCode = err.statusCode || 400;
+        log.error(err.message);
 
         return sendFailedResponse(res, statusCode, err);
     }
