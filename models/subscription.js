@@ -7,7 +7,8 @@ subscriptionSchema.add({
     filter: { type: Schema.Types.Mixed },
     name: { type: String },
     principal: { type: Schema.Types.ObjectId, ref: 'Principal' },
-    permanent: {type: Boolean },
+    permanent: { type: Boolean },
+    last_receive: { type: Date, default: Date.now },
     type: { type: String }
 });
 

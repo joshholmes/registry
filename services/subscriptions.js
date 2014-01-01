@@ -110,6 +110,10 @@ var publish = function(type, item, callback) {
 var receive = function(subscription, callback) {
     if (!config.pubsub_provider) return callback(new Error("subscription service: can't receive without pubsub_provider"));
 
+    // fire and forget an update to tag this subscription with the last attempted receive.
+    // used for janitorial purposes for non-permanent subscriptions.
+    update(subscription, { last_receive: new Date() });
+
     config.pubsub_provider.receive(subscription, callback);
 };
 
@@ -123,10 +127,7 @@ var remove = function(subscription, callback) {
 
         delete subscription.socket.subscriptions[subscription.clientId];
 
-        if (subscription.permanent)
-            subscription.remove(callback);
-        else
-            callback();
+        subscription.remove(callback);
     });
 };
 
@@ -179,11 +180,9 @@ var stop = function(subscription, callback) {
 var stream = function(socket, subscription) {
     async.whilst(
         function() { 
-            log.warn("subscription service: checking to see if we should continue " + subscription.clientId);
             return socket.subscriptions[subscription.clientId] !== undefined; 
         },
         function(callback) {
-            log.warn("subscription service: starting receive for " + subscription.clientId);
             receive(subscription, function(err, item) {
                 if (err) return callback(err);
 
@@ -195,7 +194,7 @@ var stream = function(socket, subscription) {
                 // of the message before proceeding.
 
                 if (item) {
-                    log.debug('subscription service:  new message from subscription: ' + subscription.clientId + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
+                    log.info('subscription service:  new message from subscription: ' + subscription.clientId + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
                     socket.emit(subscription.clientId, item);
                 }
 
@@ -205,9 +204,13 @@ var stream = function(socket, subscription) {
         function(err) {
             if (err) log.error("subscription service: receive loop resulted in error: " + err);
 
-            log.warn("subscription service: stream for " + subscription.clientId + " disconnected.");
+            log.info("subscription service: stream for " + subscription.clientId + " disconnected.");
         }
     );
+};
+
+var update = function(subscription, updates, callback) {
+    models.Subscription.update({ _id: subscription.id }, { $set: updates }, callback);
 };
 
 module.exports = {

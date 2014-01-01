@@ -1,14 +1,15 @@
-var config = require('../config')
+var assert = require('assert') 
+  , config = require('../config')
   , fixtures = require('./fixtures')
   , log = require('../log')
   , services = require('../services');
 
 before(function(done) {
     config.pubsub_provider.resetForTest(function(err) {
-        if (err) return callback(err);
+        assert.ifError(err);
 
         fixtures.reset(function(err) {
-            if (err) throw err;
+            assert.ifError(err); 
 
             log.debug("FIXTURES: creation finished...");
             done();

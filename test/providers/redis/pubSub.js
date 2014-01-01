@@ -10,16 +10,15 @@ var assert = require('assert')
 if (config.pubsub_provider instanceof providers.redis.RedisPubSubProvider) {
     describe('Redis pubsub provider', function() {
 
-        it('can create a subscription and receive messages from it', function(done) {
+        it('can create a session subscription and receive messages from it', function(done) {
             var subscription = new models.Subscription({
                 clientId: "fakeclientid",
                 filter: { type: 'ip' },
-                name: 'testSubscription',
                 principal: services.principals.servicePrincipal,
                 type: 'message'
             });
 
-            config.pubsub_provider.createSubscription(subscription, function(err, createruleresult, response) {
+            config.pubsub_provider.createSubscription(subscription, function(err, subscription) {
                 assert.ifError(err);
 
                 var publishFinished;
@@ -31,7 +30,21 @@ if (config.pubsub_provider instanceof providers.redis.RedisPubSubProvider) {
                     //var totalTime = new Date().getTime() - publishFinished.getTime();
                     //assert(totalTime < 200);
 
-                    done();
+                    config.pubsub_provider.subscriptionsForServer(subscription.serverId, function(err, subscriptions) {
+                        assert.ifError(err);
+                        var startingSubscriptions = subscriptions.length;
+
+                        config.pubsub_provider.removeSubscription(subscription, function(err) {
+                            assert.ifError(err);
+
+                            config.pubsub_provider.subscriptionsForServer(subscription.serverId, function(err, subscriptions) {
+                                assert.ifError(err);
+
+                                assert.equal(1, startingSubscriptions - subscriptions.length);
+                                done();
+                            });
+                        });
+                    });
                 });
 
                 var message = new models.Message({

@@ -11,6 +11,14 @@ function RedisPubSubProvider(config) {
 RedisPubSubProvider.SUBSCRIPTIONS_KEY = 'pubsub.subscriptions';
 RedisPubSubProvider.DEFAULT_RECEIVE_TIMEOUT = 60;
 
+RedisPubSubProvider.redisifySubscription = function(subscription) {
+    return JSON.stringify({
+        id: subscription.id,
+        type: subscription.type,
+        filter: subscription.filter
+    });
+};
+
 RedisPubSubProvider.subscriptionKey = function(subscription) {
     return subscription.id;
 };
@@ -36,7 +44,7 @@ RedisPubSubProvider.prototype.createSubscription = function(subscription, callba
     subscription.serverId = serverIds[serverAssignmentIdx];
 
     var client = this.clientForServer(subscription.serverId);
-    client.sadd(RedisPubSubProvider.SUBSCRIPTIONS_KEY, JSON.stringify(subscription), function(err) {
+    client.sadd(RedisPubSubProvider.SUBSCRIPTIONS_KEY, RedisPubSubProvider.redisifySubscription(subscription), function(err) {
         return callback(err, subscription);
     });
 };
@@ -50,15 +58,17 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
     // iterate over each redis server
 
     async.each(Object.keys(this.config.redis_servers), function(serverId, serverCallback) {
+
+        var client = self.clientForServer(serverId);
         
         // find all of the subscriptions for this server
-        var client = self.clientForServer(serverId);
-        client.smembers('pubsub.subscriptions', function(err, subscriptions) {
+        self.subscriptionsForServer(serverId, function(err, subscriptions) {
             if (err) return serverCallback(err);
 
             // for each subscription, see if the filter matches this item
             async.each(subscriptions, function(subscriptionJson, subscriptionCallback) {
                 var subscription = JSON.parse(subscriptionJson);
+
                 if (subscription.type === type) {
                     var unfilteredItems = sift(subscription.filter, [item]);
                     if (unfilteredItems.length > 0) {
@@ -91,8 +101,32 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
 };
 
 RedisPubSubProvider.prototype.removeSubscription = function(subscription, callback) {
-    var client = this.clientForServer(subscription.serverId);
-    client.srem(RedisPubSubProvider.SUBSCRIPTIONS_KEY, subscription, callback);
+    var subscriptionJson = RedisPubSubProvider.redisifySubscription(subscription);
+
+    log.info("redis: removing subscription: " + subscriptionJson);
+
+    var client = this.createClient(subscription.serverId);
+    client.srem(RedisPubSubProvider.SUBSCRIPTIONS_KEY, subscriptionJson, callback);
+};
+
+RedisPubSubProvider.prototype.subscriptionsForServer = function(serverId, callback) {
+    var client = this.clientForServer(serverId);
+    client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, callback); 
+};
+
+//// TESTING ONLY METHODS BELOW THIS LINE
+
+RedisPubSubProvider.prototype.displaySubscriptions = function(callback) {
+    async.each(Object.keys(this.config.redis_servers), function(serverId, serverCallback) {
+
+        log.info("redis pubsub provider: SUBSCRIPTIONS FOR SERVER ID: " + serverId);
+
+        client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, function(err, subscriptions) {
+            subscriptions.forEach(function(subscription) {
+                log.info("redis pubsub provider: subscription: " + subscription);
+            });
+        });
+    });
 };
 
 RedisPubSubProvider.prototype.resetForTest = function(callback) {
