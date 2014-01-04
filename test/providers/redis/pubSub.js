@@ -30,14 +30,14 @@ if (config.pubsub_provider instanceof providers.redis.RedisPubSubProvider) {
                     //var totalTime = new Date().getTime() - publishFinished.getTime();
                     //assert(totalTime < 200);
 
-                    config.pubsub_provider.subscriptionsForServer(subscription.serverId, function(err, subscriptions) {
+                    config.pubsub_provider.subscriptionsForServer(subscription.assignment, function(err, subscriptions) {
                         assert.ifError(err);
                         var startingSubscriptions = subscriptions.length;
 
                         config.pubsub_provider.removeSubscription(subscription, function(err) {
                             assert.ifError(err);
 
-                            config.pubsub_provider.subscriptionsForServer(subscription.serverId, function(err, subscriptions) {
+                            config.pubsub_provider.subscriptionsForServer(subscription.assignment, function(err, subscriptions) {
                                 assert.ifError(err);
 
                                 assert.equal(1, startingSubscriptions - subscriptions.length);

@@ -4,11 +4,12 @@ var BaseSchema = require('./baseSchema'),
 
 var subscriptionSchema = new BaseSchema();
 subscriptionSchema.add({
+    assignment: { type: String },                   // used by provider to determine the backend used for this subscription.
     filter: { type: Schema.Types.Mixed },
-    name: { type: String },
-    principal: { type: Schema.Types.ObjectId, ref: 'Principal' },
-    permanent: { type: Boolean },
     last_receive: { type: Date, default: Date.now },
+    name: { type: String },
+    permanent: { type: Boolean },
+    principal: { type: Schema.Types.ObjectId, ref: 'Principal' },
     type: { type: String }
 });
 

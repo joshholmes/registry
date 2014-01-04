@@ -16,8 +16,8 @@ var janitor = function(callback) {
             if (err) callback("janitor message removal failed: " + err);
             log.info("janitor removed " + removed + " expired messages.");
 
-            return callback();
-        });
+            services.subscriptions.janitor(callback);
+          });
     });
 };
 

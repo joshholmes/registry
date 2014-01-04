@@ -41,9 +41,9 @@ RedisPubSubProvider.prototype.createSubscription = function(subscription, callba
     var serverIds = Object.keys(this.config.redis_servers);
     var serverAssignmentIdx = Math.floor(serverIds.length * Math.random());
 
-    subscription.serverId = serverIds[serverAssignmentIdx];
+    subscription.assignment = serverIds[serverAssignmentIdx];
 
-    var client = this.clientForServer(subscription.serverId);
+    var client = this.clientForServer(subscription.assignment);
     client.sadd(RedisPubSubProvider.SUBSCRIPTIONS_KEY, RedisPubSubProvider.redisifySubscription(subscription), function(err) {
         return callback(err, subscription);
     });
@@ -86,7 +86,7 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
 };
 
 RedisPubSubProvider.prototype.receive = function(subscription, callback) {
-    var client = this.createClient(subscription.serverId);
+    var client = this.createClient(subscription.assignment);
 
     client.on('error', callback);
     client.blpop(RedisPubSubProvider.subscriptionKey(subscription), RedisPubSubProvider.DEFAULT_RECEIVE_TIMEOUT, function(err, reply) {
@@ -105,7 +105,7 @@ RedisPubSubProvider.prototype.removeSubscription = function(subscription, callba
 
     log.info("redis: removing subscription: " + subscriptionJson);
 
-    var client = this.createClient(subscription.serverId);
+    var client = this.createClient(subscription.assignment);
     client.srem(RedisPubSubProvider.SUBSCRIPTIONS_KEY, subscriptionJson, callback);
 };
 

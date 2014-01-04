@@ -84,6 +84,10 @@ var create = function(subscription, callback) {
     });
 };
 
+var find = function(authPrincipal, filter, options, callback) {
+    models.Subscription.find(filter, null, options, callback);
+};
+
 var findOne = function(subscription, callback) {
     models.Subscription.findOne({
         principal: subscription.principal,
@@ -98,6 +102,18 @@ var findOrCreate = function(subscription, callback) {
         if (existingSubscription) return callback(null, existingSubscription);
 
         create(subscription, callback);
+    });
+};
+
+var janitor = function(callback) {
+    find(services.principals.servicePrincipal, { 
+        $and: [
+            { last_receive: { $lt: utils.dateDaysFromNow(-1) } },
+            { permanent: true }
+        ]
+    }, function(err, subscriptions) {
+        log.info('subscriptions: janitoring ' + subscriptions.length + ' abandoned session subscriptions.');
+        async.each(subscriptions, remove, callback);
     });
 };
 
@@ -125,7 +141,8 @@ var remove = function(subscription, callback) {
     config.pubsub_provider.removeSubscription(subscription, function(err) {
         if (err) return callback(err);
 
-        delete subscription.socket.subscriptions[subscription.clientId];
+        if (subscription.socket) 
+            delete subscription.socket.subscriptions[subscription.clientId];
 
         subscription.remove(callback);
     });
@@ -218,6 +235,7 @@ module.exports = {
     create: create,
     findOne: findOne,
     findOrCreate: findOrCreate,
+    janitor: janitor,
     publish: publish,
     receive: receive,
     start: start,
