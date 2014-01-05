@@ -100,11 +100,10 @@ describe('messages endpoint', function() {
         });
 
         var subscriptionId = 'sub1';
-        socket.emit('start', { id: subscriptionId, filter: {}, type: 'message' });
+        socket.emit('start', { id: subscriptionId, filter: { type: '_messageSubscriptionTest' }, type: 'message' });
 
         socket.on(subscriptionId, function(message) {
-            if (message.type !== '_messageSubscriptionTest1') return;
-
+            assert.equal(message.type, '_messageSubscriptionTest');
             assert.equal(message.body.reading, 5.1);
 
             subscriptionPassed = true;
@@ -119,7 +118,7 @@ describe('messages endpoint', function() {
             request.post(config.messages_endpoint, { 
                 json: [{ 
                     from: fixtures.models.principals.device.id,
-                    type: "_messageSubscriptionTest1",
+                    type: "_messageSubscriptionTest",
                     public: false,
                     expires: 'never',
                     body: { reading: 5.1 } 

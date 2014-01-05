@@ -7,27 +7,7 @@ var assert = require('assert')
   , utils = require('../../utils');
 
 describe('subscriptions service', function() {
-    it('creating a session subscription should not create row', function(done) {
-        var subscription = new models.Subscription({
-            filter: {},
-            principal: fixtures.models.principals.device.id,
-            type: 'message'
-        });
-
-        services.subscriptions.findOrCreate(subscription, function(err, createdSubscription) {
-            assert.ifError(err);
-            assert.equal(createdSubscription.permanent, false);
-
-            services.subscriptions.findOne(subscription, function(err, subscription) {
-                assert.ifError(err);
-                assert.equal(subscription, null);
-
-                done();
-            });
-        });
-    });
-
-    it('creating a named subscription should create row', function(done) {
+    it('creating a subscription should create row', function(done) {
         models.Subscription.count({}, function(err, startingCount) {
             assert.ifError(err);
 

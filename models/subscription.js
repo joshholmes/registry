@@ -5,7 +5,7 @@ var BaseSchema = require('./baseSchema'),
 var subscriptionSchema = new BaseSchema();
 subscriptionSchema.add({
     assignment: { type: String },                   // used by provider to determine the backend used for this subscription.
-    filter: { type: Schema.Types.Mixed },
+    filter_string: { type: String },                 // can't have Mixed because of $ operators, use virtual below to proxy this.
     last_receive: { type: Date, default: Date.now },
     name: { type: String },
     permanent: { type: Boolean },
@@ -13,6 +13,7 @@ subscriptionSchema.add({
     type: { type: String }
 });
 
+subscriptionSchema.index({ last_receive: 1 });
 subscriptionSchema.index({ principal: 1 });
 subscriptionSchema.index({ name: 1 });
 
@@ -21,6 +22,9 @@ subscriptionSchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
 
 subscriptionSchema.virtual('clientId').set(function(value) { this._clientId = value; });
 subscriptionSchema.virtual('clientId').get(function() { return this._clientId; });
+
+subscriptionSchema.virtual('filter').set(function(value) { this.filter_string = JSON.stringify(value); });
+subscriptionSchema.virtual('filter').get(function() { return JSON.parse(this.filter_string); });
 
 subscriptionSchema.virtual('socket').set(function(value) { this._socket = value; });
 subscriptionSchema.virtual('socket').get(function() { return this._socket; });

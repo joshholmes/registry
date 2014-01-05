@@ -68,19 +68,14 @@ var attachSubscriptionsEndpoint = function() {
 var create = function(subscription, callback) {
     subscription.permanent = !!subscription.name;
     if (!subscription.permanent) {
-        // assign a random name and id if this is a non-permanent subscription.
-        subscription.id = new mongoose.Types.ObjectId();
-        subscription.name = Math.floor(100000 * Math.random());
+        // assign the subscription a uuid as a name if this is session subscription
+        subscription.name = utils.uuid();
     }
 
     config.pubsub_provider.createSubscription(subscription, function(err) {
         if (err) callback(err);
 
-        // we only save permanent subscriptions to the db, not session ones.
-        if (subscription.permanent)
-            save(subscription, callback);
-        else
-            callback(null, subscription);
+        save(subscription, callback);
     });
 };
 
@@ -167,7 +162,9 @@ var start = function(socket, spec, callback) {
 
     findOrCreate(subscription, function(err, subscription) {
         if (err) {
-            if (callback) callback('subscriptions: failed to create: ' + err);
+            var msg = 'subscriptions: failed to create: ' + err;
+            log.error(msg);
+            if (callback) callback(new Error(msg));
             return;
         }
 
@@ -185,7 +182,6 @@ var start = function(socket, spec, callback) {
 // stop is invoked when an active subscription is closed.
 // for permanent subscriptions this is a noop.
 // for session subscriptions this removes them.
-
 var stop = function(subscription, callback) {
     if (!subscription.permanent) {
         remove(subscription, callback);

@@ -69,9 +69,12 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
             async.each(subscriptions, function(subscriptionJson, subscriptionCallback) {
                 var subscription = JSON.parse(subscriptionJson);
 
+                log.debug("RedisPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+
                 if (subscription.type === type) {
                     var unfilteredItems = sift(subscription.filter, [item]);
                     if (unfilteredItems.length > 0) {
+                        log.debug("RedisPubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
                         client.rpush(RedisPubSubProvider.subscriptionKey(subscription), JSON.stringify(unfilteredItems[0]), subscriptionCallback);
                     } else {
                         return subscriptionCallback();
@@ -89,12 +92,18 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
     var client = this.createClient(subscription.assignment);
 
     client.on('error', callback);
-    client.blpop(RedisPubSubProvider.subscriptionKey(subscription), RedisPubSubProvider.DEFAULT_RECEIVE_TIMEOUT, function(err, reply) {
+
+    var subscriptionKey = RedisPubSubProvider.subscriptionKey(subscription);
+    log.debug('RedisPubSubProvider: RECEIVING on subscription key: ' + subscriptionKey + ' filter: ' + JSON.stringify(subscription.filter));
+
+    client.blpop(subscriptionKey, RedisPubSubProvider.DEFAULT_RECEIVE_TIMEOUT, function(err, reply) {
         if (err) return callback(err);
         if (!reply) return callback(null, null);
 
         // redis returns an 2 element array with [key, value], so decode this
         var item = JSON.parse(reply[1]);
+
+        log.debug("RedisPubSubProvider: RECEIVED on subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter) + " item: " + JSON.stringify(item));
 
         return callback(null, item);
     });
