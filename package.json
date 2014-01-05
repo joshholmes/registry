@@ -19,6 +19,7 @@
     "express": "~3.2.6",
     "mongodb": "~1.3.23",
     "mongoose": "~3.6.20",
+    "newrelic": "*",
     "nitrogen": "~0.1.203",
     "nitrogen-camera": "~0.1.2",
     "nitrogen-switch": "~0.1.3",

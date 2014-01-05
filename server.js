@@ -1,3 +1,7 @@
+if (process.env.new_relic_app_name && process.env.new_relic_license_key) {
+    require('newrelic');
+}
+
 var express = require('express')
   , app = express()
   , server = require('http').createServer(app)
