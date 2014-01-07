@@ -1,0 +1,10 @@
+{
+	"title": "proximity",
+	"type": "object",
+	"properties": {
+		"proximity": {
+			"type": "boolean",
+			"required": true
+		}
+	}
+}
