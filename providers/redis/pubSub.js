@@ -4,6 +4,8 @@ var async = require('async')
   , sift = require('sift');
 
 function RedisPubSubProvider(config) {
+    if (!config.redis_servers) log.error('RedisPubSubProvider: no redis server configuration information found.');
+
     this.config = config;
     this.clients = {};
 }
@@ -139,7 +141,7 @@ RedisPubSubProvider.prototype.displaySubscriptions = function(callback) {
 };
 
 RedisPubSubProvider.prototype.resetForTest = function(callback) {
-    if (process.env.NODE_ENV === "production") return callback();
+    if (process.env.NODE_ENV === "production") return callback();    
 
     log.info('redis pubsub provider: resetting Redis store completely for test');
 

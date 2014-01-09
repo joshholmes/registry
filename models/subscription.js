@@ -31,8 +31,4 @@ subscriptionSchema.virtual('socket').get(function() { return this._socket; });
 
 var Subscription = mongoose.model('Subscription', subscriptionSchema);
 
-Subscription.prototype.fullyQualifiedName = function() {
-   return this.principal + "_" + this.name; 
-};
-
 module.exports = Subscription;

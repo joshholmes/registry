@@ -41,10 +41,21 @@ MemoryPubSubProvider.prototype.removeSubscription = function(subscription, callb
     callback();
 };
 
+// TEST ONLY FUNCTIONS
+
 MemoryPubSubProvider.prototype.resetForTest = function(callback) {
     this.subscriptions = {}
 
     return callback();
+};
+
+MemoryPubSubProvider.prototype.subscriptionsForServer = function(serverId, callback) {
+    var self = this;
+    var subscriptions = Object.keys(this.subscriptions).map(function(key) {
+        return self.subscriptions[key];
+    });
+
+    return callback(null, subscriptions);
 };
 
 module.exports = MemoryPubSubProvider;
