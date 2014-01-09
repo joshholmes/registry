@@ -8,6 +8,7 @@ function RedisPubSubProvider(config) {
 
     this.config = config;
     this.clients = {};
+    this.SUPPORTS_PERMANENT_SUBSCRIPTIONS = true;
 }
 
 RedisPubSubProvider.SUBSCRIPTIONS_KEY = 'pubsub.subscriptions';

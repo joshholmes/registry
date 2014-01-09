@@ -15,7 +15,9 @@ describe('subscriptions service', function() {
                 filter: {},
                 name: 'named',
                 principal: fixtures.models.principals.device.id,
-                type: 'message'
+                type: 'message',
+                permanent: false,
+                name: utils.uuid()
             });
 
             services.subscriptions.findOrCreate(subscription, function(err, subscription) {
@@ -36,7 +38,9 @@ describe('subscriptions service', function() {
             clientId: "fakeclientid",
             filter: { type: 'ip' },
             principal: services.principals.servicePrincipal,
-            type: 'message'
+            type: 'message',
+            permanent: false,
+            name: utils.uuid()
         });
 
         services.subscriptions.findOrCreate(subscription, function(err, subscription) {
@@ -102,6 +106,7 @@ describe('subscriptions service', function() {
             var subscription = new models.Subscription({
                 filter: { type: '_permanentQueueTest' },
                 name: 'permanent',
+                permanent: true,
                 principal: services.principals.servicePrincipal.id,
                 type: 'message'
             });
@@ -154,12 +159,13 @@ describe('subscriptions service', function() {
         });
     }
 
+    
     it('running the janitor should remove abandoned session subscriptions', function(done) {
         var permSub = new models.Subscription({
             assignment: 'localhost',
             clientId: "5",
             filter: {},
-            name: "permanent",
+            name: "janitorTest",
             permanent: true,
             principal: services.principals.servicePrincipal,
             type: "message",
@@ -170,11 +176,12 @@ describe('subscriptions service', function() {
             assert.ifError(err);
 
             var sessionSub = new models.Subscription({
-                assignment: 'localhost',
                 clientId: "5",
                 filter: {},
                 principal: services.principals.servicePrincipal,
                 type: "message",
+                permanent: false,
+                name: utils.uuid(),
                 last_receive: utils.dateDaysFromNow(-2)
             });
 
@@ -186,6 +193,7 @@ describe('subscriptions service', function() {
 
                     services.subscriptions.janitor(function(err) {
                         assert.ifError(err);
+
                         models.Subscription.count({}, function(err, endingCount) {
                             assert.ifError(err);
 

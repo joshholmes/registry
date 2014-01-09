@@ -66,12 +66,6 @@ var attachSubscriptionsEndpoint = function() {
 };
 
 var create = function(subscription, callback) {
-    subscription.permanent = !!subscription.name;
-    if (!subscription.permanent) {
-        // assign the subscription a uuid as a name if this is session subscription
-        subscription.name = utils.uuid();
-    }
-
     config.pubsub_provider.createSubscription(subscription, function(err) {
         if (err) callback(err);
 
@@ -84,6 +78,8 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findOne = function(subscription, callback) {
+    log.info('subscriptions: finding subscription principal: ' + subscription.principal.id.toString() + ' type: ' + subscription.type + ' name: ' + subscription.name);
+
     models.Subscription.findOne({
         principal: subscription.principal,
         type: subscription.type,
@@ -96,6 +92,7 @@ var findOrCreate = function(subscription, callback) {
         if (err) return callback(err);
         if (existingSubscription) return callback(null, existingSubscription);
 
+        log.info('subscriptions: findOrCreate: subscription not found, creating: ' + subscription.name);
         create(subscription, callback);
     });
 };
@@ -123,6 +120,7 @@ var receive = function(subscription, callback) {
 
     // fire and forget an update to tag this subscription with the last attempted receive.
     // used for janitorial purposes for non-permanent subscriptions.
+    log.info('subscriptions: updating last_receive for subscription: ' + subscription.id);
     update(subscription, { last_receive: new Date() });
 
     config.pubsub_provider.receive(subscription, callback);
@@ -131,7 +129,7 @@ var receive = function(subscription, callback) {
 var remove = function(subscription, callback) {
     if (!subscription) return log.error('undefined subscription passed to services.subscription.remove.');
 
-    log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.clientId);
+    log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name);
 
     config.pubsub_provider.removeSubscription(subscription, function(err) {
         if (err) return callback(err);
@@ -156,6 +154,12 @@ var start = function(socket, spec, callback) {
         socket: socket,
         type: spec.type
     });
+
+    subscription.permanent = !!subscription.name;
+    if (!subscription.permanent) {
+        // assign the subscription a uuid as a name if this is session subscription
+        subscription.name = utils.uuid();
+    }
 
     // compose filter that includes visibility limitations.
     subscription.filter = services.principals.filterForPrincipal(socket.handshake.principal, subscription.filter);
