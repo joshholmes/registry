@@ -48,7 +48,7 @@ var create = function(authPrincipal, permission, callback) {
 
     // TODO: is authPrincipal authorized to create this permission.
 
-    log.warn("permissions: creating permission: " + JSON.stringify(permission));
+    log.info("permissions: creating permission: " + JSON.stringify(permission));
     permission.save(function(err, permission) {
         if (err) return callback(err);
 
