@@ -131,8 +131,10 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
 
                 if (unfiltered.length > 0)
                     callback(null, message);
-                else
+                else {
+                    log.warn('AzurePubSubProvider: had to post filter a message that should have been handled by Service Bus.');                    
                     callback();
+                }
             }
         }
     );
