@@ -142,7 +142,11 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
 
 AzurePubSubProvider.prototype.removeSubscription = function(subscription, callback) {
     this.serviceBus.deleteSubscription(subscription.type, subscription.id, function(err) {
-        return callback(err);
+        // squelch NotFound and treat it like success
+        if (err && err.indexOf('NotFound') !== -1)
+            return callback();
+        else
+            return callback(err);
     });
 };
 
