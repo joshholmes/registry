@@ -95,7 +95,7 @@ if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
 // config.blob_storage_path = './storage';
 // config.blob_provider = new providers.local.LocalBlobProvider(config);
 
-config.cache_provider = new providers.local.MemoryCacheProvider(config);
+config.cache_provider = new providers.local.NullCacheProvider(config);
 
 config.email_provider = new providers.local.NullEmailProvider(config);
 
