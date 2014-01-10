@@ -32,6 +32,8 @@ if (config.blob_provider) {
 
                             var blobUrl = config.blobs_endpoint + '/' + bodyJson.blob.id;
 
+                            setTimeout(function() {
+
                             // owner should be able to access blob
                             request.get(blobUrl,
                               { headers: { 'Authorization': fixtures.models.accessTokens.device.toAuthHeader() } }, function(err,resp,body) {
@@ -64,6 +66,8 @@ if (config.blob_provider) {
                                     });
                                 });
                             });
+
+                            }, 2000);
                         }
                     )
                 );

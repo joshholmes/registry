@@ -27,7 +27,7 @@ describe('agent service', function() {
                     done();
                 });
             });
-        }, 200);
+        }, 2000);
     });
 
     it('matcher does not match 2 users at same ip address for 2nd user', function(done) {
@@ -87,7 +87,7 @@ describe('agent service', function() {
                             assert(permission.authorized);
                             done();
                         });
-                    }, 200);
+                    }, 2000);
                 });
             });
         });

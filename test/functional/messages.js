@@ -163,6 +163,6 @@ describe('messages endpoint', function() {
                             );
                         });
                 });
-        }, 200);
+        }, 2000);
     });
 });

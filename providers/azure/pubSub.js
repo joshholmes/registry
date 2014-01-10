@@ -1,18 +1,23 @@
-var async = require('async')
+var assert = require('assert')
+  , async = require('async')
   , azure = require('azure')
   , log = require('../../log');
 
-function AzurePubSubProvider() {
+function AzurePubSubProvider(config) {
     if (!process.env.AZURE_SERVICEBUS_NAMESPACE || !process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
-        return log.warn("WARNING: Azure service bus namespace or access key not configured.  Set AZURE_SERVICEBUS_NAMESPACE and AZURE_SERVICEBUS_ACCESS_KEY as environment variables to configure the azure pub sub provider.");
+        return log.warn("AzurePubSubProvider: Service bus namespace or access key not configured.  Set AZURE_SERVICEBUS_NAMESPACE and AZURE_SERVICEBUS_ACCESS_KEY as environment variables to configure the azure pub sub provider.");
     }
 
     var retryOperations = new azure.ExponentialRetryPolicyFilter();
 
-    this.serviceBus = azure.createServiceBusService().withFilter(retryOperations);
+    this.serviceBus = azure.createServiceBusService(process.env.AZURE_SERVICEBUS_NAMESPACE, process.env.AZURE_SERVICEBUS_ACCESS_KEY)
+                           .withFilter(retryOperations);
+
     this.serviceBus.createTopicIfNotExists('message', function(err) {
-        if (err) return log.error("Azure PubSub Provider: Not able to create/confirm service bus topics: " + err);
+        if (err) return log.error("AzurePubSubProvider: Not able to create/confirm service bus topics: " + err);
     });
+
+    this.SUPPORTS_PERMANENT_SUBSCRIPTIONS = true;
 }
 
 // sample JSON query
@@ -59,8 +64,8 @@ AzurePubSubProvider.sqlFromJsonQuery = function(jsonQuery) {
 
 AzurePubSubProvider.prototype.createSubscription = function(subscription, callback) {
     var self = this;    
-    log.info('AzurePubSubProvider:creating subscription for type: ' + subscription.type + ' with name: ' + subscription.fullyQualifiedName());
-    this.serviceBus.createSubscription(subscription.type, subscription.fullyQualifiedName(), function(err) {
+    log.info('AzurePubSubProvider:creating subscription for type: ' + subscription.type + ' with id: ' + subscription.id);
+    this.serviceBus.createSubscription(subscription.type, subscription.id, function(err) {
         if (err) {
             // non error - already exists.
             if (err.detail && err.detail.indexOf('already exists') !== -1)
@@ -73,24 +78,23 @@ AzurePubSubProvider.prototype.createSubscription = function(subscription, callba
 
             self.serviceBus.deleteRule(
                 subscription.type, 
-                subscription.fullyQualifiedName(), 
+                subscription.id, 
                 azure.Constants.ServiceBusConstants.DEFAULT_RULE_NAME,
                 function(err) {
                     if (err) return callback(err);
 
                     self.serviceBus.createRule(
                         subscription.type, 
-                        subscription.fullyQualifiedName(), 
-                        subscription.fullyQualifiedName() + "_filter", {
+                        subscription.id, subscription.id + "_filter", {
                             sqlExpressionFilter: AzurePubSubProvider.sqlFromJsonQuery(subscription.filter)
-                        },
-
-                        callback
+                        }, function(err) {
+                            return callback(err, subscription);
+                        }
                     );  
                 }
             );
         } else {
-            return callback();
+            return callback(null, subscription);
         }
     });
 };
@@ -107,9 +111,12 @@ AzurePubSubProvider.prototype.publish = function(type, item, callback) {
 };
 
 AzurePubSubProvider.prototype.receive = function(subscription, callback) {
+    if (!subscription.type) return callback(new Error('Subscription type required.'));
+    if (!subscription.id) return callback(new Error('Subscription id required.'));
+
     this.serviceBus.receiveSubscriptionMessage(
         subscription.type,
-        subscription.fullyQualifiedName(),
+        subscription.id,
         { timeoutIntervalInS: 5 * 60 },
         function (err, item) {
             if (err) {
@@ -125,7 +132,34 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
 };
 
 AzurePubSubProvider.prototype.removeSubscription = function(subscription, callback) {
-    this.serviceBus.deleteSubscription(subscription.type, subscription.fullyQualifiedName(), callback);
+    this.serviceBus.deleteSubscription(subscription.type, subscription.id, function(err) {
+        return callback(err);
+    });
+};
+
+// TEST ONLY METHODS BELOW
+
+AzurePubSubProvider.prototype.resetForTest = function(callback) {
+    if (process.env.NODE_ENV === "production") return callback();
+
+    log.info('AzurePubSubProvider: resetting service bus topic completely for test');
+    var self = this;
+    
+    this.serviceBus.listSubscriptions('message', function(err, subscriptions) {
+        assert.ifError(err);
+
+        async.each(subscriptions, function(subscription, removeCallback) {
+            self.serviceBus.deleteSubscription(subscription.TopicName, subscription.SubscriptionName, removeCallback);
+        }, function() {});
+
+    });
+
+    // don't wait for deleting all the current subscriptions
+    return callback();
+};
+
+AzurePubSubProvider.prototype.subscriptionsForServer = function(serverId, callback) {
+    this.serviceBus.listSubscriptions('message', callback); 
 };
 
 module.exports = AzurePubSubProvider;
