@@ -143,9 +143,7 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
 AzurePubSubProvider.prototype.removeSubscription = function(subscription, callback) {
     this.serviceBus.deleteSubscription(subscription.type, subscription.id, function(err) {
         // squelch NotFound and treat it like success
-        log.error('remove subscription: ' + err + ":" + JSON.stringify(err));
-        
-        if (err && err.indexOf('NotFound') !== -1)
+        if (err && err.code && err.code === 'NotFound')
             return callback();
         else
             return callback(err);
