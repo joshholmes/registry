@@ -1,7 +1,8 @@
 var assert = require('assert')
   , async = require('async')
   , azure = require('azure')
-  , log = require('../../log');
+  , log = require('../../log')
+  , sift = require('sift');
 
 function AzurePubSubProvider(config) {
     if (!process.env.AZURE_SERVICEBUS_NAMESPACE || !process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
@@ -125,7 +126,13 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
                 callback(err);
             }
             else {
-                callback(null, JSON.parse(item.body));
+                var message = JSON.parse(item.body)
+                var unfiltered = sift(subscription.filter, [message]);
+
+                if (unfiltered.length > 0)
+                    callback(null, message);
+                else
+                    callback();
             }
         }
     );
