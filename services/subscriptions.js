@@ -195,7 +195,7 @@ var stop = function(subscription, callback) {
         log.error('subscriptions:  stop passed null subscription');
     }
 
-    if (subcription && !subscription.permanent) {
+    if (subscription && !subscription.permanent) {
         remove(subscription, callback);
     } else {
         return callback();
