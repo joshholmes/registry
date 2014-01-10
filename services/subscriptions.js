@@ -191,7 +191,11 @@ var start = function(socket, spec, callback) {
 // for permanent subscriptions this is a noop.
 // for session subscriptions this removes them.
 var stop = function(subscription, callback) {
-    if (!subscription.permanent) {
+    if (!subscription) {
+        log.error('subscriptions:  stop passed null subscription');
+    }
+
+    if (subcription && !subscription.permanent) {
         remove(subscription, callback);
     } else {
         return callback();
