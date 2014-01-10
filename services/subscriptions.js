@@ -98,13 +98,14 @@ var findOrCreate = function(subscription, callback) {
 };
 
 var janitor = function(callback) {
+    var cutoffDate = utils.dateDaysFromNow(-1);
     find(services.principals.servicePrincipal, { 
         $and: [
-            { last_receive: { $lt: utils.dateDaysFromNow(-1) } },
-            { permanent: true }
+            { last_receive: { $lt: cutoffDate } },
+            { permanent: false }
         ]
     }, function(err, subscriptions) {
-        log.info('subscriptions: janitoring ' + subscriptions.length + ' abandoned session subscriptions.');
+        log.info('subscriptions: janitoring ' + subscriptions.length + ' abandoned session subscriptions from before: ' + cutoffDate.toString());
         async.each(subscriptions, remove, callback);
     });
 };
@@ -219,7 +220,7 @@ var stream = function(socket, subscription) {
             });
         },
         function(err) {
-            if (err) log.error("subscription service: receive loop resulted in error: " + err);
+            if (err) log.error("subscription service: receive loop error: " + err);
 
             log.info("subscription service: stream for " + subscription.clientId + " disconnected.");
         }
