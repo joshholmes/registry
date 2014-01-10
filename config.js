@@ -101,11 +101,11 @@ config.email_provider = new providers.local.NullEmailProvider(config);
 
 // You can use Azure's Service Bus as a pubsub provider using this configuration.
 //
-// if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
-//    config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
-// }
+if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
+    config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
+}
 
-config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
+// config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
 
 // config.redis_servers = {
 //    'localhost': { port: 6379, host: '127.0.0.1', id: 'localhost' }
