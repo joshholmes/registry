@@ -1,6 +1,7 @@
 module.exports = {
     LocalBlobProvider: require('./blob'),
-    NullEmailProvider: require('./email'),
-    MemoryCacheProvider: require('./cache'),
-    MemoryPubSubProvider: require('./pubSub')
+    MemoryCacheProvider: require('./memoryCache'),
+    MemoryPubSubProvider: require('./pubSub'),
+    NullCacheProvider: require('./nullCache'),
+    NullEmailProvider: require('./email')
 };
