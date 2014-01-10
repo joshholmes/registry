@@ -133,7 +133,10 @@ var remove = function(subscription, callback) {
     log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name);
 
     config.pubsub_provider.removeSubscription(subscription, function(err) {
-        if (err) return callback(err);
+        if (err) {
+            log.error('subscriptions: remove failed in provider with error: ' + err);
+            return callback(err);
+        }
 
         if (subscription.socket) 
             delete subscription.socket.subscriptions[subscription.clientId];
