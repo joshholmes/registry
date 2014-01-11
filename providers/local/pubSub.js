@@ -1,6 +1,7 @@
 var async = require('async')
   , log = require('../../log')
-  , sift = require('sift');
+  , sift = require('sift')
+  , utils = require('../../utils');
 
 function MemoryPubSubProvider() {
     this.subscriptions = {};
@@ -39,6 +40,10 @@ MemoryPubSubProvider.prototype.removeSubscription = function(subscription, callb
     delete this.subscriptions[subscription.clientId];
 
     callback();
+};
+
+MemoryPubSubProvider.prototype.staleSubscriptionCutoff = function() {
+    return utils.dateDaysFromNow(-1);
 };
 
 // TEST ONLY FUNCTIONS

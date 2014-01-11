@@ -32,10 +32,7 @@ var dateDaysFromNow = function(days) {
 };
 
 var dateMinutesFromNow = function(minutes) {
-    var date = new Date();
-    date.setDate(new Date().getTime() + minutes * 60000);
-
-    return date;
+    return new Date(new Date().getTime() + minutes * 60000);
 };
 
 var handleError = function(res, err) {

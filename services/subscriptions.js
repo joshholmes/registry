@@ -98,14 +98,15 @@ var findOrCreate = function(subscription, callback) {
 };
 
 var janitor = function(callback) {
-    var cutoffDate = utils.dateDaysFromNow(-1);
+    var cutoffTime = config.pubsub_provider.staleSubscriptionCutoff();
+    
     find(services.principals.servicePrincipal, { 
         $and: [
-            { last_receive: { $lt: cutoffDate } },
+            { last_receive: { $lt: cutoffTime } },
             { permanent: false }
         ]
     }, function(err, subscriptions) {
-        log.info('subscriptions: janitoring ' + subscriptions.length + ' abandoned session subscriptions from before: ' + cutoffDate.toString());
+        log.info('subscriptions: janitoring ' + subscriptions.length + ' abandoned session subscriptions from before: ' + cutoffTime.toString());
         async.each(subscriptions, remove, callback);
     });
 };

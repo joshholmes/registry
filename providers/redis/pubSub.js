@@ -12,7 +12,7 @@ function RedisPubSubProvider(config) {
 }
 
 RedisPubSubProvider.SUBSCRIPTIONS_KEY = 'pubsub.subscriptions';
-RedisPubSubProvider.DEFAULT_RECEIVE_TIMEOUT = 60;
+RedisPubSubProvider.RECEIVE_TIMEOUT_SECONDS = 5 * 60;
 
 RedisPubSubProvider.redisifySubscription = function(subscription) {
     return JSON.stringify({
@@ -99,7 +99,7 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
     var subscriptionKey = RedisPubSubProvider.subscriptionKey(subscription);
     log.debug('RedisPubSubProvider: RECEIVING on subscription key: ' + subscriptionKey + ' filter: ' + JSON.stringify(subscription.filter));
 
-    client.blpop(subscriptionKey, RedisPubSubProvider.DEFAULT_RECEIVE_TIMEOUT, function(err, reply) {
+    client.blpop(subscriptionKey, RedisPubSubProvider.RECEIVE_TIMEOUT_SECONDS, function(err, reply) {
         if (err) return callback(err);
         if (!reply) return callback(null, null);
 
@@ -126,20 +126,24 @@ RedisPubSubProvider.prototype.subscriptionsForServer = function(serverId, callba
     client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, callback); 
 };
 
+RedisPubSubProvider.prototype.staleSubscriptionCutoff = function() {
+    return new Date(new Date().getTime() + -4 * 1000 * RedisPubSubProvider.RECEIVE_TIMEOUT_SECONDS);
+};
+
 //// TESTING ONLY METHODS BELOW THIS LINE
 
-RedisPubSubProvider.prototype.displaySubscriptions = function(callback) {
-    async.each(Object.keys(this.config.redis_servers), function(serverId, serverCallback) {
-
-        log.info("redis pubsub provider: SUBSCRIPTIONS FOR SERVER ID: " + serverId);
-
-        client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, function(err, subscriptions) {
-            subscriptions.forEach(function(subscription) {
-                log.info("redis pubsub provider: subscription: " + subscription);
-            });
-        });
-    });
-};
+//RedisPubSubProvider.prototype.displaySubscriptions = function(callback) {
+//    async.each(Object.keys(this.config.redis_servers), function(serverId, serverCallback) {
+//
+//        log.info("redis pubsub provider: SUBSCRIPTIONS FOR SERVER ID: " + serverId);
+//
+//        client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, function(err, subscriptions) {
+//            subscriptions.forEach(function(subscription) {
+//                log.info("redis pubsub provider: subscription: " + subscription);
+//            });
+//        });
+//    });
+//};
 
 RedisPubSubProvider.prototype.resetForTest = function(callback) {
     if (process.env.NODE_ENV === "production") return callback();    

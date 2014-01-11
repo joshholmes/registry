@@ -2,7 +2,8 @@ var assert = require('assert')
   , async = require('async')
   , azure = require('azure')
   , log = require('../../log')
-  , sift = require('sift');
+  , sift = require('sift')
+  , utils = require ('../../utils');
 
 function AzurePubSubProvider(config) {
     if (!process.env.AZURE_SERVICEBUS_NAMESPACE || !process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
@@ -20,6 +21,8 @@ function AzurePubSubProvider(config) {
 
     this.SUPPORTS_PERMANENT_SUBSCRIPTIONS = true;
 }
+
+AzurePubSubProvider.RECEIVE_TIMEOUT_SECONDS = 5 * 60;
 
 // sample JSON query
 // {
@@ -118,7 +121,7 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
     this.serviceBus.receiveSubscriptionMessage(
         subscription.type,
         subscription.id,
-        { timeoutIntervalInS: 5 * 60 },
+        { timeoutIntervalInS: AzurePubSubProvider.RECEIVE_TIMEOUT_SECONDS },
         function (err, item) {
             if (err) {
                 // squelch non error error from Azure.
@@ -148,6 +151,10 @@ AzurePubSubProvider.prototype.removeSubscription = function(subscription, callba
         else
             return callback(err);
     });
+};
+
+AzurePubSubProvider.prototype.staleSubscriptionCutoff = function() {
+    return new Date(new Date().getTime() + -4 * 1000 * AzurePubSubProvider.RECEIVE_TIMEOUT_SECONDS);
 };
 
 // TEST ONLY METHODS BELOW
