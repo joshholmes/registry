@@ -99,7 +99,7 @@ var findOrCreate = function(subscription, callback) {
 
 var janitor = function(callback) {
     var cutoffTime = config.pubsub_provider.staleSubscriptionCutoff();
-    
+
     find(services.principals.servicePrincipal, { 
         $and: [
             { last_receive: { $lt: cutoffTime } },
@@ -122,7 +122,7 @@ var receive = function(subscription, callback) {
 
     // fire and forget an update to tag this subscription with the last attempted receive.
     // used for janitorial purposes for non-permanent subscriptions.
-    log.info('subscriptions: updating last_receive for subscription: ' + subscription.id);
+    log.info('subscriptions: updating last_receive for subscription: ' + subscription.id + ': ' + subscription.name + ': ' + subscription.filter);
     update(subscription, { last_receive: new Date() });
 
     config.pubsub_provider.receive(subscription, callback);
