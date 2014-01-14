@@ -229,7 +229,7 @@ var validate = function(message, callback) {
 
         services.principals.findById(services.principals.servicePrincipal, message.from, function(err, fromPrincipal) {
             if (err) return callback(err);
-            if (!fromPrincipal) return callback(utils.badRequestError('Message must have an existing from principal.'));
+            if (!fromPrincipal) return callback(utils.badRequestError('From: principal on message was not found.'));
 
             if (!message.to) return callback(null, fromPrincipal, null);
 
