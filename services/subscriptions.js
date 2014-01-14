@@ -47,9 +47,10 @@ var attachSubscriptionsEndpoint = function() {
         });
 
         socket.on('disconnect', function() {
-            log.info('subscriptions: socket: ' + socket.id + ' disconnected.  stopping all subscriptions on this socket.');
+            var subscriptionKeys = Object.keys(socket.subscriptions);
+            log.info('subscriptions: socket: ' + socket.id + ' disconnected.  stopping ' + subscriptionKeys.length + ' subscriptions on this socket.');
 
-            async.each(Object.keys(socket.subscriptions), function(clientId, callback) {
+            async.each(subscriptionKeys, function(clientId, callback) {
                 stop(socket.subscriptions[clientId], callback);
             });
         });
@@ -78,7 +79,7 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findOne = function(subscription, callback) {
-    log.info('subscriptions: finding subscription principal: ' + subscription.principal.id.toString() + ' type: ' + subscription.type + ' name: ' + subscription.name);
+    log.info('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal.id + ' type: ' + subscription.type + ' name: ' + subscription.name);
 
     models.Subscription.findOne({
         principal: subscription.principal,
@@ -126,11 +127,8 @@ var receive = function(subscription, callback) {
 
     config.pubsub_provider.receive(subscription, callback);
 
-    // update(subscription, { last_receive: new Date() });
-
-    subscription.last_receive = new Date();
-    subscription.save(function(err) {
-        if (err) log.err('updating last_receive failed: ' + err);
+    update(subscription, { last_receive: new Date() }, function(err, updateCount) {
+        log.info('subscription last_receive result: ' + updateCount);
     });
 };
 
