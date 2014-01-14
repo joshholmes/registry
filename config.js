@@ -1,3 +1,4 @@
+//
 var log = require('./log')
   , Loggly = require('winston-loggly').Loggly
   , providers = require('./providers')
