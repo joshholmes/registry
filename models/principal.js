@@ -25,14 +25,7 @@ principalSchema.add({
     password_hash: { type: String },                        // base64
     salt: { type: String },                                 // base64
 
-    visible_to:     [{ type: Schema.Types.ObjectId, ref: 'Principal' }],
-
-// DEPRECIATED FIELDS
-
-    // remove after migration 00002 has run
-    admin: { type: Boolean, default: false },
-    owner: { type: Schema.Types.ObjectId, ref: 'Principal' }
-
+    visible_to: [{ type: Schema.Types.ObjectId, ref: 'Principal' }]
 });
 
 principalSchema.index({ capabilities: 1 });
