@@ -62,16 +62,9 @@ var principalObjectTransform = function(doc, ret, options) {
 principalSchema.set('toObject', { transform: principalObjectTransform });
 principalSchema.set('toJSON', { transform: principalObjectTransform });
 
+principalSchema.PRINCIPAL_TYPES = ['device', 'reactor', 'service', 'user'];
 principalSchema.path('type').validate(function (value) {
-    var invalid = false;
-
-    if (!value)
-        invalid = true;
-
-    if (value !== 'device' && value !== 'service' && value !== 'user')
-        invalid = true;
-
-    return !invalid;
+    return principalSchema.PRINCIPAL_TYPES.indexOf(value) !== -1;
 }, 'Principal must have valid type.');
 
 var Principal = mongoose.model('Principal', principalSchema);
