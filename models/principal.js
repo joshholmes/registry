@@ -55,7 +55,7 @@ var principalObjectTransform = function(doc, ret, options) {
 principalSchema.set('toObject', { transform: principalObjectTransform });
 principalSchema.set('toJSON', { transform: principalObjectTransform });
 
-principalSchema.PRINCIPAL_TYPES = ['device', 'reactor', 'service', 'user'];
+principalSchema.PRINCIPAL_TYPES = ['app', 'device', 'reactor', 'service', 'user'];
 principalSchema.path('type').validate(function (value) {
     return principalSchema.PRINCIPAL_TYPES.indexOf(value) !== -1;
 }, 'Principal must have valid type.');
