@@ -55,9 +55,8 @@ var principalObjectTransform = function(doc, ret, options) {
 principalSchema.set('toObject', { transform: principalObjectTransform });
 principalSchema.set('toJSON', { transform: principalObjectTransform });
 
-principalSchema.PRINCIPAL_TYPES = ['app', 'device', 'reactor', 'service', 'user'];
 principalSchema.path('type').validate(function (value) {
-    return principalSchema.PRINCIPAL_TYPES.indexOf(value) !== -1;
+    return Principal.PRINCIPAL_TYPES.indexOf(value) !== -1;
 }, 'Principal must have valid type.');
 
 var Principal = mongoose.model('Principal', principalSchema);
@@ -69,5 +68,7 @@ Principal.prototype.is = function(type) {
 Principal.prototype.equals = function(principal) {
     return principal.id.toString() === this.id.toString();
 };
+
+Principal.PRINCIPAL_TYPES = ['app', 'device', 'reactor', 'service', 'user'];
 
 module.exports = Principal;

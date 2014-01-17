@@ -38,6 +38,17 @@ describe('principals service', function() {
         });
     });
 
+    it('can create an app', function(done) {
+        var device = new models.Principal({ type: "app" });
+        services.principals.create(device, function(err, device) {
+            assert.ifError(err);
+            assert.notEqual(device.id, undefined);
+            assert.notEqual(device.secret_hash, undefined);
+
+            done();
+        });
+    });
+
     it('can create and validate a device', function(done) {
         var device = new models.Principal({ type: "device" });
         services.principals.create(device, function(err, device) {

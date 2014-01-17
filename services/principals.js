@@ -513,8 +513,14 @@ var updateVisibleTo = function(principalId, callback) {
 }
 
 var validate = function(principal, callback) {
-    if (!principal.is('device') && !principal.is('user') && !principal.is('service')) {
-        var err = 'Principal type must be one of device, user, or service. found: ' + principal.type;
+    var validType = false;
+
+    models.Principal.PRINCIPAL_TYPES.forEach(function(type) {
+        validType = validType || principal.type === type;
+    });
+
+    if (!validType) {
+        var err = 'Principal type invalid. found: ' + principal.type;
         log.error(err);
         return callback(utils.badRequestError(err));
     }
