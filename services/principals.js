@@ -107,7 +107,7 @@ var create = function(principal, callback) {
                         log.info("created " + principal.type + " principal: " + principal.id);
 
                         findById(services.principals.servicePrincipal, principal.id, function(err, updatedPrincipal) {
-                            if (principal.is('device'))
+                            if (!principal.is('user'))
                                 updatedPrincipal.secret = principal.secret;
 
                             return callback(err, updatedPrincipal);

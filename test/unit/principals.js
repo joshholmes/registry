@@ -44,6 +44,7 @@ describe('principals service', function() {
             assert.ifError(err);
             assert.notEqual(device.id, undefined);
             assert.notEqual(device.secret_hash, undefined);
+            assert(device.secret);
 
             done();
         });
@@ -55,6 +56,7 @@ describe('principals service', function() {
             assert.ifError(err);
             assert.notEqual(device.id, undefined);
             assert.notEqual(device.secret_hash, undefined);
+            assert(device.secret);
 
             services.principals.verifySecret(device.secret, device, function(err) {
                 assert.ifError(err);
