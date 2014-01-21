@@ -22,6 +22,7 @@
     "newrelic": "*",
     "nitrogen": "~0.1.206",
     "nitrogen-camera": "~0.1.10",
+    "nitrogen-light": "~0.1.10",
     "nitrogen-switch": "~0.1.10",
     "passport": "~0.1.17",
     "passport-http-bearer": "~0.2.1",
