@@ -67,7 +67,6 @@ Permission.prototype.match = function(request, obj) {
 
     // filter is stored as a string.  if we haven't previously parsed it into an object, do that now.
     if (!this.filterObject) {
-        console.dir(this.filter);
         this.filterObject = JSON.parse(this.filter);
     }
 
