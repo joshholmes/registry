@@ -249,7 +249,7 @@ var generateClaimCode = function() {
 };
 
 var issueClaimCode = function(principal, callback) {
-    if (!principal.is('device')) return callback(null,null); 
+    if (principal.is('user')) return callback(null,null); 
 
     var wasCollision = true;
     var claimCode = null;
