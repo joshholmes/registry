@@ -127,9 +127,7 @@ var receive = function(subscription, callback) {
 
     config.pubsub_provider.receive(subscription, callback);
 
-    update(subscription, { last_receive: new Date() }, function(err, updateCount) {
-        log.info('subscription last_receive result: ' + updateCount);
-    });
+    update(subscription, { last_receive: new Date() });
 };
 
 var remove = function(subscription, callback) {
