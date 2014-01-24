@@ -123,11 +123,13 @@ var receive = function(subscription, callback) {
 
     // fire and forget an update to tag this subscription with the last attempted receive.
     // used for janitorial purposes for non-permanent subscriptions.
-    log.debug('subscriptions: updating last_receive for subscription: ' + subscription.id + ': ' + subscription.name + ': ' + subscription.filter_string);
+    log.info('subscriptions: updating last_receive for subscription: ' + subscription.id + ': ' + subscription.name + ': ' + subscription.filter_string);
 
     config.pubsub_provider.receive(subscription, callback);
 
-    update(subscription, { last_receive: new Date() });
+    subscription.last_receive = new Date();
+    subscription.save();
+    //update(subscription, { last_receive: new Date() });
 };
 
 var remove = function(subscription, callback) {
