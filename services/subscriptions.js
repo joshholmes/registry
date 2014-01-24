@@ -133,7 +133,7 @@ var receive = function(subscription, callback) {
 var remove = function(subscription, callback) {
     if (!subscription) return log.error('undefined subscription passed to services.subscription.remove.');
 
-    log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name);
+    log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name + ': filter: ' + JSON.stringify(subscription.filter) + ' last_receive: ' + subscription.last_receive);
 
     config.pubsub_provider.removeSubscription(subscription, function(err) {
         if (err) {

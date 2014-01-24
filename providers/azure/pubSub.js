@@ -104,7 +104,7 @@ AzurePubSubProvider.prototype.createSubscription = function(subscription, callba
 };
 
 AzurePubSubProvider.prototype.publish = function(type, item, callback) {
-    log.info("AzurePubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.debug("AzurePubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
 
     var serviceBusMessage = {
         customProperties: item.toObject(),
@@ -162,7 +162,7 @@ AzurePubSubProvider.prototype.staleSubscriptionCutoff = function() {
 AzurePubSubProvider.prototype.resetForTest = function(callback) {
     if (process.env.NODE_ENV === "production") return callback();
 
-    log.info('AzurePubSubProvider: resetting service bus topic completely for test');
+    log.debug('AzurePubSubProvider: resetting service bus topic completely for test');
     var self = this;
     
     this.serviceBus.listSubscriptions('message', function(err, subscriptions) {

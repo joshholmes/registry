@@ -4,6 +4,8 @@ var fs = require('fs')
   , ServiceError = require('./serviceError');
 
 var authenticationError = function(msg) {
+    log.warn('sending authentication error response.');
+
     return new ServiceError({
         statusCode: 401,
         message: msg || "Authentication failed for principal."
@@ -11,13 +13,18 @@ var authenticationError = function(msg) {
 };
 
 var authorizationError = function(msg) {
+    var msg = msg || "Principal is not authorized to perform the requested operation.";
+    log.warn('sending authorization error response: ' + msg);
+
     return new ServiceError({
         statusCode: 403,
-        message: msg || "Principal is not authorized to perform the requested operation."
+        message: msg
     });
 };
 
 var badRequestError = function(msg) {
+    log.warn('sending bad request response: ' + msg);
+
     return new ServiceError({
         statusCode: 400,
         message: msg
