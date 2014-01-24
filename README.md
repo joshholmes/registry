@@ -1,7 +1,7 @@
 # Nitrogen Service
 
 Nitrogen is a platform for building connected devices.  Nitrogen provides the authentication, authorization, and realtime messaging platform so that you can focus on your device and/or application.  All with a consistent development platform that leverages the ubiquity of Javascript.  You can learn more about the project's goals at a high level from [my talk at LXJS.](https://www.youtube.com/watch?v=xV0x3boaZwU)
-
+ 
 ## Device Development Model
 
 Nitrogen at its heart uses messaging between principals. Messages can follow a well known schema to enable interoperability between applications or use their own private custom message types for specialized applications. Devices and applications follow and send messages to each other in a manner you can think of mentally as "Twitter for Devices."
