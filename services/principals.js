@@ -420,7 +420,6 @@ var update = function(authorizingPrincipal, id, updates, callback) {
         }, principal, function(err, permission) {
             if (err) return callback(err);
             if (!permission.authorized) return callback(utils.authorizationError(permission));
-            log.info("updating principal: " + id + " with updates: " + JSON.stringify(updates));
 
             models.Principal.update({ _id: id }, { $set: updates }, function (err, updateCount) {
                 log.info("update of principal: " + id + " with updates: " + JSON.stringify(updates) + " has finished");
