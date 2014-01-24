@@ -123,7 +123,7 @@ var receive = function(subscription, callback) {
 
     // fire and forget an update to tag this subscription with the last attempted receive.
     // used for janitorial purposes for non-permanent subscriptions.
-    log.info('subscriptions: updating last_receive for subscription: ' + subscription.id + ': ' + subscription.name + ': ' + subscription.filter_string);
+    log.debug('subscriptions: updating last_receive for subscription: ' + subscription.id + ': ' + subscription.name + ': ' + subscription.filter_string);
 
     config.pubsub_provider.receive(subscription, callback);
 
@@ -222,7 +222,7 @@ var stream = function(socket, subscription) {
                 // of the message before proceeding.
 
                 if (item) {
-                    log.info('subscription service:  new message from subscription: ' + subscription.clientId + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
+                    log.debug('subscription service:  new message from subscription: ' + subscription.clientId + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
                     socket.emit(subscription.clientId, item);
                 }
 
