@@ -38,8 +38,8 @@ var buildVisibility = function(message, callback) {
         });
 
         message.visible_to = message.public ? [] : Object.keys(authorizedHash);
-        log.warn('message: ' + JSON.stringify(message));
-        log.warn('final message visibility: ' + message.visible_to);
+        log.debug('message: ' + JSON.stringify(message));
+        log.debug('final message visibility: ' + message.visible_to);
 
         return callback(null, message);
     });

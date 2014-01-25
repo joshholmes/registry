@@ -422,7 +422,6 @@ var update = function(authorizingPrincipal, id, updates, callback) {
             if (!permission.authorized) return callback(utils.authorizationError(permission));
 
             models.Principal.update({ _id: id }, { $set: updates }, function (err, updateCount) {
-                log.info("update of principal: " + id + " with updates: " + JSON.stringify(updates) + " has finished");
                 if (err) return callback(err);
 
                 findById(authorizingPrincipal, id, function(err, updatedPrincipal) {
