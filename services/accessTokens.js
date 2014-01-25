@@ -71,7 +71,8 @@ var removeByPrincipal = function(principal, callback) {
 var verify = function(token, done) {
     findByToken(token, function(err, accessToken) {
         if (err) return done(err);
-        if (!accessToken || accessToken.expired()) { return done("Session has expired.", false); }
+        if (!accessToken) { return done("Access token not found.", false); }
+        if (accessToken.expired()) { return done("Access token has expired.", false); }
 
         services.principals.findById(services.principals.servicePrincipal, accessToken.principal, function(err, principal) {
             if (err) return done(err);
