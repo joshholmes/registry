@@ -136,9 +136,11 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
                 var unfiltered = sift(subscription.filter, [message]);
 
                 if (unfiltered.length > 0)
+                    log.error('AzurePubSubProvider: passing message for filter ' + JSON.stringify(subscription.filter));                    
                     callback(null, message);
                 else {
                     log.warn('AzurePubSubProvider: post filtering message: ' + JSON.stringify(message));                    
+                    log.warn('AzurePubSubProvider: given filter ' + JSON.stringify(subscription.filter));                    
                     callback();
                 }
             }
