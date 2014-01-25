@@ -155,8 +155,9 @@ describe('principals service', function() {
         });
     });
 
-    it('should allow user deleting a device it owns', function(done) {
-        services.principals.removeById(fixtures.models.principals.user, fixtures.models.principals.device.id, function(err) {
+    it('should allow device deleting itself', function(done) {
+        console.log('user id: ' + fixtures.models.principals.user.id);
+        services.principals.removeById(fixtures.models.principals.device, fixtures.models.principals.device.id, function(err) {
             assert.ifError(err);
             done();
         });

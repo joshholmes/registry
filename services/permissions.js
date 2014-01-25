@@ -5,10 +5,6 @@ var async = require('async')
   , services = require('../services')
   , utils = require('../utils');
 
-// v0.2 TODO list:
-// * Filtering permissions down to the ones a principal can see.
-// * Authorization of principal to create a permission for a principal (does it have the right to grant that permission ?).
-
 var authorize = function(request, obj, callback) {
     var principalForId =  !request.principal_for ? "" : request.principal_for.id;
     log.debug('authorizing ' + request.principal.id + ' for action: ' + request.action + ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj));
@@ -91,7 +87,13 @@ var permissionsFor = function(principalId, callback) {
 
         // TODO: this is a super broad query so we'll have to evaluate many many permissions.  
         // need to think about how to pull a more tightly bounded set of possible permissions for evaluation.
-        var query = { $or : [{ issued_to: principalId }, { issued_to: { $exists: false } }] };
+        var query = { 
+            $or : [
+                { issued_to: principalId }, 
+                { principal_for: { $exists: false } }, 
+                { issued_to: { $exists: false } }
+            ] 
+        };
 
         find(services.principals.servicePrincipal, query, { sort: { priority: 1 } }, function(err, permissions) {
             if (err) return callback(err);

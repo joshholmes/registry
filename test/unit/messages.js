@@ -23,6 +23,13 @@ describe('messages service', function() {
           assert.notEqual(savedMessages[0].id, null);
           assert.equal(savedMessages[0].body_length > 0, true);
 
+          var foundServicePrincipal = false;
+          savedMessages[0].visible_to.forEach(function(id) {
+            foundServicePrincipal = foundServicePrincipal || (id == services.principals.servicePrincipal.id);
+          });
+
+          assert(foundServicePrincipal);
+
           assert(savedMessages[0].expires > utils.dateDaysFromNow(config.default_message_lifetime-1) && 
                  savedMessages[0].expires < utils.dateDaysFromNow(config.default_message_lifetime));
 
