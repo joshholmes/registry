@@ -55,7 +55,10 @@ AzurePubSubProvider.sqlFromJsonQuery = function(jsonQuery) {
             subqueries.push(AzurePubSubProvider.buildFromSubArray(jsonQuery[key], " OR "));
         } else {
             var value = JSON.stringify(jsonQuery[key]).replace(/"/g, "'");
-            subqueries.push(key + '=' + value);
+            if (key !== 'visible_to')
+                subqueries.push(key + '=' + value);
+            else
+                subqueries.push('visible_to_' + jsonQuery[key] + '=true');
         }
 
     }
@@ -77,9 +80,6 @@ AzurePubSubProvider.prototype.createSubscription = function(subscription, callba
             else
                 return callback(err);
         }
-
-        // TODO: rely on post filtering for now.
-        return callback(null, subscription);
 
         if (subscription.filter) {
 
@@ -113,6 +113,10 @@ AzurePubSubProvider.prototype.publish = function(type, item, callback) {
         customProperties: item.toObject(),
         body: JSON.stringify(item)
     };
+
+    for (var principalId in item.visible_to) {
+        serviceBusMessage.customProperties['visible_to_' + principalId] = true;
+    }
 
     this.serviceBus.sendTopicMessage(type, serviceBusMessage, callback);
 };
