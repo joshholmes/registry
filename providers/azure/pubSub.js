@@ -81,6 +81,9 @@ AzurePubSubProvider.prototype.createSubscription = function(subscription, callba
                 return callback(err);
         }
 
+        // TODO: disable service bus rules for now.
+        return callback(null, subscription);
+
         if (subscription.filter) {
 
             self.serviceBus.deleteRule(
