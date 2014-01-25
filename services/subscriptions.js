@@ -172,6 +172,7 @@ var start = function(socket, spec, callback) {
 
     // compose filter that includes visibility limitations.
     subscription.filter = services.principals.filterForPrincipal(socket.handshake.principal, subscription.filter);
+    log.error('subscription filter: ' + JSON.stringify(subscription.filter));
 
     findOrCreate(subscription, function(err, subscription) {
         if (err) {
