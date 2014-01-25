@@ -78,6 +78,9 @@ AzurePubSubProvider.prototype.createSubscription = function(subscription, callba
                 return callback(err);
         }
 
+        // TODO: rely on post filtering for now.
+        return callback(null, subscription);
+
         if (subscription.filter) {
 
             self.serviceBus.deleteRule(
@@ -135,7 +138,7 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
                 if (unfiltered.length > 0)
                     callback(null, message);
                 else {
-                    log.warn('AzurePubSubProvider: had to post filter a message that should have been handled by Service Bus.');                    
+                    log.warn('AzurePubSubProvider: post filtering message: ' + JSON.stringify(message));                    
                     callback();
                 }
             }
