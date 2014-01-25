@@ -90,8 +90,9 @@ var permissionsFor = function(principalId, callback) {
         var query = { 
             $or : [
                 { issued_to: principalId }, 
-                { principal_for: { $exists: false } }, 
-                { issued_to: { $exists: false } }
+                { principal_for: principalId },
+                { issued_to: { $exists: false } },
+                { principal_for: { $exists: false } } 
             ] 
         };
 
