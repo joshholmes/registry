@@ -5,14 +5,10 @@ var async = require('async')
   , services = require('../services')
   , utils = require('../utils');
 
-// v0.2 TODO list:
-// * Filtering permissions down to the ones a principal can see.
-// * Authorization of principal to create a permission for a principal (does it have the right to grant that permission ?).
-
 var authorize = function(request, obj, callback) {
     var principalForId =  !request.principal_for ? "" : request.principal_for.id;
     log.debug('authorizing ' + request.principal.id + ' for action: ' + request.action + ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj));
-    permissionsFor(request.principal, function(err, permissions) {
+    permissionsFor(request.principal.id, function(err, permissions) {
         if (err) return callback(err);
 
         //permissions.forEach(function(permission) {
@@ -67,7 +63,7 @@ var create = function(authPrincipal, permission, callback) {
 };
 
 var filterForPrincipal = function(authPrincipal, filter) {
-    // TODO: think through how permissions should be filtered.
+    // TODO: think through how permissions should be filtered, if at all.
     return filter;
 };
 
@@ -83,18 +79,26 @@ var initialize = function(callback) {
     return callback();
 };
 
-var permissionsFor = function(principal, callback) {
-    config.cache_provider.get('permissions', principal.id, function(err, permissions) {
+var permissionsFor = function(principalId, callback) {
+    config.cache_provider.get('permissions', principalId, function(err, permissions) {
         if (err) return callback(err);
 
         if (permissions) return callback(null, permissions);
 
         // TODO: this is a super broad query so we'll have to evaluate many many permissions.  
         // need to think about how to pull a more tightly bounded set of possible permissions for evaluation.
-        find(services.principals.servicePrincipal, { $or : [{ issued_to: principal.id }, { issued_to: null }] }, { sort: { priority: 1 } }, function(err, permissions) {
+        var query = { 
+            $or : [
+                { issued_to: principalId }, 
+                { principal_for: { $exists: false } }, 
+                { issued_to: { $exists: false } }
+            ] 
+        };
+
+        find(services.principals.servicePrincipal, query, { sort: { priority: 1 } }, function(err, permissions) {
             if (err) return callback(err);
 
-            config.cache_provider.set('permissions', principal.id, permissions, utils.dateDaysFromNow(1), function(err) {
+            config.cache_provider.set('permissions', principalId, permissions, utils.dateDaysFromNow(1), function(err) {
                 return callback(err, permissions);
             });
         });
@@ -132,6 +136,7 @@ module.exports = {
     create: create,
     find: find,
     initialize: initialize,
+    permissionsFor: permissionsFor,
     remove: remove,
     translate: translate
 };

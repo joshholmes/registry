@@ -127,13 +127,15 @@ var receive = function(subscription, callback) {
 
     config.pubsub_provider.receive(subscription, callback);
 
-    update(subscription, { last_receive: new Date() });
+    subscription.last_receive = new Date();
+    subscription.save();
+    //update(subscription, { last_receive: new Date() });
 };
 
 var remove = function(subscription, callback) {
     if (!subscription) return log.error('undefined subscription passed to services.subscription.remove.');
 
-    log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name);
+    log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name + ': filter: ' + JSON.stringify(subscription.filter) + ' last_receive: ' + subscription.last_receive);
 
     config.pubsub_provider.removeSubscription(subscription, function(err) {
         if (err) {
@@ -222,7 +224,7 @@ var stream = function(socket, subscription) {
                 // of the message before proceeding.
 
                 if (item) {
-                    log.info('subscription service:  new message from subscription: ' + subscription.clientId + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
+                    log.debug('subscription service:  new message from subscription: ' + subscription.clientId + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
                     socket.emit(subscription.clientId, item);
                 }
 

@@ -12,22 +12,32 @@ var buildVisibility = function(message, callback) {
     // if the creator has already marked this as public, shortcircuit.
     if (message.public) return callback(null, message);
 
-    // find all 'subscribe' permissions
-    services.permissions.find({ principal_for: message.from, type: 'subscribe' }, {}, function(err, permissions) {
+    // find all permissions for from: principal
+    services.permissions.permissionsFor(message.from, function(err, permissions) {
         if (err) return callback(err);
 
         message.public = false;
-        message.visible_to = message.to ? [message.to] : [];
+
+        var authorizedHash = {};
+        authorizedHash[message.from] = true;
+
+        if (message.to)
+            authorizedHash[message.to] = true;
+
+        // iterate through permissions in priority order. 
+        // track specific or all-principals authorizations.
         permissions.forEach(function(permission) {
-            if (!message.public) {
+            if (!permission.action || permission.action === 'subscribe') {
                 if (permission.issued_to) {
-                    message.visible_to.push(permission.issued_to);
+                    if (!authorizedHash[permission.issued_to] && permission.authorized)
+                        authorizedHash[permission.issued_to] = true;
                 } else {
-                    message.visible_to = [];
                     message.public = true;
                 }
             }
         });
+
+        message.visible_to = message.public ? [] : Object.keys(authorizedHash);
 
         return callback(null, message);
     });

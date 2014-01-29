@@ -14,7 +14,7 @@ MemoryPubSubProvider.prototype.createSubscription = function(subscription, callb
 };
 
 MemoryPubSubProvider.prototype.publish = function(type, item, callback) {
-    log.info("MemoryPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.debug("MemoryPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
     var self = this;
 
     async.each(Object.keys(this.subscriptions), function(subscriptionId, subscriptionCallback) {
