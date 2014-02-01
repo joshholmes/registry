@@ -90,12 +90,13 @@ To run a Nitrogen service locally:
 1.  Feedback:  We'd love feedback on what problems you are using Nitrogen to solve.  Obviously, we'd also like to hear about where you ran into sharp edges and dead ends.   Let us know by filing an issue with the project.
 2.  Pull requests:  If you'd like to tackle an issue, fork the repo, create a clean commit for the fix or enhancement (with tests if new ones are required), and send us a pull request.
 
-## Other Projects
+## Nitrogen Project
 
-Nitrogen has three other that you should have a look at as well.
+The Nitrogen project is housed in a set of GitHub projects:
 
-1. [client](https://github.com/nitrogenjs/client): The client library for building Nitrogen devices and applications.
-2. [admin](https://github.com/nitrogenjs/admin): An administrative tool for managing the Nitrogen service.
-3. [camera](https://github.com/nitrogenjs/camera): A sample device application that connects a camera to the Nitrogen service.
-4. [commands](https://github.com/nitrogenjs/commands): Project managed commandManagers and schemas for different command types.
-5. [device](https://github.com/nitrogenjs/devices): Project managed devices for common pieces of hardware.
+1. [service](https://github.com/nitrogenjs/service): Core platform responsible for managing principals, security, and messaging.
+2. [client](https://github.com/nitrogenjs/client): JavaScript client library for building Nitrogen devices and applications.
+3. [admin](https://github.com/nitrogenjs/admin): Administrative tool for managing the Nitrogen service.
+4. [device](https://github.com/nitrogenjs/devices): Adaptors for common pieces of hardware.
+5. [commands](https://github.com/nitrogenjs/commands): CommandManagers and schemas for well known command types.
+6. [cli](https://github.com/nitrogenjs/cli): Command line interface for working with a Nitrogen service.

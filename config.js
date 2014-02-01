@@ -91,10 +91,10 @@ config.refresh_token_threshold = 0.8;
 //
 if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
     config.blob_provider = new providers.azure.AzureBlobProvider(config);
+} else {
+    config.blob_storage_path = './storage';
+    config.blob_provider = new providers.local.LocalBlobProvider(config);
 }
-
-// config.blob_storage_path = './storage';
-// config.blob_provider = new providers.local.LocalBlobProvider(config);
 
 config.cache_provider = new providers.local.NullCacheProvider(config);
 
@@ -104,9 +104,9 @@ config.email_provider = new providers.local.NullEmailProvider(config);
 //
 if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
     config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
+} else {
+    config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
 }
-
-// config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
 
 // config.redis_servers = {
 //    'localhost': { port: 6379, host: '127.0.0.1', id: 'localhost' }
