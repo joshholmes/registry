@@ -14,7 +14,7 @@
     }
   ],
   "engines": {
-    "node": "0.10.21"
+    "node": "0.10.24"
   },
   "dependencies": {
     "async": "~0.2.9",
@@ -25,6 +25,7 @@
     "nitrogen": "~0.1.209",
     "nitrogen-camera": "~0.1.10",
     "nitrogen-light": "~0.1.13",
+    "nitrogen-reactor": "~0.1.10",
     "nitrogen-switch": "~0.1.10",
     "passport": "~0.1.17",
     "passport-http-bearer": "~0.2.1",
