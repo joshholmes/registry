@@ -85,7 +85,7 @@ config.default_message_lifetime = 365;
 
 // when the token gets within 10% (default) of config.access_token_lifetime,
 // refresh it with a new token via the response header.
-config.refresh_token_threshold = 0.8;
+config.refresh_token_threshold = 0.1;
 
 // You can use Azure's Blob storage as a blob provider by uncommenting this configuration.
 //
