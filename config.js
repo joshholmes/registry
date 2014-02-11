@@ -98,26 +98,29 @@ if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
 
 config.cache_provider = new providers.local.NullCacheProvider(config);
 
-config.email_provider = new providers.local.NullEmailProvider(config);
+if (process.env.REDIS_SERVERS) {
 
-// You can use Azure's Service Bus as a pubsub provider using this configuration.
-//
-if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
+    // To use Redis as a realtime backend, the env variable REDIS_SERVERS 
+    // should be set to a JSON specification like this with the set of 
+    // redis servers used for pubsub:
+    //
+    // { "redis1": { "port": 6379, "host": "redis1.myapp.com", id: "redis1" }
+
+    config.redis_servers = JSON.parse(process.env.REDIS_SERVERS);
+    config.pubsub_provider = new providers.redis.RedisPubSubProvider(config);
+} else if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
     config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
 } else {
     config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
 }
 
-// config.redis_servers = {
-//    'localhost': { port: 6379, host: '127.0.0.1', id: 'localhost' }
-// };
+// Email provider configuration
 
-// config.pubsub_provider = new providers.redis.RedisPubSubProvider(config);
-
-// config.email_provider = new providers.sendgrid.SendgridEmailProvider(config);
-
-// config.SENDGRID_API_USER = "";
-// config.SENDGRID_API_KEY = "";
+if (process.env.SENDGRID_API_USER && process.env.SENDGRID_API_KEY) {
+    config.email_provider = new providers.sendgrid.SendgridEmailProvider(config);
+} else {
+    config.email_provider = new providers.local.NullEmailProvider(config);
+}
 
 config.request_log_format = ':remote-addr - - [:date] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ":referrer" ":user-agent"';
 
@@ -137,7 +140,7 @@ if (process.env.LOGGLY_SUBDOMAIN &&
     });
 }
 
-log.add(winston.transports.Console, { colorize: true, timestamp: true, level: 'info' });
+log.add(winston.transports.Console, { colorize: true, timestamp: true, level: 'debug' });
 
 // if you'd like additional indexes applied to messages at the database layer, you can specify them here.
 config.message_indexes = [
