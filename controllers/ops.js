@@ -10,6 +10,6 @@ exports.health = function(req, res) {
         res.send({ status: status,
                    memory: process.memoryUsage(),
                    pid: process.pid,
-                   uptime: process.uptime() });
+                   uptime: services.global.uptime() });
     });
 };

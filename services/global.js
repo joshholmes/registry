@@ -5,6 +5,8 @@ var async = require('async')
   , models = require('../models')
   , services = require('../services')
 
+var serviceStartTime = new Date();
+
 // TODO: when scaled out do we just let all the nodes do this and use the 
 // entropy in the offset timing of that automatically scale these deletes?
 var janitor = function(callback) {
@@ -62,8 +64,13 @@ var startJanitor = function(callback) {
     return callback();
 };
 
+var uptime = function() {
+    return new Date().getTime() - serviceStartTime.getTime();
+};
+
 module.exports = {
     janitor: janitor,
     migrate: migrate,
-    startJanitor: startJanitor
+    startJanitor: startJanitor,
+    uptime: uptime
 };
