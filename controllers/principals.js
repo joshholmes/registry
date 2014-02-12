@@ -96,14 +96,14 @@ exports.remove = function(req, res) {
 };
 
 exports.resetPassword = function(req, res) {
-    services.principals.find(services.principals.servicePrincipal, { email: req.params.email }, function(err, principals) {
+    services.principals.find(services.principals.servicePrincipal, { email: req.body.email }, function(err, principals) {
         if (err) return utils.handleError(res, err);
-        if (principals.length < 1) return utils.notFoundError(res);
+        if (principals.length < 1) return utils.handleError(res, utils.notFoundError('User ' + req.body.email + ' not found.'));
 
         services.principals.resetPassword(services.principals.servicePrincipal, principals[0], function(err) {
             if (err) return utils.handleError(res, err);
 
-            res.send(200);
+            res.send(200, {});
         });
     });
 };

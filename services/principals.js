@@ -164,7 +164,7 @@ var createPermissions = function(principal, callback) {
 
 var createSecretCredentials = function(principal, callback) {
     if (!config.device_secret_bytes) return callback(
-        utils.internalError('Service is missing configuration.  Please add value for missing device_secret_bytes element.')
+        utils.internalError('principals service: Service is missing required configuration item device_secret_bytes.')
     );
 
     crypto.randomBytes(config.device_secret_bytes, function(err, secretBuf) {
@@ -304,7 +304,7 @@ var impersonate = function(principal, impersonatedPrincipalId, callback) {
         services.accessTokens.findOrCreateToken(impersonatedPrincipal, function(err, accessToken) {
             if (err) return callback(err);
 
-            log.info("impersonated device principal: " + impersonatedPrincipal.id);
+            log.info("principal service: principal " + principal.id + " impersonated principal: " + impersonatedPrincipal.id);
             callback(null, impersonatedPrincipal, accessToken);
         });
     });
@@ -318,7 +318,7 @@ var initialize = function(callback) {
     models.Principal.find({ type: 'service' }, null, {}, function(err, principals) {
         if (err) return callback(err);
 
-        log.info("found " + principals.length + " service principals");
+        log.info("principals service: found " + principals.length + " service principals");
 
         if (principals.length === 0) {
             log.info("creating service principal");
@@ -375,6 +375,7 @@ var resetPassword = function(authorizingPrincipal, principal, callback) {
             if (err) return callback(err);
             if (!permission.authorized) return callback(utils.authorizationError(permission));
 
+            log.info('principals service: reseting password for principal: ' + principal.id);
             generateRandomPassword(function(err, randomPassword) {
                 if (err) return callback(err);
 
@@ -388,7 +389,7 @@ var resetPassword = function(authorizingPrincipal, principal, callback) {
                     };
 
                     services.email.send(email, function(err) {
-                        return callback(null, principal);
+                        return callback(err, principal);
                     });
                 });
             });
@@ -457,23 +458,23 @@ var updateLastConnection = function(principal, ip) {
         });
 
         services.messages.create(services.principals.servicePrincipal, ipMessage, function(err, message) {
-            if (err) log.info("creating ip message failed: " + err);
+            if (err) log.info("principal service: creating ip message failed: " + err);
         });
     }
 
     principal.last_connection = updates.last_connection = new Date();
 
     update(services.principals.servicePrincipal, principal.id, updates, function(err, principal) {
-        if (err) return log.error("updating last connection failed: " + err);
+        if (err) return log.error("principal service: updating last connection failed: " + err);
     });
 };
 
 var updateVisibleTo = function(principalId, callback) {
-    log.info("updating visible_to for: " + principalId);
+    log.debug("principal service: updating visible_to for: " + principalId);
     findById(services.principals.servicePrincipal, principalId, function(err, principal) {
         if (err) return callback(err);
         if (!principal) return callback();
-        log.info("updating visible_to for principal id: " + principalId);
+        log.debug("principal service: updating visible_to for principal id: " + principalId);
 
         if (!principal.public) {
             services.permissions.find(services.principals.servicePrincipal,
@@ -496,11 +497,11 @@ var updateVisibleTo = function(principalId, callback) {
                     if (err) return callback(err);
 
                     principal.visible_to = permissions.map(function(permission) {
-                        log.info("adding " + permission.issued_to + " to visible principals.");
+                        log.debug("principal service: adding " + permission.issued_to + " to visible principals.");
                         return permission.issued_to;
                     });
 
-                    log.info("final visible_to: " + JSON.stringify(principal.visible_to));
+                    log.debug("principal service: final visible_to: " + JSON.stringify(principal.visible_to));
 
                     services.principals.update(services.principals.servicePrincipal, principalId, { visible_to: principal.visible_to }, callback);
                 }
@@ -548,7 +549,7 @@ var verifySecret = function(secret, principal, callback) {
     hashSecret(secret, function(err, hashedSecret) {
         if (err) return callback(err);
         if (hashedSecret != principal.secret_hash) {
-            log.info("verification of secret for principal: " + principal.id + " failed");
+            log.warn("verification of secret for principal: " + principal.id + " failed");
             return callback(utils.authenticationError(DEVICE_AUTH_FAILURE_MESSAGE));
         }
 
