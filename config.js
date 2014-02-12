@@ -5,10 +5,12 @@ var log = require('./log')
 
 var config = null;
 
+//
 // To enable proxies like NGINX, Nitrogen has internal and external ports.
 //
 // external_port defines the port that clients should use to access the service.
 // internal_port defines the port that the service will listen to.
+//
 
 if (process.env.NODE_ENV === "production") {
     config = {
