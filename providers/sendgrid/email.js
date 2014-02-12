@@ -4,12 +4,18 @@ var async = require('async')
   , sift = require('sift');
 
 function SendgridEmailProvider(config) {
+    if (!process.env.SENDGRID_API_USER || !process.env.SENDGRID_API_KEY) {
+        return log.error('sendgrid email provider:  environmental variables SENDGRID_API_USER and SENDGRID_API_KEY not both set.');
+    }
+
     this.config = config;
-    this.client = sendgrid(config.SENDGRID_API_USER, config.SENDGRID_API_KEY);
+    this.client = sendgrid(process.env.SENDGRID_API_USER, process.env.SENDGRID_API_KEY);
+    log.error('set client: ' + this.client);
 }
 
-SendgridEmailProvider.prototype.send = function(emailObj, callback) {
-	sendgrid.send(new sendgrid.Email(emailObj), callback);
+SendgridEmailProvider.prototype.send = function(email, callback) {
+    log.error('client: ' + this.client);
+	this.client.send(email, callback);
 };
 
 module.exports = SendgridEmailProvider;

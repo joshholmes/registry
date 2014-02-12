@@ -1,6 +1,7 @@
 var assert = require('assert')
   , config = require('../../../config')
-  , providers = require('../../../providers');
+  , providers = require('../../../providers')
+  , services = require('../../../services');
 
 if (config.email_provider instanceof providers.sendgrid.SendgridEmailProvider) {
 
@@ -13,9 +14,11 @@ if (config.email_provider instanceof providers.sendgrid.SendgridEmailProvider) {
         		text: 'this is a test body'
         	};
 
-        	services.email.send(email, function(err) {
+        	services.email.send(email, function(err, json) {
         		assert.ifError(err);
 
+                assert.equal(json.message, 'success');
+ 
         		done();
         	});
         });

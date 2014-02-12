@@ -117,6 +117,7 @@ if (process.env.REDIS_SERVERS) {
 // Email provider configuration
 
 if (process.env.SENDGRID_API_USER && process.env.SENDGRID_API_KEY) {
+    console.log('using sendgrid');
     config.email_provider = new providers.sendgrid.SendgridEmailProvider(config);
 } else {
     config.email_provider = new providers.local.NullEmailProvider(config);
@@ -140,7 +141,7 @@ if (process.env.LOGGLY_SUBDOMAIN &&
     });
 }
 
-log.add(winston.transports.Console, { colorize: true, timestamp: true, level: 'debug' });
+log.add(winston.transports.Console, { colorize: true, timestamp: true, level: 'info' });
 
 // if you'd like additional indexes applied to messages at the database layer, you can specify them here.
 config.message_indexes = [
