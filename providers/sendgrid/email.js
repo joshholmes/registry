@@ -14,8 +14,7 @@ function SendgridEmailProvider(config) {
 }
 
 SendgridEmailProvider.prototype.send = function(email, callback) {
-    log.error('client: ' + this.client);
-	this.client.send(email, callback);
+    this.client.send(email, callback);
 };
 
 module.exports = SendgridEmailProvider;

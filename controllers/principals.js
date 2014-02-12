@@ -96,6 +96,8 @@ exports.remove = function(req, res) {
 };
 
 exports.resetPassword = function(req, res) {
+    if (!req.body.email) return utils.handleError(res, utils.badRequestError("Email requested to reset password."))
+
     services.principals.find(services.principals.servicePrincipal, { email: req.body.email }, function(err, principals) {
         if (err) return utils.handleError(res, err);
         if (principals.length < 1) return utils.handleError(res, utils.notFoundError('User ' + req.body.email + ' not found.'));

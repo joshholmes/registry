@@ -101,7 +101,12 @@ describe('principals endpoint', function() {
             assert.ifError(err);
             assert.equal(resp.statusCode, 200);
 
-            request.post({ url: config.principals_endpoint + "/reset" }, function(err, resp, body) {
+            request.post({ 
+              url: config.principals_endpoint + "/reset",
+              json: { 
+                email: 'resetuser@server.org' 
+              }
+            }, function(err, resp, body) {
                 assert.ifError(err);
                 assert.equal(resp.statusCode, 200);
 

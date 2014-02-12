@@ -23,8 +23,6 @@ var authorizationError = function(msg) {
 };
 
 var badRequestError = function(msg) {
-    log.warn('sending bad request response: ' + msg);
-
     return new ServiceError({
         statusCode: 400,
         message: msg
@@ -78,10 +76,10 @@ var nop = function(callback) {
     return callback();
 }
 
-var notFoundError = function() {
+var notFoundError = function(msg) {
     return new ServiceError({
         statusCode: 404,
-        message: "Requested resource not found."
+        message: msg || "Requested resource not found."
     });
 };
 

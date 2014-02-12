@@ -375,11 +375,14 @@ var resetPassword = function(authorizingPrincipal, principal, callback) {
             if (err) return callback(err);
             if (!permission.authorized) return callback(utils.authorizationError(permission));
 
-            log.info('principals service: reseting password for principal: ' + principal.id);
+            log.info('principals service: reseting password for principal: ' + principal.id + ': ' + principal.email);
+
             generateRandomPassword(function(err, randomPassword) {
                 if (err) return callback(err);
 
                 changePassword(principal, randomPassword, function(err, principal) {
+                    if (err) return callback(err);
+
                     var email = {
                         to: principal.email,
                         from: config.service_email_address,
