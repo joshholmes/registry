@@ -387,8 +387,8 @@ var resetPassword = function(authorizingPrincipal, principal, callback) {
                         to: principal.email,
                         from: config.service_email_address,
                         subject: "Password Reset",      // TODO: Localization
-                        text: "Your Nitrogen password was reset to " + randomPassword + "\n" +
-                              "Please login at http://admin.nitrogen.io/ and change it to a permanent one as soon as possible."
+                        text: "A password reset was requested for your Nitrogen account.  Your reset password is " + randomPassword + "\n" +
+                              "Please login and change it as soon as possible."
                     };
 
                     services.email.send(email, function(err) {
