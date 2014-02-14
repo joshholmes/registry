@@ -4,11 +4,9 @@ var fs = require('fs')
   , ServiceError = require('./serviceError');
 
 var authenticationError = function(msg) {
-    log.warn('sending authentication error response.');
-
     return new ServiceError({
         statusCode: 401,
-        message: msg || "Authentication failed for principal."
+        message: msg || "Authentication failed, please log in."
     });
 };
 

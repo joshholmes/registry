@@ -22,8 +22,7 @@ module.exports = function(req, res, next) {
     auth(req, res, function(err, failed) {
         if (err) {
             req.resume();
-            log.error('authentication error: ' + err);
-            return utils.handleError(res, utils.authenticationError(err));
+            return utils.handleError(res, utils.authenticationError());
         }
 
         tokenNearExpirationCheck(req, res, function(err) {
