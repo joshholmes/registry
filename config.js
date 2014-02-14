@@ -91,8 +91,10 @@ config.refresh_token_threshold = 0.1;
 // You can use Azure's Blob storage as a blob provider by uncommenting this configuration.
 //
 if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
+    console.log('blob_provider: using Azure blob storage.');
     config.blob_provider = new providers.azure.AzureBlobProvider(config);
 } else {
+    console.log('blob_provider: using local storage.');
     config.blob_storage_path = './storage';
     config.blob_provider = new providers.local.LocalBlobProvider(config);
 }
@@ -107,20 +109,25 @@ if (process.env.REDIS_SERVERS) {
     //
     // { "redis1": { "port": 6379, "host": "redis1.myapp.com", id: "redis1" }
 
+    console.log('pubsub_provider: using Redis pubsub.');
+
     config.redis_servers = JSON.parse(process.env.REDIS_SERVERS);
     config.pubsub_provider = new providers.redis.RedisPubSubProvider(config);
 } else if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
+    console.log('pubsub_provider: using Service Bus pubsub.');
     config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
 } else {
+    console.log('pubsub_provider: using memory pubsub.');
     config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
 }
 
 // Email provider configuration
 
 if (process.env.SENDGRID_API_USER && process.env.SENDGRID_API_KEY) {
-    console.log('using sendgrid');
+    console.log('email_provider: using sendgrid.');
     config.email_provider = new providers.sendgrid.SendgridEmailProvider(config);
 } else {
+    console.log('email_provider: using null provider.');
     config.email_provider = new providers.local.NullEmailProvider(config);
 }
 
