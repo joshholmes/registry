@@ -66,6 +66,10 @@ var attachSubscriptionsEndpoint = function() {
     });
 };
 
+var count = function(callback) {
+    models.Subscription.count(callback);
+};
+
 var create = function(subscription, callback) {
     config.pubsub_provider.createSubscription(subscription, function(err) {
         if (err) callback(err);
@@ -245,7 +249,9 @@ var update = function(subscription, updates, callback) {
 
 module.exports = {
     attach: attach,
+    count: count,
     create: create,
+    find: find,
     findOne: findOne,
     findOrCreate: findOrCreate,
     janitor: janitor,

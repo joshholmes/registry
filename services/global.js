@@ -65,7 +65,7 @@ var startJanitor = function(callback) {
 };
 
 var uptime = function() {
-    return new Date().getTime() - serviceStartTime.getTime();
+    return Math.floor((new Date().getTime() - serviceStartTime.getTime()) / 1000.0);
 };
 
 module.exports = {

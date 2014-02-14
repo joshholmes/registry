@@ -4,12 +4,13 @@ var config = require('../config')
 
 exports.health = function(req, res) {
     var status = "ok";
-    services.messages.find(req.user, {}, { limit: 1 }, function(err, messages) {
+    services.subscriptions.count(function(err, subscriptionCount) {
         if (err) status = "failing";
 
-        res.send({ status: status,
-                   memory: process.memoryUsage(),
+        res.send({ memory: process.memoryUsage(),
                    pid: process.pid,
+                   status: status,
+                   subscriptions: subscriptionCount,
                    uptime: services.global.uptime() });
     });
 };
