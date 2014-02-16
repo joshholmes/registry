@@ -44,11 +44,7 @@ RedisPubSubProvider.prototype.createSubscription = function(subscription, callba
     var serverIds = Object.keys(this.config.redis_servers);
     var serverAssignmentIdx = Math.floor(serverIds.length * Math.random());
 
-    console.log('serverAssignmentIdx: ' + serverAssignmentIdx);
-
     subscription.assignment = serverIds[serverAssignmentIdx];
-
-    console.log('subscription.assignment: ' + subscription.assignment);
 
     var client = this.clientForServer(subscription.assignment);
     client.sadd(RedisPubSubProvider.SUBSCRIPTIONS_KEY, RedisPubSubProvider.redisifySubscription(subscription), function(err) {
@@ -119,6 +115,8 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
 };
 
 RedisPubSubProvider.prototype.removeSubscription = function(subscription, callback) {
+    if (!subscription.assignment) return callback('Subscription not assigned to Redis server.');
+    
     var subscriptionJson = RedisPubSubProvider.redisifySubscription(subscription);
 
     log.info("redis: removing subscription: " + subscriptionJson);
