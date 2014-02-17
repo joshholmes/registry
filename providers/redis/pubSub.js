@@ -27,14 +27,14 @@ RedisPubSubProvider.subscriptionKey = function(subscription) {
 };
 
 RedisPubSubProvider.prototype.clientForServer = function(serverId) {
-    return this.createClient(serverId);
+    if (!this.clients[serverId] ) {
+        log.warn('RedisPubSubProvider: creating redis client for serverId: ' + serverId);
+        var client = this.createClient(serverId);
 
-//    if (!this.clients[serverId] ) {
-//        log.warn('RedisPubSubProvider: creating redis client for serverId: ' + serverId);
-//        this.clients[serverId]  = ;
-//    }
+        this.clients[serverId] = client;
+    }
 
-//    return this.clients[serverId];
+    return this.clients[serverId];
 };
 
 RedisPubSubProvider.prototype.createClient = function(serverId) {
@@ -109,6 +109,8 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
     log.debug('RedisPubSubProvider: RECEIVING on subscription key: ' + subscriptionKey + ' filter: ' + JSON.stringify(subscription.filter));
 
     client.blpop(subscriptionKey, RedisPubSubProvider.RECEIVE_TIMEOUT_SECONDS, function(err, reply) {
+        client.quit();
+
         if (err) return callback(err);
         if (!reply) return callback(null, null);
 
@@ -128,7 +130,7 @@ RedisPubSubProvider.prototype.removeSubscription = function(subscription, callba
 
     log.info("RedisPubSubProvider: removing subscription: " + subscriptionJson);
 
-    var client = this.createClient(subscription.assignment);
+    var client = this.clientForServer(subscription.assignment);
 
     // remove subscription from the set of subscriptions
     client.srem(RedisPubSubProvider.SUBSCRIPTIONS_KEY, subscriptionJson, function(err) {
