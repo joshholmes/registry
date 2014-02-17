@@ -27,16 +27,25 @@ RedisPubSubProvider.subscriptionKey = function(subscription) {
 };
 
 RedisPubSubProvider.prototype.clientForServer = function(serverId) {
-    if (!this.clients[serverId] ) {
-        this.clients[serverId]  = this.createClient(serverId);
-    }
+    return this.createClient(serverId);
 
-    return this.clients[serverId];
+//    if (!this.clients[serverId] ) {
+//        log.warn('RedisPubSubProvider: creating redis client for serverId: ' + serverId);
+//        this.clients[serverId]  = ;
+//    }
+
+//    return this.clients[serverId];
 };
 
 RedisPubSubProvider.prototype.createClient = function(serverId) {
     var server = this.config.redis_servers[serverId];
-    return redis.createClient(server.port, server.host);
+    var client = redis.createClient(server.port, server.host);
+
+    client.on('error', function (err) {
+        log.error('RedisPubSubProvider: client error: ' + err);
+    });
+
+    return client;
 };
 
 RedisPubSubProvider.prototype.createSubscription = function(subscription, callback) {   
@@ -47,9 +56,8 @@ RedisPubSubProvider.prototype.createSubscription = function(subscription, callba
     subscription.assignment = serverIds[serverAssignmentIdx];
 
     var client = this.clientForServer(subscription.assignment);
-    client.sadd(RedisPubSubProvider.SUBSCRIPTIONS_KEY, RedisPubSubProvider.redisifySubscription(subscription), function(err) {
-        return callback(err, subscription);
-    });
+
+    client.sadd(RedisPubSubProvider.SUBSCRIPTIONS_KEY, RedisPubSubProvider.redisifySubscription(subscription), callback);
 };
 
 // TODO: Use straw.js to queue the item with the subscription system?
@@ -63,12 +71,13 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
     async.each(Object.keys(this.config.redis_servers), function(serverId, serverCallback) {
 
         var client = self.clientForServer(serverId);
-        
+
         // find all of the subscriptions for this server
         self.subscriptionsForServer(serverId, function(err, subscriptions) {
             if (err) return serverCallback(err);
 
             // for each subscription, see if the filter matches this item
+            log.info("RedisPubSubProvider: CHECKING " + subscriptions.length + " subscriptions.");
             async.each(subscriptions, function(subscriptionJson, subscriptionCallback) {
                 var subscription = JSON.parse(subscriptionJson);
 
@@ -77,7 +86,7 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
                 if (subscription.type === type) {
                     var unfilteredItems = sift(subscription.filter, [item]);
                     if (unfilteredItems.length > 0) {
-                        log.debug("RedisPubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                        log.info("RedisPubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
                         client.rpush(RedisPubSubProvider.subscriptionKey(subscription), JSON.stringify(unfilteredItems[0]), subscriptionCallback);
                     } else {
                         return subscriptionCallback();
@@ -95,8 +104,6 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
     if (!subscription.assignment) return callback('subscription has no Redis server assignment.');
 
     var client = this.createClient(subscription.assignment);
-
-    client.on('error', callback);
 
     var subscriptionKey = RedisPubSubProvider.subscriptionKey(subscription);
     log.debug('RedisPubSubProvider: RECEIVING on subscription key: ' + subscriptionKey + ' filter: ' + JSON.stringify(subscription.filter));
@@ -119,14 +126,21 @@ RedisPubSubProvider.prototype.removeSubscription = function(subscription, callba
     
     var subscriptionJson = RedisPubSubProvider.redisifySubscription(subscription);
 
-    log.info("redis: removing subscription: " + subscriptionJson);
+    log.info("RedisPubSubProvider: removing subscription: " + subscriptionJson);
 
     var client = this.createClient(subscription.assignment);
-    client.srem(RedisPubSubProvider.SUBSCRIPTIONS_KEY, subscriptionJson, callback);
+
+    // remove subscription from the set of subscriptions
+    client.srem(RedisPubSubProvider.SUBSCRIPTIONS_KEY, subscriptionJson, function(err) {
+        if (err) return callback(err);
+
+        client.del(RedisPubSubProvider.subscriptionKey(subscription), callback);
+    });
 };
 
 RedisPubSubProvider.prototype.subscriptionsForServer = function(serverId, callback) {
     var client = this.clientForServer(serverId);
+
     client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, callback); 
 };
 
@@ -136,25 +150,32 @@ RedisPubSubProvider.prototype.staleSubscriptionCutoff = function() {
 
 //// TESTING ONLY METHODS BELOW THIS LINE
 
-//RedisPubSubProvider.prototype.displaySubscriptions = function(callback) {
-//    async.each(Object.keys(this.config.redis_servers), function(serverId, serverCallback) {
-//
-//        log.info("redis pubsub provider: SUBSCRIPTIONS FOR SERVER ID: " + serverId);
-//
-//        client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, function(err, subscriptions) {
-//            subscriptions.forEach(function(subscription) {
-//                log.info("redis pubsub provider: subscription: " + subscription);
-//            });
-//        });
-//    });
-//};
+RedisPubSubProvider.prototype.displaySubscriptions = function(callback) {
+    async.eachSeries(Object.keys(this.config.redis_servers), function(serverId, serverCallback) {
+        log.info("RedisPubSubProvider: SUBSCRIPTIONS FOR SERVER ID: " + serverId);
+
+        var client = self.clientForServer(serverId);
+
+        client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, function(err, subscriptions) {
+            if (err) return serverCallback(err);
+
+            subscriptions.forEach(function(subscription) {
+                log.info("RedisPubSubProvider: subscription: " + subscription);
+            });
+
+            return serverCallback();
+        });
+
+    }, callback);
+};
 
 RedisPubSubProvider.prototype.resetForTest = function(callback) {
     if (process.env.NODE_ENV === "production") return callback();    
 
-    log.info('redis pubsub provider: resetting Redis store completely for test');
+    log.info('RedisPubSubProvider: resetting Redis store completely for test');
 
     var client = this.clientForServer(Object.keys(this.config.redis_servers)[0]);
+
     client.flushdb(callback);
 };
 
