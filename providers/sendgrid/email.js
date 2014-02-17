@@ -10,7 +10,6 @@ function SendgridEmailProvider(config) {
 
     this.config = config;
     this.client = sendgrid(process.env.SENDGRID_API_USER, process.env.SENDGRID_API_KEY);
-    log.error('set client: ' + this.client);
 }
 
 SendgridEmailProvider.prototype.send = function(email, callback) {
