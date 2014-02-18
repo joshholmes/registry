@@ -117,7 +117,7 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
         // redis returns an 2 element array with [key, value], so decode this
         var item = JSON.parse(reply[1]);
 
-        log.debug("RedisPubSubProvider: RECEIVED on subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter) + " item: " + JSON.stringify(item));
+        log.info("RedisPubSubProvider: RECEIVED on subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter) + " item: " + JSON.stringify(item));
 
         return callback(null, item);
     });
