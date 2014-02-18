@@ -32,7 +32,12 @@ var authorize = function(request, obj, callback) {
                 };
             }
             
-            log.debug('authorize result: ' + JSON.stringify(permission));
+            if (!permission.authorized) {
+                log.warn('principal ' + request.principal.id + ' not authorized for action: ' + request.action + 
+                         ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj) + 
+                         ' because of permission: ' + JSON.stringify(permission));
+            }
+
             return callback(null, permission);
         });
     });

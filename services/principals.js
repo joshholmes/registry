@@ -355,7 +355,12 @@ var removeById = function(authorizingPrincipal, id, callback) {
             action: 'admin'
         }, principal, function(err, permission) {
              if (err) return callback(err);
-             if (!permission.authorized) return callback(utils.authorizationError(permission));
+             if (!permission.authorized)  {
+                var authError = utils.authorizationError(permission);
+                log.warn('principals: removeById: auth failure: ' + JSON.stringify(authError));
+                
+                return callback(authError);
+             }
 
              services.messages.remove(services.principals.servicePrincipal, { from: principal.id }, function(err, removed) {
                  if (err) return callback(err);

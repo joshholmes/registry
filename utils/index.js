@@ -12,7 +12,6 @@ var authenticationError = function(msg) {
 
 var authorizationError = function(msg) {
     var msg = msg || "Principal is not authorized to perform the requested operation.";
-    log.warn('sending authorization error response: ' + msg);
 
     return new ServiceError({
         statusCode: 403,
