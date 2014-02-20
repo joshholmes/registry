@@ -356,7 +356,7 @@ var removeById = function(authorizingPrincipal, id, callback) {
         }, principal, function(err, permission) {
              if (err) return callback(err);
              if (!permission.authorized)  {
-                var authError = utils.authorizationError(permission);
+                var authError = utils.authorizationError('You are not authorized to delete this principal.');
                 log.warn('principals: removeById: auth failure: ' + JSON.stringify(authError));
                 
                 return callback(authError);
