@@ -71,7 +71,12 @@ describe('permissions service', function() {
                         });
 
                         assert(foundUser);
-                        done();
+
+                        services.permissions.removeById(services.principals.servicePrincipal, permission.id, function(err) {
+                            assert.ifError(err);
+
+                            done();
+                        });
                     });
                 }
             );

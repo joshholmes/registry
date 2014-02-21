@@ -64,6 +64,7 @@ mongoose.connection.once('open', function () {
 
         app.get(config.permissions_path,           middleware.authenticateRequest, controllers.permissions.index);
         app.post(config.permissions_path,          middleware.authenticateRequest, controllers.permissions.create);
+        app.delete(config.permissions_path + '/:id', middleware.authenticateRequest, controllers.permissions.remove);
 
         app.get(config.principals_path + '/:id',   middleware.authenticateRequest, controllers.principals.show);
         app.get(config.principals_path,            middleware.authenticateRequest, controllers.principals.index);

@@ -5,10 +5,11 @@ var async = require('async')
   , services = require('../services')
   , utils = require('../utils');
 
-var authorize = function(request, obj, callback) {
-    var principalForId =  !request.principal_for ? "" : request.principal_for.id;
-    log.debug('authorizing ' + request.principal.id + ' for action: ' + request.action + ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj));
-    permissionsFor(request.principal.id, function(err, permissions) {
+var authorize = function(req, obj, callback) {
+    var principalForId =  !req.principal_for ? "" : req.principal_for.id;
+
+    log.debug('authorizing ' + req.principal.id + ' for action: ' + req.action + ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj));
+    permissionsFor(req.principal.id, function(err, permissions) {
         if (err) return callback(err);
 
         //permissions.forEach(function(permission) {
@@ -18,9 +19,9 @@ var authorize = function(request, obj, callback) {
         // look for a match in the sorted permissions and return that.
         // by default, actions are not authorized.
         // add a star permission at lowest priority to the default_permissions to override this default.
+
         async.detectSeries(permissions, function(permission, cb) {
-            log.debug('checking permission: ' + JSON.stringify(permission));
-            cb(permission.match(request, obj));
+            cb(permission.match(req, obj));
         }, function(permission) {
 
             // to simplify logic in callback, if no permission is found, callback with an
@@ -33,7 +34,7 @@ var authorize = function(request, obj, callback) {
             }
             
             if (!permission.authorized) {
-                log.warn('principal ' + request.principal.id + ' not authorized for action: ' + request.action + 
+                log.warn('principal ' + req.principal.id + ' not authorized for action: ' + req.action + 
                          ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj) + 
                          ' because of permission: ' + JSON.stringify(permission));
             }
@@ -111,6 +112,34 @@ var permissionsFor = function(principalId, callback) {
     });
 };
 
+var removeById = function(authorizingPrincipal, id, callback) {
+    findById(authorizingPrincipal, id, function (err, permission) {
+        if (err) return callback(err);
+
+        services.principals.findById(authorizingPrincipal, permission.principal_for, function(err, principal) {
+            if (err) return callback(err);
+            if (!principal) return callback(utils.notFoundError());
+
+            services.permissions.authorize({
+                principal: authorizingPrincipal,
+                principal_for: principal,
+                action: 'admin'
+            }, permission, function(err, permission) {
+
+                 if (err) return callback(err);
+                 if (!permission.authorized)  {
+                    var authError = utils.authorizationError('You are not authorized to remove this permission.');
+                    log.warn('permissions: removeById: auth failure: ' + JSON.stringify(authError));
+                    
+                    return callback(authError);
+                 }
+
+                 permission.remove(callback);
+            });
+        })
+    });
+};
+
 var remove = function(authPrincipal, filter, callback) {
     // TODO: will need more complicated authorization mechanism for non service users.
     if (!authPrincipal || !authPrincipal.is('service')) return callback(utils.authorizationError());
@@ -144,5 +173,6 @@ module.exports = {
     initialize: initialize,
     permissionsFor: permissionsFor,
     remove: remove,
+    removeById: removeById,
     translate: translate
 };

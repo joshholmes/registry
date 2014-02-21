@@ -26,14 +26,13 @@ describe('permissions endpoint', function() {
         });
     });
 
-    it('should allow creating a permission by a user', function(done) {
-
+    it('should allow creating and deleting a permission by a user', function(done) {
         var permission = {
-            issued_to:     fixtures.models.accessTokens.user.id,
-            principal_for: fixtures.models.accessTokens.user.id,
-            action:       'send',
-            priority:     100000000,
-            authorized:   true        
+            issued_to:     fixtures.models.accessTokens.user.principal,
+            principal_for: fixtures.models.accessTokens.user.principal,
+            action:        'admin',
+            priority:      100,
+            authorized:    true        
         };
 
         request.post(config.permissions_endpoint,
@@ -44,7 +43,13 @@ describe('permissions endpoint', function() {
 
                 assert.notEqual(body.permission.id, undefined);
 
-                done();
+                request.del({ url: config.permissions_endpoint + "/" + body.permission.id,
+                              headers: { Authorization: fixtures.models.accessTokens.user.toAuthHeader() } }, function(err, resp, body) {
+                    assert.ifError(err);
+                    assert.equal(resp.statusCode, 200);
+
+                    done();
+                });
             }
         );
     });
