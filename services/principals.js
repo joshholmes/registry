@@ -490,39 +490,43 @@ var updateVisibleTo = function(principalId, callback) {
         if (!principal) return callback();
         log.debug("principal service: updating visible_to for principal id: " + principalId);
 
-        if (!principal.public) {
-            services.permissions.find(services.principals.servicePrincipal,
-                { $and: [
-                    { authorized: true },
-                    { $or : [
-                        { action: 'view' },
-                        { action: null }
-                      ]
-                    },
-                    { $or : [
-                        { principal_for: principalId },
-                        { principal_for: null }
-                      ]
-                    }
+        services.permissions.find(services.principals.servicePrincipal,
+            { $and: [
+                { authorized: true },
+                { $or : [
+                    { action: 'view' },
+                    { action: null }
                   ]
                 },
-                {},
-                function(err, permissions) {
-                    if (err) return callback(err);
-
-                    principal.visible_to = permissions.map(function(permission) {
-                        log.debug("principal service: adding " + permission.issued_to + " to visible principals.");
-                        return permission.issued_to;
-                    });
-
-                    log.debug("principal service: final visible_to: " + JSON.stringify(principal.visible_to));
-
-                    services.principals.update(services.principals.servicePrincipal, principalId, { visible_to: principal.visible_to }, callback);
+                { $or : [
+                    { principal_for: principalId },
+                    { principal_for: null }
+                  ]
                 }
-            );
-        } else {
-            return callback(null, principal);
-        }
+              ]
+            },
+            { 
+                sort: { priority: 1 }
+            },
+            function(err, permissions) {
+                if (err) return callback(err);
+
+                var visibilityMap = {};
+                permissions.forEach(function(permission) {
+                    if (!visibilityMap[permission.issued_to])
+                        visibilityMap[permission.issued_to] = permission.authorized;
+                });
+
+                principal.visible_to = [];
+                Object.keys(visibilityMap).forEach(function(key) {
+                    if (visibilityMap[key]) principal.visible_to.push(key);
+                });
+
+                log.debug("principal service: final visible_to: " + JSON.stringify(principal.visible_to));
+
+                services.principals.update(services.principals.servicePrincipal, principalId, { visible_to: principal.visible_to }, callback);
+            }
+        );
     });
 }
 
