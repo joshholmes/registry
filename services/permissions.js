@@ -113,12 +113,14 @@ var permissionsFor = function(principalId, callback) {
 };
 
 var removeById = function(authorizingPrincipal, id, callback) {
+    var authzError = utils.authorizationError('You are not authorized to remove this permission.');
+
     findById(authorizingPrincipal, id, function (err, permission) {
         if (err) return callback(err);
 
         services.principals.findById(authorizingPrincipal, permission.principal_for, function(err, principal) {
             if (err) return callback(err);
-            if (!principal) return callback(utils.notFoundError());
+            if (!principal) return callback(authzError);
 
             services.permissions.authorize({
                 principal: authorizingPrincipal,
@@ -128,10 +130,8 @@ var removeById = function(authorizingPrincipal, id, callback) {
 
                  if (err) return callback(err);
                  if (!permission.authorized)  {
-                    var authError = utils.authorizationError('You are not authorized to remove this permission.');
-                    log.warn('permissions: removeById: auth failure: ' + JSON.stringify(authError));
-                    
-                    return callback(authError);
+                    log.warn('permissions: removeById: authz failure: principal ' + authorizingPrincipal.id + ' tried to remove permission id: ' + permission.id);
+                    return callback(authzError);
                  }
 
                  permission.remove(callback);
