@@ -491,18 +491,13 @@ var updateVisibleTo = function(principalId, callback) {
         log.debug("principal service: updating visible_to for principal id: " + principalId);
 
         services.permissions.find(services.principals.servicePrincipal,
-            { $and: [
-                { authorized: true },
-                { $or : [
-                    { action: 'view' },
-                    { action: null }
-                  ]
-                },
-                { $or : [
-                    { principal_for: principalId },
-                    { principal_for: null }
-                  ]
-                }
+            { $or : [
+                { action: 'view' },
+                { action: null }
+              ],
+              $or : [
+                { principal_for: principalId },
+                { principal_for: null }
               ]
             },
             { 
@@ -513,7 +508,7 @@ var updateVisibleTo = function(principalId, callback) {
 
                 var visibilityMap = {};
                 permissions.forEach(function(permission) {
-                    if (!visibilityMap[permission.issued_to])
+                    if (permission.issued_to && !visibilityMap[permission.issued_to])
                         visibilityMap[permission.issued_to] = permission.authorized;
                 });
 

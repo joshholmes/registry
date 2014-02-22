@@ -10,7 +10,7 @@ accessTokenSchema.add({
 });
 
 accessTokenSchema.index({ principal: 1 });
-accessTokenSchema.index({ expires: 1 });
+accessTokenSchema.index({ expires_at: 1 });
 accessTokenSchema.index({ token: 1 });
 
 accessTokenSchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
