@@ -10,13 +10,13 @@ var async = require('async')
 
 var buildVisibility = function(message, callback) {
     // if the creator has already marked this as public, shortcircuit.
-    if (message.public) return callback(null, message);
+    // if (message.public) return callback(null, message);
 
     // find all permissions for from: principal
     services.permissions.permissionsFor(message.from, function(err, permissions) {
         if (err) return callback(err);
 
-        message.public = false;
+        //message.public = false;
 
         var authorizedHash = {};
         authorizedHash[message.from] = true;
@@ -31,14 +31,16 @@ var buildVisibility = function(message, callback) {
                 if (permission.issued_to) {
                     if (!authorizedHash[permission.issued_to] && permission.authorized)
                         authorizedHash[permission.issued_to] = true;
-                } else {
-                    message.public = true;
                 }
+                // else {
+                //    message.public = true;
+                //}
             }
         });
 
-        message.visible_to = message.public ? [] : Object.keys(authorizedHash);
-        log.debug('message: ' + JSON.stringify(message));
+        // message.visible_to = message.public ? [] : Object.keys(authorizedHash);
+        message.visible_to = Object.keys(authorizedHash);
+
         log.debug('final message visibility: ' + message.visible_to);
 
         return callback(null, message);
@@ -96,8 +98,11 @@ var createMany = function(principal, messages, callback) {
 
 var find = function(principal, filter, options, callback) {
     var translatedFilter = utils.translateQuery(filter, models.Message.fieldTranslationSpec);
+    var filter = services.principals.filterForPrincipal(principal, translatedFilter)
 
-    models.Message.find(services.principals.filterForPrincipal(principal, translatedFilter), null, options, function(err, messages) {
+    log.error('message filter: ' + JSON.stringify(filter));
+
+    models.Message.find(filter, null, options, function(err, messages) {
         if (err) return callback(err);
 
         return callback(null, messages);

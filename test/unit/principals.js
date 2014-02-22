@@ -11,7 +11,6 @@ describe('principals service', function() {
     it('can create and validate a user', function(done) {
         var user = new models.Principal({ type: "user",
                                           email: "user@gmail.com",
-                                          public: false,
                                           password: passwordFixture });
 
         services.principals.create(user, function(err, user) {
@@ -178,7 +177,6 @@ describe('principals service', function() {
         var user = new models.Principal({ 
             type: "user",
             email: "changePassword@gmail.com",
-            public: false,
             password: "firstPassword" 
         });
 

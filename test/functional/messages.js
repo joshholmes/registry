@@ -119,7 +119,6 @@ describe('messages endpoint', function() {
                 json: [{ 
                     from: fixtures.models.principals.device.id,
                     type: "_messageSubscriptionTest",
-                    public: false,
                     expires: 'never',
                     body: { reading: 5.1 } 
                 }],
@@ -163,6 +162,6 @@ describe('messages endpoint', function() {
                             );
                         });
                 });
-        }, 2000);
+        }, 200);
     });
 });

@@ -7,7 +7,6 @@ principalSchema.add({
     type: { type: String },       
     name: { type: String },                                 // user friendly name for this principal
 
-    public: { type: Boolean, default: false },
     claim_code: { type: String },
 
     last_ip: { type: String },

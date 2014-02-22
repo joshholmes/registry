@@ -15,8 +15,7 @@ var createDeviceFixtures = function(callback) {
     log.debug("creating device fixtures");
 
     var device = new models.Principal({ type: 'device',
-                                        name: 'existing_device',
-                                        public: true });
+                                        name: 'existing_device' });
 
     services.principals.create(device, function(err, device) {
         if (err) throw err;
@@ -74,7 +73,6 @@ var createUserFixtures = function(callback) {
 
     var user = new models.Principal({ type: 'user',
                                       email: 'user@server.org',
-                                      public: true,
                                       password: 'sEcReT44' });
 
     services.principals.create(user, function(err, user) {
@@ -90,7 +88,6 @@ var createUserFixtures = function(callback) {
             var anotherUser = new models.Principal({
                 type: 'user',
                 email: 'anotheruser@server.org',
-                public: false,
                 password: 'sEcReTO66'
             });
 
@@ -142,7 +139,6 @@ var createDeviceIpMessageFixture = function(callback) {
 
     var message = new models.Message({ from: fixtures.principals.device.id,
                                        type: "ip",
-                                       public: true,
                                        body: { ip_address: "127.0.0.1" } });
 
     services.messages.create(services.principals.servicePrincipal, message, function (err, messages) {

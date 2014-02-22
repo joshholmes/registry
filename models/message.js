@@ -14,8 +14,6 @@ messageSchema.add({
     expires:        { type: Date },                                    // expires
     ts:             { type: Date, default: Date.now },                 // timestamp
 
-    public:         { type: Boolean },                                 // is this message visible to all principals
-
     from:           { type: Schema.Types.ObjectId, ref: 'Principal' }, // principal who sent message
     to:             { type: Schema.Types.ObjectId, ref: 'Principal' }, // principal message is to (optional)
     response_to:    [{ type: Schema.Types.ObjectId, ref: 'Message' }], // message(s) this is in response to
