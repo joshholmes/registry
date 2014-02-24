@@ -100,8 +100,6 @@ var find = function(principal, filter, options, callback) {
     var translatedFilter = utils.translateQuery(filter, models.Message.fieldTranslationSpec);
     var filter = services.principals.filterForPrincipal(principal, translatedFilter)
 
-    log.error('message filter: ' + JSON.stringify(filter));
-
     models.Message.find(filter, null, options, function(err, messages) {
         if (err) return callback(err);
 

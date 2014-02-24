@@ -508,8 +508,13 @@ var updateVisibleTo = function(principalId, callback) {
 
                 var visibilityMap = {};
                 permissions.forEach(function(permission) {
-                    if (permission.issued_to && !visibilityMap[permission.issued_to])
-                        visibilityMap[permission.issued_to] = permission.authorized;
+                    if (permission.issued_to) {
+                        if (!visibilityMap[permission.issued_to])                         
+                            visibilityMap[permission.issued_to] = permission.authorized;
+                    } else {
+//                      // NEED TO THINK ABOUT THIS - THIS OVERRIDES ALL OF THE HIGHER PRIORITY AUTHORIZED=FALSE ACLS
+//                      visibilityMap['*'] = permission.authorized;
+                    }
                 });
 
                 principal.visible_to = [];
