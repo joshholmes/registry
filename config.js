@@ -81,6 +81,8 @@ config.reset_password_length = 10;
 config.access_token_bytes = 32;
 config.access_token_lifetime = 1; // days
 
+config.blob_cache_lifetime = 2592000; // seconds
+
 // # of days a message should live by default
 config.default_message_lifetime = 365;
 
