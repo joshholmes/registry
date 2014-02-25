@@ -83,7 +83,7 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findOne = function(subscription, callback) {
-    log.info('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal.id + ' type: ' + subscription.type + ' name: ' + subscription.name);
+    log.info('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal + ' type: ' + subscription.type + ' name: ' + subscription.name);
 
     models.Subscription.findOne({
         principal: subscription.principal,
