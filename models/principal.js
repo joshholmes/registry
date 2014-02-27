@@ -27,12 +27,9 @@ principalSchema.add({
     visible_to: [{ type: Schema.Types.ObjectId, ref: 'Principal' }]
 });
 
-principalSchema.index({ capabilities: 1 });
 principalSchema.index({ claim_code: 1 });
 principalSchema.index({ email: 1 });
 principalSchema.index({ last_ip: 1 });
-//principalSchema.index({ owner: 1 });
-principalSchema.index({ public: 1 });
 principalSchema.index({ type: 1 });
 principalSchema.index({ visible_to: 1 });
 

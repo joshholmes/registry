@@ -331,7 +331,6 @@ var initialize = function(callback) {
 
             var servicePrincipal = new models.Principal({
                 name: 'Service',
-                public: true,
                 type: 'service'
             });
 
@@ -465,7 +464,6 @@ var updateLastConnection = function(principal, ip) {
         var ipMessage = new models.Message({
             type: 'ip',
             from: principal,
-            public: false,
             body: {
                 ip_address: ip
             }

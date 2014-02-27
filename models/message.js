@@ -30,7 +30,6 @@ messageSchema.add({
 messageSchema.index({ expires: 1 });
 messageSchema.index({ from: 1 });
 messageSchema.index({ type: 1 });
-messageSchema.index({ ts: 1, type: -1 });
 messageSchema.index({ to: 1 });
 messageSchema.index({ visible_to: 1 });
 
