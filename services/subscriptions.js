@@ -174,9 +174,6 @@ var start = function(socket, spec, callback) {
         subscription.name = utils.uuid();
     }
 
-    // compose filter that includes visibility limitations.
-    subscription.filter = services.principals.filterForPrincipal(socket.handshake.principal, subscription.filter);
-
     findOrCreate(subscription, function(err, subscription) {
         if (err) {
             var msg = 'subscriptions: failed to create: ' + err;

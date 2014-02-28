@@ -260,11 +260,14 @@ var validate = function(message, callback) {
 
 var validateSchema = function(message, callback) {
     if (message.isCustomType()) return callback(null, { valid: true });
-    if (!(message.type in schemas)) return callback(utils.badRequestError('Message type (' + message.type + ') not recognized.  Custom message types must be prefixed by _'));
+    if (!(message.type in schemas)) {
+        return callback(utils.badRequestError('Message type (' + message.type + ') not recognized.  Custom message types must be prefixed by _'));
+    }    
 
     var results = revalidator.validate(message.body, schemas[message.type]);
     if (!results.valid) {
-        log.info("message validation failed with errors: " + JSON.stringify(results.errors));
+        log.warn("message validation failed with errors: " + JSON.stringify(results.errors));
+        log.warn("message: " + message);
     }
     callback(null, results);
 };

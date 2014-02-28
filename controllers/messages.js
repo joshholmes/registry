@@ -18,7 +18,6 @@ exports.create = function(req, res) {
     }, function (err, messages) {
         services.messages.createMany(req.user, messages, function(err, saved_messages) {
             if (err) {
-                log.error('message create error: ' + err);
                 return utils.handleError(res, err);
             }
 

@@ -18,7 +18,8 @@ RedisPubSubProvider.redisifySubscription = function(subscription) {
     return JSON.stringify({
         id: subscription.id,
         type: subscription.type,
-        filter: subscription.filter
+        filter: subscription.filter,
+        principal: subscription.principal
     });
 };
 
@@ -63,7 +64,7 @@ RedisPubSubProvider.prototype.createSubscription = function(subscription, callba
 // TODO: Use straw.js to queue the item with the subscription system?
 
 RedisPubSubProvider.prototype.publish = function(type, item, callback) {
-    log.info("redis: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.info("RedisPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
     var self = this;
 
     // iterate over each redis server
@@ -81,19 +82,18 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
             async.each(subscriptions, function(subscriptionJson, subscriptionCallback) {
                 var subscription = JSON.parse(subscriptionJson);
 
-                log.debug("RedisPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.info("RedisPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
-                if (subscription.type === type) {
-                    var unfilteredItems = sift(subscription.filter, [item]);
-                    if (unfilteredItems.length > 0) {
-                        log.info("RedisPubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
-                        client.rpush(RedisPubSubProvider.subscriptionKey(subscription), JSON.stringify(unfilteredItems[0]), subscriptionCallback);
-                    } else {
-                        return subscriptionCallback();
-                    }
-                } else {
-                    return subscriptionCallback();                    
-                }
+                if (subscription.type !== type) return subscriptionCallback();
+                if (item.visible_to.indexOf(subscription.principal) === -1) return subscriptionCallback();
+
+                var unfilteredItems = sift(subscription.filter, [item]);
+
+                if (unfilteredItems.length === 0) return subscriptionCallback();
+
+                log.info("RedisPubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                client.rpush(RedisPubSubProvider.subscriptionKey(subscription), JSON.stringify(unfilteredItems[0]), subscriptionCallback);
+
             }, serverCallback);
         });
 
