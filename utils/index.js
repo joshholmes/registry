@@ -20,6 +20,8 @@ var authorizationError = function(msg) {
 };
 
 var badRequestError = function(msg) {
+    log.error('bad request: ' + msg);
+    
     return new ServiceError({
         statusCode: 400,
         message: msg

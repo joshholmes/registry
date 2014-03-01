@@ -37,7 +37,7 @@ describe('subscriptions service', function() {
         var subscription = new models.Subscription({
             clientId: "fakeclientid",
             filter: { type: 'ip' },
-            principal: services.principals.servicePrincipal,
+            principal: services.principals.servicePrincipal.id,
             type: 'message',
             permanent: false,
             name: utils.uuid()
@@ -73,14 +73,14 @@ describe('subscriptions service', function() {
             });
 
             var message = new models.Message({
-                from: fixtures.models.principals.device.id,
+                from: services.principals.servicePrincipal,
                 type: "_test",
                 body: { reading: 5.1 }
             });
 
             var startPublish = new Date();
 
-            config.pubsub_provider.publish('message', message, function(err) {
+            services.messages.create(services.principals.servicePrincipal, message, function(err) {
                 assert.ifError(err);
                 publishFinished = new Date();
 
@@ -88,12 +88,12 @@ describe('subscriptions service', function() {
                 //assert(totalTime < 800);
 
                 var message = new models.Message({
-                    from: fixtures.models.principals.device.id,
+                    from: services.principals.servicePrincipal,
                     type: "ip",
                     body: { ip_address: "127.0.0.1" }
                 });
 
-                config.pubsub_provider.publish('message', message, function(err) {
+                services.messages.create(services.principals.servicePrincipal, message, function(err) {
                     publishFinished = new Date();
                     assert.ifError(err);
                 });

@@ -83,7 +83,7 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findOne = function(subscription, callback) {
-    log.info('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal.id + ' type: ' + subscription.type + ' name: ' + subscription.name);
+    log.info('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal + ' type: ' + subscription.type + ' name: ' + subscription.name);
 
     models.Subscription.findOne({
         principal: subscription.principal,
@@ -173,9 +173,6 @@ var start = function(socket, spec, callback) {
         // assign the subscription a uuid as a name if this is session subscription
         subscription.name = utils.uuid();
     }
-
-    // compose filter that includes visibility limitations.
-    subscription.filter = services.principals.filterForPrincipal(socket.handshake.principal, subscription.filter);
 
     findOrCreate(subscription, function(err, subscription) {
         if (err) {

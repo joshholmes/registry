@@ -1,9 +1,12 @@
-var models = require('../models')
+var config = require('../config')
+  , models = require('../models')
   , mongodb = require('mongodb')
   , services = require('../services')
   , utils = require('../utils');
 
 exports.show = function(req, res) {
+    res.setHeader('Cache-Control', 'max-age=' + config.blob_cache_lifetime);
+
     services.blobs.stream(req.user, req.params.id, res, function(err, blob) {
       if (err) return utils.handleError(res, err);
       if (!blob) return utils.handleError(res, utils.notFoundError());
