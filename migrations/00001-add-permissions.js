@@ -4,13 +4,6 @@ var async = require('async')
 
 exports.up = function(callback) {
     var permissions = [
-        // allow service to do anything
-        services.permissions.translate({
-            authorized: true,
-            issued_to: services.principals.servicePrincipal.id,
-            priority: 0
-        }),
-
         // disallow anyone else from sending 'ip' messages.
         services.permissions.translate({ 
             action: 'send', 

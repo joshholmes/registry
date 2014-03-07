@@ -46,9 +46,15 @@ var authorize = function(req, obj, callback) {
 
 var create = function(authPrincipal, permission, callback) {
     if (!authPrincipal) return callback(utils.principalRequired());
-    if (permission.authorized !== false && permission.authorized !== true) return callback(new Error('permission must have authorized.'));
 
     // TODO: is authPrincipal authorized to create this permission.
+
+    return createInternal(permission, callback);
+};
+
+// should only be called at bootstrap when service principal's permissions haven't been established.
+var createInternal = function(permission, callback) {
+    if (permission.authorized !== false && permission.authorized !== true) return callback(new Error('permission must have authorized.'));
 
     log.info("permissions: creating permission: " + JSON.stringify(permission));
     permission.save(function(err, permission) {
@@ -65,8 +71,8 @@ var create = function(authPrincipal, permission, callback) {
                 return callback(null, permission);
             }
         });
-    });
-};
+    });    
+}
 
 var filterForPrincipal = function(authPrincipal, filter) {
     // TODO: think through how permissions should be filtered, if at all.
@@ -112,10 +118,10 @@ var permissionsFor = function(principalId, callback) {
     });
 };
 
-var removeById = function(authorizingPrincipal, id, callback) {
+var removeById = function(authorizingPrincipal, permissionId, callback) {
     var authzError = utils.authorizationError('You are not authorized to remove this permission.');
 
-    findById(authorizingPrincipal, id, function (err, permission) {
+    findById(authorizingPrincipal, permissionId, function (err, permission) {
         if (err) return callback(err);
 
         services.principals.findById(authorizingPrincipal, permission.principal_for, function(err, principal) {
@@ -126,15 +132,14 @@ var removeById = function(authorizingPrincipal, id, callback) {
                 principal: authorizingPrincipal,
                 principal_for: principal,
                 action: 'admin'
-            }, permission, function(err, permission) {
-
-                 if (err) return callback(err);
-                 if (!permission.authorized)  {
+            }, permission, function(err, authorizingPermission) {
+                if (err) return callback(err);
+                if (!permission.authorized)  {
                     log.warn('permissions: removeById: authz failure: principal ' + authorizingPrincipal.id + ' tried to remove permission id: ' + permission.id);
                     return callback(authzError);
-                 }
+                }
 
-                 permission.remove(callback);
+                permission.remove(callback);
             });
         })
     });
@@ -169,6 +174,7 @@ var translate = function(obj) {
 module.exports = {
     authorize: authorize,
     create: create,
+    createInternal: createInternal,
     find: find,
     initialize: initialize,
     permissionsFor: permissionsFor,

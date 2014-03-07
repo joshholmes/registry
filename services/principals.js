@@ -96,11 +96,6 @@ var create = function(principal, callback) {
                 principal.save(function(err, principal) {
                     if (err) return callback(err);
 
-                    // TODO: yuck.  createPermissions needs servicePrincipal so we need to hotwire this here and now.
-                    if (principal.is('service')) {
-                        services.principals.servicePrincipal = principal;
-                    }
-
                     createPermissions(principal, function(err) {
                         if (err) return callback(err);
 
@@ -141,25 +136,25 @@ var createCredentials = function(principal, callback) {
 };
 
 var createPermissions = function(principal, callback) {
-    var permission;
-
-    if (principal.is('service')) {
-        // service is authorized to do everything.
-        permission = new models.Permission({
-            authorized: true, 
-            issued_to: services.principals.servicePrincipal.id, 
-            priority: 0 
-        });
-    } else {
-        permission = new models.Permission({
+    if (!principal.is('service')) {
+        var permission = new models.Permission({
             authorized: true,
             issued_to: principal.id,
             principal_for: principal.id,
             priority: nitrogen.Permission.NORMAL_PRIORITY
         });                        
-    }
 
-    services.permissions.create(services.principals.servicePrincipal, permission, callback);
+        services.permissions.create(services.principals.servicePrincipal, permission, callback);        
+    } else {
+        log.info('principals service: adding blanket permission for service principal: ' + principal.id);
+        var permission = new models.Permission({
+            authorized: true,
+            issued_to: principal.id,
+            priority: 0
+        }); 
+
+        services.permissions.createInternal(permission, callback);           
+    }
 };
 
 var createSecretCredentials = function(principal, callback) {
@@ -324,10 +319,8 @@ var initialize = function(callback) {
     models.Principal.find({ type: 'service' }, null, {}, function(err, principals) {
         if (err) return callback(err);
 
-        log.info("principals service: found " + principals.length + " service principals");
-
         if (principals.length === 0) {
-            log.info("creating service principal");
+            log.info("bootstrapping: creating service principal");
 
             var servicePrincipal = new models.Principal({
                 name: 'Service',
