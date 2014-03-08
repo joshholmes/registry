@@ -295,18 +295,28 @@ var hashSecret = function(secret, callback) {
     callback(null, sha256.digest('base64'));
 };
 
-var impersonate = function(principal, impersonatedPrincipalId, callback) {
-    if (!principal.is('service') && principal.id !== impersonatedPrincipalId) return callback(utils.authorizationError());
+var impersonate = function(authzPrincipal, impersonatedPrincipalId, callback) {
 
     findById(services.principals.servicePrincipal, impersonatedPrincipalId, function(err, impersonatedPrincipal) {
         if (err) return callback(err);
         if (!impersonatedPrincipal) return callback(utils.notFoundError());
 
-        services.accessTokens.findOrCreateToken(impersonatedPrincipal, function(err, accessToken) {
+        services.permissions.authorize({
+            principal: authzPrincipal.id,
+            principal_for: impersonatedPrincipalId, 
+            action: 'impersonate'
+        }, impersonatedPrincipal, function(err, permission) {
             if (err) return callback(err);
+            if (!permission.authorized)  {
+                return callback(utils.authorizationError('You are not authorized to delete this principal.'));
+            }
 
-            log.info("principal service: principal " + principal.id + " impersonated principal: " + impersonatedPrincipal.id);
-            callback(null, impersonatedPrincipal, accessToken);
+            services.accessTokens.findOrCreateToken(impersonatedPrincipal, function(err, accessToken) {
+                if (err) return callback(err);
+
+                log.info("principal service: principal " + authzPrincipal.id + " impersonated principal: " + impersonatedPrincipalId + " via permission: " + permission);
+                callback(null, impersonatedPrincipal, accessToken);
+            });                
         });
     });
 };

@@ -11,7 +11,7 @@ var canView = function(principal, blob, callback) {
         principal: principal.id,
         principal_for: blob.owner,
         action: 'view'
-    }, {}, function(err, permission) {
+    }, blob, function(err, permission) {
         if (err) return callback(err);
         if (!permission.authorized) {
             log.warn('principal: ' + principal.id + ' attempted unauthorized view of blob: ' + blob.id + ' with owner: ' + blob.owner);

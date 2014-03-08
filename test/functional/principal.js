@@ -280,4 +280,27 @@ describe('principals endpoint', function() {
                 done();
             });
     });
+
+    it('should allow user to impersonate anotherUser principal', function(done) {
+        request.post(config.principals_endpoint + '/impersonate',
+            { headers: { Authorization: fixtures.models.accessTokens.user.toAuthHeader() },
+              json: fixtures.models.principals.anotherUser }, function(err, resp, body) {
+                assert.equal(resp.statusCode, 200);
+                assert.notEqual(body.accessToken.token, undefined);
+
+                done();
+            });
+    });
+
+    it('should not allow anotherUser to impersonate user principal', function(done) {
+        request.post(config.principals_endpoint + '/impersonate',
+            { headers: { Authorization: fixtures.models.accessTokens.anotherUser.toAuthHeader() },
+              json: fixtures.models.principals.user }, function(err, resp, body) {
+                assert.equal(resp.statusCode, 403);
+                assert.equal(body.accessToken, undefined);
+
+                done();
+            });
+    });
+
 });

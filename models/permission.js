@@ -11,7 +11,7 @@ permissionSchema.add({
     principal_for: { type: Schema.Types.ObjectId, ref: 'Principal' },
 
     expires:      { type: Date },
-    action:       { type: String, enum: ['admin', 'send', 'subscribe', 'view'] },
+    action:       { type: String, enum: ['admin', 'impersonate', 'send', 'subscribe', 'view'] },
     filter:       { type: String },
     priority:     { type: Number, required: true },
     authorized:   { type: Boolean, required: true }

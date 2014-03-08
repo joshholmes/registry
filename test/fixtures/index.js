@@ -28,6 +28,8 @@ var createDeviceFixtures = function(callback) {
         });
 
         services.permissions.create(services.principals.servicePrincipal, userIsDeviceAdmin, function(err) {
+            if (err) throw err;
+
             services.principals.updateLastConnection(device, '127.0.0.1');
             fixtures.principals.device = device;
 
@@ -104,13 +106,26 @@ var createUserFixtures = function(callback) {
                 if (err) throw err;
 
                 fixtures.principals.anotherUser = anotherUser;
-                services.accessTokens.create(anotherUser, function(err, accessToken) {
+
+                var userCanImpersonateAnotherUser = new models.Permission({
+                    authorized: true,
+                    issued_to: fixtures.principals.user.id,
+                    principal_for: fixtures.principals.anotherUser.id,
+                    action: 'impersonate',
+                    priority: models.Permission.DEFAULT_PRIORITY_BASE
+                });
+
+                services.permissions.create(services.principals.servicePrincipal, userCanImpersonateAnotherUser, function(err) {
                     if (err) throw err;
 
-                    fixtures.accessTokens.anotherUser = accessToken;
+                    services.accessTokens.create(anotherUser, function(err, accessToken) {
+                        if (err) throw err;
 
-                    log.debug("creating user fixtures: FINISHED");
-                    callback();
+                        fixtures.accessTokens.anotherUser = accessToken;
+
+                        log.debug("creating user fixtures: FINISHED");
+                        callback();
+                    });
                 });
             });
         });
