@@ -12,14 +12,14 @@ describe('permissions service', function() {
         });
 
         services.permissions.authorize({
-            principal: services.principals.servicePrincipal,
+            principal: services.principals.servicePrincipal.id,
             action: 'send'
         }, message, function(err, permission) {
             assert.ifError(err);
             assert.equal(permission.authorized, true);
 
             services.permissions.authorize({
-                principal: fixtures.models.principals.user,
+                principal: fixtures.models.principals.user.id,
                 action: 'send'
             }, message, function(err, permission) {
                 assert.ifError(err);
@@ -29,7 +29,7 @@ describe('permissions service', function() {
                 message.body.url = 'http://to.no.where/';
 
                 services.permissions.authorize({
-                    principal: fixtures.models.principals.user,
+                    principal: fixtures.models.principals.user.id,
                     action: 'send'
                 }, message, function(err, permission) {
                     assert.ifError(err);
@@ -37,7 +37,7 @@ describe('permissions service', function() {
 
                     message.to = fixtures.models.principals.device.id;
                     services.permissions.authorize({
-                        principal: fixtures.models.principals.user,
+                        principal: fixtures.models.principals.user.id,
                         action: 'send'
                     }, message, function(err, permission) {
                         assert.ifError(err);

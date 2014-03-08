@@ -6,7 +6,7 @@ var app = require('../../server')
   , request = require('request');
 
 if (config.blob_provider) {
-
+    
     describe('blobs REST endpoint', function() {
         it('should be able to create and then fetch a blob', function(done) {
 
@@ -31,8 +31,6 @@ if (config.blob_provider) {
                             assert.notEqual(bodyJson.blob.link, undefined);
 
                             var blobUrl = config.blobs_endpoint + '/' + bodyJson.blob.id;
-
-                            setTimeout(function() {
 
                             // owner should be able to access blob
                             request.get(blobUrl,
@@ -66,8 +64,6 @@ if (config.blob_provider) {
                                     });
                                 });
                             });
-
-                            }, 200);
                         }
                     )
                 );

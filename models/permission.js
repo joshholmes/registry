@@ -49,12 +49,12 @@ Permission.prototype.match = function(request, obj) {
         return false;
     }
 
-    if (this.issued_to && !this.issued_to.equals(request.principal.id)) {
+    if (this.issued_to && !this.issued_to.equals(request.principal)) {
         log.debug('permission: ' + JSON.stringify(this) + ': issued_to mismatch: match == false');
         return false;
     }
 
-    if (this.principal_for && (!request.principal_for || !this.principal_for.equals(request.principal_for.id))) {
+    if (this.principal_for && (!request.principal_for || !this.principal_for.equals(request.principal_for))) {
         log.debug('permission: ' + JSON.stringify(this) + ': principal_for mismatch: match == false');
         return false;
     }

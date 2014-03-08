@@ -12,8 +12,8 @@ describe('agent service', function() {
 
         setTimeout(function() {
             services.permissions.authorize({
-                principal: fixtures.models.principals.user,
-                principal_for: fixtures.models.principals.device,
+                principal: fixtures.models.principals.user.id,
+                principal_for: fixtures.models.principals.device.id,
                 action: 'view'
             }, {}, function(err, permission) {
                 assert.ifError(err);
@@ -44,8 +44,8 @@ describe('agent service', function() {
 
                 setTimeout(function() {
                     services.permissions.authorize({
-                        principal: fixtures.models.principals.user,
-                        principal_for: fixtures.models.principals.device,
+                        principal: fixtures.models.principals.user.id,
+                        principal_for: fixtures.models.principals.device.id,
                         action: 'admin'
                     }, {}, function(err, permission) {
                         assert.ifError(err);
@@ -79,8 +79,8 @@ describe('agent service', function() {
                 services.messages.create(fixtures.models.principals.user, claim, function(err, message) {
                     setTimeout(function() {
                         services.permissions.authorize({
-                            principal: fixtures.models.principals.user,
-                            principal_for: fixtures.models.principals.device,
+                            principal: fixtures.models.principals.user.id,
+                            principal_for: fixtures.models.principals.device.id,
                             action: 'admin'
                         }, {}, function(err, permission) {
                             assert.ifError(err);

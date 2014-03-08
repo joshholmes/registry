@@ -54,9 +54,11 @@ var create = function(principal, message, callback) {
     validate(message, function(err, fromPrincipal, toPrincipal) {
         if (err) return callback(err);
 
+        var toPrincipalId = toPrincipal ? toPrincipal.id : undefined;
+
         services.permissions.authorize({
-            principal: principal,
-            principal_for: toPrincipal, 
+            principal: principal.id,
+            principal_for: toPrincipalId, 
             action: 'send'
         }, message, function(err, permission) {
             if (err) return callback(err);

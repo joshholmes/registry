@@ -20,18 +20,27 @@ var createDeviceFixtures = function(callback) {
     services.principals.create(device, function(err, device) {
         if (err) throw err;
 
-        services.principals.updateLastConnection(device, '127.0.0.1');
-        fixtures.principals.device = device;
+        var userIsDeviceAdmin = new models.Permission({
+            authorized: true,
+            issued_to: fixtures.principals.user.id,
+            principal_for: device.id,
+            priority: models.Permission.DEFAULT_PRIORITY_BASE
+        });
 
-        services.accessTokens.create(device, function(err, accessToken) {
-            if (err) throw err;
+        services.permissions.create(services.principals.servicePrincipal, userIsDeviceAdmin, function(err) {
+            services.principals.updateLastConnection(device, '127.0.0.1');
+            fixtures.principals.device = device;
 
-            // make access token expire in 15 minutes to force an accessToken refresh
-            var updates = { expires_at: new Date(new Date().getTime() + (15 * 60000))};
-            models.AccessToken.update({ _id: accessToken.id }, { $set: updates }, function (err, updateCount) {
-                fixtures.accessTokens.device = accessToken;
-                log.debug("creating device fixtures: FINISHED: " + updates.expires_at);
-                callback();
+            services.accessTokens.create(device, function(err, accessToken) {
+                if (err) throw err;
+
+                // make access token expire in 15 minutes to force an accessToken refresh
+                var updates = { expires_at: new Date(new Date().getTime() + (15 * 60000))};
+                models.AccessToken.update({ _id: accessToken.id }, { $set: updates }, function (err, updateCount) {
+                    fixtures.accessTokens.device = accessToken;
+                    log.debug("creating device fixtures: FINISHED: " + updates.expires_at);
+                    callback();
+                });
             });
         });
     });

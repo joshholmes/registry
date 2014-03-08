@@ -344,37 +344,39 @@ var notifySubscriptions = function(principal, callback) {
     services.subscriptions.publish('principal', principal, callback);
 };
 
-var removeById = function(authorizingPrincipal, id, callback) {
-    findById(authorizingPrincipal, id, function (err, principal) {
+var removeById = function(authzPrincipal, principalId, callback) {
+    findById(authzPrincipal, principalId, function (err, principal) {
         if (err) return callback(err);
+        if (!principal) return callback(utils.notFoundError());
+
         services.permissions.authorize({
-            principal: authorizingPrincipal,
-            principal_for: principal, 
+            principal: authzPrincipal.id,
+            principal_for: principalId, 
             action: 'admin'
         }, principal, function(err, permission) {
-             if (err) return callback(err);
-             if (!permission.authorized)  {
+            if (err) return callback(err);
+            if (!permission.authorized)  {
                 var authError = utils.authorizationError('You are not authorized to delete this principal.');
                 log.warn('principals: removeById: auth failure: ' + JSON.stringify(authError));
                 
                 return callback(authError);
-             }
+            }
 
-             services.messages.remove(services.principals.servicePrincipal, { from: principal.id }, function(err, removed) {
-                 if (err) return callback(err);
+            services.messages.remove(services.principals.servicePrincipal, { from: principalId }, function(err, removed) {
+                if (err) return callback(err);
  
-                 models.Principal.remove({ _id: id }, callback);
-             });
-         });
+                models.Principal.remove({ _id: principalId }, callback);
+            });
+        });
     });
 };
 
 var resetPassword = function(authorizingPrincipal, principal, callback) {
     services.permissions.authorize({
-            principal: authorizingPrincipal,
-            principal_for: principal,
-            action: 'admin'
-        }, principal, function(err, permission) {
+        principal: authorizingPrincipal.id,
+        principal_for: principal.id,
+        action: 'admin'
+    }, principal, function(err, permission) {
             if (err) return callback(err);
             if (!permission.authorized) return callback(utils.authorizationError(permission));
 
@@ -417,12 +419,11 @@ var update = function(authorizingPrincipal, id, updates, callback) {
 
     findById(authorizingPrincipal, id, function(err, principal) {
         if (err) return callback(err);
-
         if (!principal) return callback(utils.badRequestError("Can't find principal for update."));
 
         services.permissions.authorize({
-            principal: authorizingPrincipal,
-            principal_for: principal,
+            principal: authorizingPrincipal.id,
+            principal_for: id,
             action: 'admin'
         }, principal, function(err, permission) {
             if (err) return callback(err);

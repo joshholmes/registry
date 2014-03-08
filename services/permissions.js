@@ -6,10 +6,8 @@ var async = require('async')
   , utils = require('../utils');
 
 var authorize = function(req, obj, callback) {
-    var principalForId =  !req.principal_for ? "" : req.principal_for.id;
-
-    log.debug('authorizing ' + req.principal.id + ' for action: ' + req.action + ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj));
-    permissionsFor(req.principal.id, function(err, permissions) {
+    log.debug('authorizing ' + req.principal + ' for action: ' + req.action + ' for principal: ' + req.principal_for + ' on object: ' + JSON.stringify(obj));
+    permissionsFor(req.principal, function(err, permissions) {
         if (err) return callback(err);
 
         //permissions.forEach(function(permission) {
@@ -34,8 +32,8 @@ var authorize = function(req, obj, callback) {
             }
             
             if (!permission.authorized) {
-                log.warn('principal ' + req.principal.id + ' not authorized for action: ' + req.action + 
-                         ' for principal: ' + principalForId + ' on object: ' + JSON.stringify(obj) + 
+                log.warn('principal ' + req.principal + ' not authorized for action: ' + req.action + 
+                         ' for principal: ' + req.principal_for + ' on object: ' + JSON.stringify(obj) + 
                          ' because of permission: ' + JSON.stringify(permission));
             }
 
@@ -47,9 +45,19 @@ var authorize = function(req, obj, callback) {
 var create = function(authPrincipal, permission, callback) {
     if (!authPrincipal) return callback(utils.principalRequired());
 
-    // TODO: is authPrincipal authorized to create this permission.
-
+/*
+    authorize({
+        principal: authPrincipal.id,
+        principal_for: permission.principal_for, 
+        action: 'admin'
+    }, permission, function(err, permission) {
+         if (err) return callback(err);
+         if (!permission.authorized)  {
+            return callback(utils.authorizationError('You are not authorized to create this permission.'));
+         }
+*/
     return createInternal(permission, callback);
+//    });
 };
 
 // should only be called at bootstrap when service principal's permissions haven't been established.
@@ -118,30 +126,23 @@ var permissionsFor = function(principalId, callback) {
     });
 };
 
-var removeById = function(authorizingPrincipal, permissionId, callback) {
-    var authzError = utils.authorizationError('You are not authorized to remove this permission.');
-
-    findById(authorizingPrincipal, permissionId, function (err, permission) {
+var removeById = function(authzPrincipal, permissionId, callback) {
+    findById(authzPrincipal, permissionId, function (err, permission) {
         if (err) return callback(err);
 
-        services.principals.findById(authorizingPrincipal, permission.principal_for, function(err, principal) {
+        authorize({
+            principal: authzPrincipal.id,
+            principal_for: permission.principal_for,
+            action: 'admin'
+        }, permission, function(err, matchedPermission) {
             if (err) return callback(err);
-            if (!principal) return callback(authzError);
+            if (!matchedPermission.authorized)  {
+                log.warn('permissions: removeById: authz failure: principal ' + authzPrincipal.id + ' tried to remove permission id: ' + permissionId);
+                return callback(utils.authorizationError('You are not authorized to remove this permission.'));
+            }
 
-            services.permissions.authorize({
-                principal: authorizingPrincipal,
-                principal_for: principal,
-                action: 'admin'
-            }, permission, function(err, authorizingPermission) {
-                if (err) return callback(err);
-                if (!permission.authorized)  {
-                    log.warn('permissions: removeById: authz failure: principal ' + authorizingPrincipal.id + ' tried to remove permission id: ' + permission.id);
-                    return callback(authzError);
-                }
-
-                permission.remove(callback);
-            });
-        })
+            permission.remove(callback);
+        });
     });
 };
 
