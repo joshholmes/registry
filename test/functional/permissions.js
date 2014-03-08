@@ -28,8 +28,8 @@ describe('permissions endpoint', function() {
 
     it('should allow creating and deleting a permission by a user', function(done) {
         var permission = {
-            issued_to:     fixtures.models.accessTokens.user.principal,
-            principal_for: fixtures.models.accessTokens.user.principal,
+            issued_to:     fixtures.models.principals.user.id,
+            principal_for: fixtures.models.principals.user.id,
             action:        'admin',
             priority:      100,
             authorized:    true        
@@ -53,4 +53,64 @@ describe('permissions endpoint', function() {
             }
         );
     });
+
+    it('shouldnt allow anotherUser to create a permission on another principal it isnt admin on', function(done) {
+        var permission = {
+            issued_to:     fixtures.models.principals.anotherUser.id,
+            principal_for: fixtures.models.principals.device.id,
+            action:        'admin',
+            priority:      100,
+            authorized:    true        
+        };
+
+        request.post(config.permissions_endpoint,
+            { headers: { Authorization: fixtures.models.accessTokens.anotherUser.toAuthHeader() },
+                json: permission }, function(err, resp, body) {
+                assert.ifError(err);
+                assert.equal(resp.statusCode, 403);
+
+                done();
+            }
+        ); 
+    });
+
+    it('shouldnt allow anotherUser to create a blanket admin permission', function(done) {
+        var permission = {
+            issued_to:     fixtures.models.principals.anotherUser.id,
+            action:        'admin',
+            priority:      100,
+            authorized:    true        
+        };
+
+        request.post(config.permissions_endpoint,
+            { headers: { Authorization: fixtures.models.accessTokens.anotherUser.toAuthHeader() },
+                json: permission }, function(err, resp, body) {
+                assert.ifError(err);
+                assert.equal(resp.statusCode, 403);
+
+                done();
+            }
+        ); 
+    });
+
+    it('should allow anotherUser to grant a user view permissions', function(done) {
+        var permission = {
+            issued_to:     fixtures.models.principals.user.id,
+            principal_for: fixtures.models.principals.anotherUser.id,
+            action:        'admin',
+            priority:      100,
+            authorized:    true        
+        };
+
+        request.post(config.permissions_endpoint,
+            { headers: { Authorization: fixtures.models.accessTokens.anotherUser.toAuthHeader() },
+                json: permission }, function(err, resp, body) {
+                assert.ifError(err);
+                assert.equal(resp.statusCode, 200);
+
+                done();
+            }
+        ); 
+    });
+
 });

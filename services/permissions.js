@@ -42,22 +42,21 @@ var authorize = function(req, obj, callback) {
     });
 };
 
-var create = function(authPrincipal, permission, callback) {
-    if (!authPrincipal) return callback(utils.principalRequired());
+var create = function(authzPrincipal, permission, callback) {
+    if (!authzPrincipal) return callback(utils.principalRequired());
 
-/*
     authorize({
-        principal: authPrincipal.id,
+        principal: authzPrincipal.id,
         principal_for: permission.principal_for, 
         action: 'admin'
-    }, permission, function(err, permission) {
+    }, permission, function(err, matchingPermission) {
          if (err) return callback(err);
-         if (!permission.authorized)  {
+         if (!matchingPermission.authorized)  {
             return callback(utils.authorizationError('You are not authorized to create this permission.'));
          }
-*/
-    return createInternal(permission, callback);
-//    });
+
+        return createInternal(permission, callback);
+    });
 };
 
 // should only be called at bootstrap when service principal's permissions haven't been established.
