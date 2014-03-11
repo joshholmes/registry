@@ -70,7 +70,8 @@ exports.impersonate = function(req, res) {
     services.principals.impersonate(req.user, req.body.id, function (err, impersonatedPrincipal, accessToken) {
         if (err) return utils.handleError(res, err);
 
-        sendAuthResponse(res, impersonatedPrincipal, accessToken);
+        // don't use sendAuthResponse above or it will wipe out the request session for the impersonated one. 
+        res.send({ principal: impersonatedPrincipal, accessToken: accessToken });
     });
 };
 

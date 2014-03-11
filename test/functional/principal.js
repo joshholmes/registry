@@ -276,6 +276,11 @@ describe('principals endpoint', function() {
               json: fixtures.models.principals.user }, function(err, resp, body) {
                 assert.equal(resp.statusCode, 200);
                 assert.notEqual(body.accessToken.token, undefined);
+                
+                if (resp.headers['x-n2-set-access-token']) {
+                  var headerToken = JSON.parse(resp.headers['x-n2-set-access-token']);
+                  assert.notEqual(headerToken.token, body.accessToken.token);
+                }
 
                 done();
             });
