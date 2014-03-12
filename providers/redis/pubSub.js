@@ -82,7 +82,7 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
             async.each(subscriptions, function(subscriptionJson, subscriptionCallback) {
                 var subscription = JSON.parse(subscriptionJson);
 
-                log.info("RedisPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("RedisPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 if (subscription.type !== type) return subscriptionCallback();
                 if (item.visible_to.indexOf(subscription.principal) === -1) return subscriptionCallback();
