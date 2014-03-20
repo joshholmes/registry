@@ -64,7 +64,7 @@ RedisPubSubProvider.prototype.createSubscription = function(subscription, callba
 // TODO: Use straw.js to queue the item with the subscription system?
 
 RedisPubSubProvider.prototype.publish = function(type, item, callback) {
-    log.info("RedisPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.debug("RedisPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
     var self = this;
 
     // iterate over each redis server
@@ -78,7 +78,7 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
             if (err) return serverCallback(err);
 
             // for each subscription, see if the filter matches this item
-            log.info("RedisPubSubProvider: CHECKING " + subscriptions.length + " subscriptions.");
+            log.debug("RedisPubSubProvider: CHECKING " + subscriptions.length + " subscriptions.");
             async.each(subscriptions, function(subscriptionJson, subscriptionCallback) {
                 var subscription = JSON.parse(subscriptionJson);
 
@@ -91,7 +91,7 @@ RedisPubSubProvider.prototype.publish = function(type, item, callback) {
 
                 if (unfilteredItems.length === 0) return subscriptionCallback();
 
-                log.info("RedisPubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("RedisPubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
                 client.rpush(RedisPubSubProvider.subscriptionKey(subscription), JSON.stringify(unfilteredItems[0]), subscriptionCallback);
 
             }, serverCallback);
@@ -117,7 +117,7 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
         // redis returns an 2 element array with [key, value], so decode this
         var item = JSON.parse(reply[1]);
 
-        log.info("RedisPubSubProvider: RECEIVED on subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter) + " item: " + JSON.stringify(item));
+        log.debug("RedisPubSubProvider: RECEIVED on subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter) + " item: " + JSON.stringify(item));
 
         return callback(null, item);
     });
@@ -128,7 +128,7 @@ RedisPubSubProvider.prototype.removeSubscription = function(subscription, callba
     
     var subscriptionJson = RedisPubSubProvider.redisifySubscription(subscription);
 
-    log.info("RedisPubSubProvider: removing subscription: " + subscriptionJson);
+    log.debug("RedisPubSubProvider: removing subscription: " + subscriptionJson);
 
     var client = this.clientForServer(subscription.assignment);
 
