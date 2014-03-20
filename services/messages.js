@@ -191,9 +191,8 @@ var remove = function(principal, query, callback) {
     find(principal, query, {}, function (err, messages) {
         if (err) return callback(err);
 
-        // delete linked resources and then the message itself.
-        // TODO: what is an appropriate max parallelism here.
-        async.eachLimit(messages, 50, removeLinkedResources, function(err) {
+        // delete linked resources and then all the messages in one go.
+        async.each(messages, removeLinkedResources, function(err) {
             if (err) return callback(err);
 
             models.Message.remove(query, callback);
