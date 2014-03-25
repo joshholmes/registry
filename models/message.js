@@ -10,7 +10,7 @@ messageSchema.add({
     ver:            { type: Number, default: 0.1 },                    // schema version
 
     link:           { type: Schema.Types.ObjectId },                   // link to other resources (eg. blob)
-    created_at:     { type: Date, default: Date.now },
+//    created_at:     { type: Date, default: Date.now },
     expires:        { type: Date },                                    // expires
     ts:             { type: Date, default: Date.now },                 // timestamp
 
