@@ -77,7 +77,12 @@ exports.impersonate = function(req, res) {
 
 exports.index = function(req, res) {
     var query = utils.parseQuery(req);
+    if (typeof query !== 'object') 
+        return utils.handleError(res, utils.badRequestError('Invalid query format.'));
+
     var options = utils.parseOptions(req);
+    if (typeof options !== 'object') 
+        return utils.handleError(res, utils.badRequestError('Invalid options format.'));
 
     if (!options.sort) options.sort = { last_connection: -1 };
 

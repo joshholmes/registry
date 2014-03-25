@@ -196,24 +196,23 @@ var createUserCredentials = function(principal, callback) {
 };
 
 var filterForPrincipal = function(principal, filter) {
-    if (principal && principal.is('service')) return filter;
+    if (typeof filter !== 'object') {
+        log.warn('principals service: filterForPrincipal: squelching non object filter');
+        filter = {};        
+    }
 
-    if (!principal && !services.principals.servicePrincipal) return filter;
+    // used only the first query during bootstrap before service principal is established.
+    if (!principal && !services.principals.servicePrincipal) {
+        return filter;
+    }
 
-    filter['visible_to'] = principal._id;
+    if (principal && principal.is('service')) {
+        return filter;
+    }
+
+    filter.visible_to = principal._id;
+
     return filter;
-
-//    var visibilityClauses = [ { public: true } ];
-//    if (principal) {
-//        visibilityClauses.push({ visible_to: principal._id });
-//    }
-
-    // only do more complex filter check if there is a filter.
-    
-//    if (filter && Object.keys(filter).length > 0)
-//        return { $and: [ filter, { $or: visibilityClauses } ] };
-//    else
-//        return { $or: visibilityClauses };
 };
 
 var find = function(principal, filter, options, callback) {
