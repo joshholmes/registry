@@ -144,9 +144,9 @@ var translateQuery = function(obj, options) {
         else if (options.objectIdFields && options.objectIdFields.indexOf(prop) != -1) {
 
             if (Object.prototype.toString.call(obj[prop]) === '[object Array]') {
-                obj[prop] = obj[prop].map(mongoose.Types.ObjectId.fromString);
+                obj[prop] = obj[prop].map(mongoose.Types.ObjectId);
             } else {
-                obj[prop] = mongoose.Types.ObjectId.fromString(obj[prop]);
+                obj[prop] = new mongoose.Types.ObjectId(obj[prop]);
             }
 
         } else if (options.dateFields && options.dateFields.indexOf(prop) != -1) {
