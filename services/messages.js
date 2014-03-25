@@ -191,19 +191,23 @@ var remove = function(principal, query, callback) {
     find(principal, query, {}, function (err, messages) {
         if (err) return callback(err);
 
-        // delete linked resources and then all the messages in one go.
-        async.each(messages, removeLinkedResources, function(err) {
-            if (err) return callback(err);
-
-            models.Message.remove(query, callback);
+        // delete linked resources for message, if any, and then the message itself.
+        async.each(messages, function(message, messageCallback) {
+            removeOne(principal, message, messageCallback);
+        }, function(err) {
+            if (err) 
+                return callback(err);
+            else
+                return callback(null, messages.length);
         });
     });
 };
 
 var removeLinkedResources = function(message, callback) {
+    // the vast majority of messages will have no link and will immediately callback.
     if (!message.link) return callback();
 
-    log.info("removing linked resources with link: " + message.link);
+    log.info("message service: removing linked resources with link: " + message.link);
     services.blobs.remove(services.principals.servicePrincipal, { link: message.link }, callback);
 };
 
