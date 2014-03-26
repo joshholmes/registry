@@ -184,22 +184,30 @@ var loadSchemaAndClients = function(path) {
     });
 };
 
-var remove = function(principal, query, callback) {
-    // TODO: will need more complicated authorization mechanism for non service users.
+var remove = function(principal, filter, callback) {
     if (!principal || !principal.is('service')) return callback(utils.authorizationError());
 
-    find(principal, query, {}, function (err, messages) {
-        if (err) return callback(err);
+    // remove all of the messages without links first
+    filter.link = { $exists: false };    
+    models.Message.remove(filter, function(err) {
 
-        // delete linked resources for message, if any, and then the message itself.
-        async.each(messages, function(message, messageCallback) {
-            removeOne(principal, message, messageCallback);
-        }, function(err) {
-            if (err) 
-                return callback(err);
-            else
-                return callback(null, messages.length);
+        delete filter.link;
+
+        // now requery for the messages with links and do the slower cascading deletes.
+        find(principal, filter, {}, function (err, messages) {
+            if (err) return callback(err);
+
+            // delete linked resources for message, if any, and then the message itself.
+            async.each(messages, function(message, messageCallback) {
+                removeOne(principal, message, messageCallback);
+            }, function(err) {
+                if (err) 
+                    return callback(err);
+                else
+                    return callback(null, messages.length);
+            });
         });
+
     });
 };
 
