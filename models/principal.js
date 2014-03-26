@@ -14,7 +14,7 @@ principalSchema.add({
 
     capabilities: { type: Array },
 
-// device items
+// non-user items
 
     secret_hash: { type: String },                          // base64
 
