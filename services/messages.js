@@ -217,7 +217,7 @@ var removeOne = function(principal, message, callback) {
     removeLinkedResources(message, function(err) {
         if (err) return callback(err);
 
-        models.Message.remove({"_id": message.id}, callback);
+        message.remove(callback);
     });
 };
 
