@@ -190,6 +190,7 @@ var remove = function(principal, filter, callback) {
     // remove all of the messages without links first
     filter.link = { $exists: false };    
     models.Message.remove(filter, function(err) {
+        if (err) return callback(err);
 
         delete filter.link;
 
@@ -201,10 +202,9 @@ var remove = function(principal, filter, callback) {
             async.each(messages, function(message, messageCallback) {
                 removeOne(principal, message, messageCallback);
             }, function(err) {
-                if (err) 
-                    return callback(err);
-                else
-                    return callback(null, messages.length);
+                if (err) return callback(err);
+
+                return callback(null, messages.length);
             });
         });
 
