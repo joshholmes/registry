@@ -26,15 +26,15 @@ var authenticateUser = function(email, password, callback) {
         if (err) return callback(err);
         if (!principal) return callback(utils.authenticationError(USER_AUTH_FAILURE_MESSAGE));
 
-        log.info("found user email: " + email + " verifying password.");
+        log.debug("found user email: " + email + " verifying password.");
         verifyPassword(password, principal, function(err) {
             if (err) return callback(err);
 
-            log.info("verified password, fetching access token.");
+            log.debug("verified password, fetching access token.");
             services.accessTokens.findOrCreateToken(principal, function(err, accessToken) {
                 if (err) return callback(err);
 
-                log.info("authenticated user principal: " + principal.id);
+                log.debug("authenticated user principal: " + principal.id);
                 callback(null, principal, accessToken);
             });
         });
@@ -52,7 +52,7 @@ var authenticateDevice = function(principalId, secret, callback) {
             services.accessTokens.findOrCreateToken(principal, function(err, accessToken) {
                 if (err) return callback(err);
 
-                log.info("authenticated device principal: " + principal.id);
+                log.debug("authenticated device principal: " + principal.id);
                 callback(null, principal, accessToken);
             });
         });

@@ -38,7 +38,7 @@ var create = function(principal, blob, stream, callback) {
         blob.save(function(err, blob) {
             if (err) return callback(err);
 
-            log.info('created blob with id: ' + blob.id);
+            log.debug('created blob with id: ' + blob.id);
             callback(null, blob);
         });
     });

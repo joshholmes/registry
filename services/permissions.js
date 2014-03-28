@@ -69,6 +69,7 @@ var createInternal = function(permission, callback) {
     find(services.principals.servicePrincipal, {
         action: permission.action,
         authorized: permission.authorized,
+        expires: permission.expires,
         filter: permission.filter,
         issued_to: permission.issued_to,
         principal_for: permission.principal_for,

@@ -6,7 +6,7 @@ var config = require('../config')
   , utils = require('../utils');
 
 var create = function(principal, callback) {
-    log.info('accesstokens: creating accesstoken for principal: ' + principal.id);
+    log.debug('accesstokens: creating accesstoken for principal: ' + principal.id);
 
     var accessToken = new models.AccessToken({
         expires_at: utils.dateDaysFromNow(config.access_token_lifetime),
@@ -40,7 +40,7 @@ var findOrCreateToken = function(principal, callback) {
         if (err) return callback(err);
 
         if (tokens && tokens.length > 0) {
-            log.info('accesstokens: found existing accesstoken for principal: ' + JSON.stringify(tokens[0]));
+            log.debug('accesstokens: found existing accesstoken for principal: ' + JSON.stringify(tokens[0]));
         }
 
         if (tokens && tokens.length > 0 && !isCloseToExpiration(tokens[0])) {

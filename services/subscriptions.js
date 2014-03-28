@@ -9,7 +9,7 @@ var async = require('async')
 var io;
 
 var attach = function(server) {
-    if (!config.pubsub_provider) return log.info('pubsub provider not configured: subscription endpoint not started.');
+    if (!config.pubsub_provider) return log.warn('pubsub provider not configured: subscription endpoint not started.');
 
     io = require('socket.io').listen(server);
 
@@ -83,7 +83,7 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findOne = function(subscription, callback) {
-    log.info('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal + ' type: ' + subscription.type + ' name: ' + subscription.name);
+    log.debug('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal + ' type: ' + subscription.type + ' name: ' + subscription.name);
 
     models.Subscription.findOne({
         principal: subscription.principal,
@@ -97,7 +97,6 @@ var findOrCreate = function(subscription, callback) {
         if (err) return callback(err);
         if (existingSubscription) return callback(null, existingSubscription);
 
-        log.info('subscriptions: findOrCreate: subscription not found, creating: ' + subscription.name);
         create(subscription, callback);
     });
 };
@@ -139,7 +138,7 @@ var receive = function(subscription, callback) {
 var remove = function(subscription, callback) {
     if (!subscription) return log.error('undefined subscription passed to services.subscription.remove.');
 
-    log.info('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name + ': filter: ' + JSON.stringify(subscription.filter) + ' last_receive: ' + subscription.last_receive);
+    log.debug('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name + ': filter: ' + JSON.stringify(subscription.filter) + ' last_receive: ' + subscription.last_receive);
 
     config.pubsub_provider.removeSubscription(subscription, function(err) {
         if (err) {
@@ -182,7 +181,7 @@ var start = function(socket, spec, callback) {
             return;
         }
 
-        log.info('subscriptions: connecting subscription: ' + subscription.id + ' with clientId: ' + spec.id);
+        log.debug('subscriptions: connecting subscription: ' + subscription.id + ' with clientId: ' + spec.id);
 
         subscription.clientId = spec.id;
         
