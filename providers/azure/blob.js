@@ -1,7 +1,6 @@
 var azure = require('azure')
   , log = require('../../log')
-  , Readable = require('stream').Readable
-  , simpleBufferStream = require('simple-bufferstream');
+  , streamifier = require('streamifier');
 
 var BLOB_CONTAINER = "blobs";
 
@@ -31,17 +30,21 @@ AzureBlobProvider.prototype.create = function(blob, stream, callback) {
     var self = this;
 
     stream.on('data', function(data) {
-        buffers.push[data];
+        log.warn('pushing data of length: ' + data.length);
+        buffers.push(data);
         contentLength += data.length;
     });
 
     stream.on('end', function() {
         var fullBlobBuffer = Buffer.concat(buffers);
 
+        var blobStream = streamifier.createReadStream(fullBlobBuffer);
+
         self.azureBlobService.createBlockBlobFromStream(
-            BLOB_CONTAINER, blob.id, simpleBufferStream(fullBlobBuffer), contentLength,
+            BLOB_CONTAINER, blob.id, blobStream, contentLength,
             { "contentType": blob.content_type },
             function(err, blobResult, response) {
+
                 callback(err, blob);
             }
         );
