@@ -30,7 +30,6 @@ AzureBlobProvider.prototype.create = function(blob, stream, callback) {
     var self = this;
 
     stream.on('data', function(data) {
-        log.warn('pushing data of length: ' + data.length);
         buffers.push(data);
         contentLength += data.length;
     });
@@ -56,7 +55,6 @@ AzureBlobProvider.prototype.initialize = function(callback) {
 };
 
 AzureBlobProvider.prototype.remove = function(blob, callback) {
-    log.info("removing blob with id: " + blob.id);
     this.azureBlobService.deleteBlob(BLOB_CONTAINER, blob.id, callback);
 };
 

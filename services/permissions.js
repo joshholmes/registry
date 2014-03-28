@@ -63,22 +63,36 @@ var create = function(authzPrincipal, permission, callback) {
 var createInternal = function(permission, callback) {
     if (permission.authorized !== false && permission.authorized !== true) return callback(new Error('permission must have authorized.'));
 
-    log.info("permissions: creating permission: " + JSON.stringify(permission));
-    permission.save(function(err, permission) {
-        if (err) return callback(err);
+    log.debug("permissions: creating permission: " + JSON.stringify(permission));
 
-        config.cache_provider.del('permissions', permission.issued_to, function(err) {
+    // if we already have this exact permission, don't create another one.
+    find(services.principals.servicePrincipal, {
+        action: permission.action,
+        authorized: permission.authorized,
+        filter: permission.filter,
+        issued_to: permission.issued_to,
+        principal_for: permission.principal_for,
+        priority: permission.priority
+    }, {}, function(err, permissions) {
+        if (err) return callback(err);
+        if (permissions.length > 0) return callback(null, permissions[0]);
+
+        permission.save(function(err, permission) {
             if (err) return callback(err);
 
-            if (permission.principal_for && (!permission.action || permission.action === 'view')) {
-                services.principals.updateVisibleTo(permission.principal_for, function(err) {
-                    return callback(err, permission);
-                });   
-            } else {
-                return callback(null, permission);
-            }
+            config.cache_provider.del('permissions', permission.issued_to, function(err) {
+                if (err) return callback(err);
+
+                if (permission.principal_for && (!permission.action || permission.action === 'view')) {
+                    services.principals.updateVisibleTo(permission.principal_for, function(err) {
+                        return callback(err, permission);
+                    });
+                } else {
+                    return callback(null, permission);
+                }
+            });
         });
-    });    
+    });
 }
 
 var filterForPrincipal = function(authPrincipal, filter) {
