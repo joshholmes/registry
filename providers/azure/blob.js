@@ -1,5 +1,7 @@
-var azure = require('azure'),
-    log = require('../../log');
+var azure = require('azure')
+  , log = require('../../log')
+  , Readable = require('stream').Readable
+  , simpleBufferStream = require('simple-bufferstream');
 
 var BLOB_CONTAINER = "blobs";
 
@@ -21,11 +23,29 @@ function AzureBlobProvider(config) {
 }
 
 AzureBlobProvider.prototype.create = function(blob, stream, callback) {
-    this.azureBlobService.createBlockBlobFromStream(BLOB_CONTAINER, blob.id, stream, blob.content_length,
-        {"contentType": blob.content_type},
-        function(err, blobResult, response) {
-            callback(err, blob);
-        });
+    // Azure requires the length of the stream at the start of the Stream
+    // so count and buffer the contents.  Yes, this sucks.
+
+    var buffers = [];
+    var contentLength = 0;
+    var self = this;
+
+    stream.on('data', function(data) {
+        buffers.push[data];
+        contentLength += data.length;
+    });
+
+    stream.on('end', function() {
+        var fullBlobBuffer = Buffer.concat(buffers);
+
+        self.azureBlobService.createBlockBlobFromStream(
+            BLOB_CONTAINER, blob.id, simpleBufferStream(fullBlobBuffer), contentLength,
+            { "contentType": blob.content_type },
+            function(err, blobResult, response) {
+                callback(err, blob);
+            }
+        );
+    });
 };
 
 AzureBlobProvider.prototype.initialize = function(callback) {

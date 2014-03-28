@@ -27,7 +27,7 @@ var create = function(principal, blob, stream, callback) {
 
     // TODO: authorization of principal to create blob here.
 
-    config.blob_provider.create(blob, stream, function(err) {
+    config.blob_provider.create(blob, stream, function(err, blob) {
         if (err) return callback(err);
 
         blob.owner = principal;

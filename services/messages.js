@@ -67,9 +67,6 @@ var create = function(principal, message, callback) {
                 return callback(utils.authorizationError());  
             } 
 
-            if (message.is('log'))
-                log.log(message.body.severity, message.body.message, { principal: message.from.toString() });
-
             buildVisibility(message, function(err, message) { 
                 if (err) return callback(err);
 
@@ -194,11 +191,10 @@ var remove = function(principal, filter, callback) {
 
         delete filter.link;
 
-        // now requery for the messages with links and do the slower cascading deletes.
+        // now requery for the messages with links and do the slower cascading deletes for them.
         find(principal, filter, {}, function (err, messages) {
             if (err) return callback(err);
 
-            // delete linked resources for message, if any, and then the message itself.
             async.each(messages, function(message, messageCallback) {
                 removeOne(principal, message, messageCallback);
             }, function(err) {

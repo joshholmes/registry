@@ -16,9 +16,12 @@ LocalBlobProvider.prototype.create = function(blob, readStream, callback) {
 
     readStream.pipe(fileStream);
 
-    // TODO: handle errors in pipe
-    // TODO: how to get end event on finish of pipe
-    callback();
+    fileStream.on('finish', function() {
+        log.warn('content length: ' + fileStream.bytesWritten);
+        blob.content_length = fileStream.bytesWritten;
+        
+        return callback(null, blob);
+    });
 };
 
 LocalBlobProvider.prototype.makePath = function(blob) {
