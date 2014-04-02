@@ -17,7 +17,6 @@ LocalBlobProvider.prototype.create = function(blob, readStream, callback) {
     readStream.pipe(fileStream);
 
     fileStream.on('finish', function() {
-        log.warn('content length: ' + fileStream.bytesWritten);
         blob.content_length = fileStream.bytesWritten;
         
         return callback(null, blob);
