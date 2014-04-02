@@ -84,7 +84,7 @@ session.on({ type: 'message', filter: { type: 'ip' }, name: 'matcher' }, functio
 
             if (principal.is('user'))
                 users.push(principal);
-            else if (principal.is('device'))
+            else if (!principal.is('service'))  // TODO: in a multitier service world we want to support matching of services too.
                 devices.push(principal);
         });
 
