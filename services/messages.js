@@ -97,13 +97,11 @@ var createMany = function(principal, messages, callback) {
 
 var find = function(principal, filter, options, callback) {
     var translatedFilter = utils.translateQuery(filter, models.Message.fieldTranslationSpec);
-    var filter = services.principals.filterForPrincipal(principal, translatedFilter)
+    var filter = services.principals.filterForPrincipal(principal, translatedFilter);
 
-    models.Message.find(filter, null, options, function(err, messages) {
-        if (err) return callback(err);
+    log.debug('messages: find filter: ' + JSON.stringify(filter));
 
-        return callback(null, messages);
-    });
+    models.Message.find(filter, null, options, callback);
 };
 
 var findById = function(principal, messageId, callback) {
@@ -144,7 +142,7 @@ var loadClientPlugin = function(fullPath, clientFile) {
 var loadSchema = function(fullPath, schemaFile) {
     var schemaPath = path.join(fullPath, schemaFile);
 
-    log.info('loading schema: ' + schemaFile + ' from: ' + schemaPath);
+    log.info('messages: loading schema: ' + schemaFile + ' from: ' + schemaPath);
     var schemaText = fs.readFileSync(schemaPath);
     schemas[schemaFile] = JSON.parse(schemaText);
 };

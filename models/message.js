@@ -10,7 +10,6 @@ messageSchema.add({
     ver:            { type: Number, default: 0.1 },                    // schema version
 
     link:           { type: Schema.Types.ObjectId },                   // link to other resources (eg. blob)
-//    created_at:     { type: Date, default: Date.now },
     expires:        { type: Date },                                    // expires
     ts:             { type: Date, default: Date.now },                 // timestamp
 
@@ -18,7 +17,7 @@ messageSchema.add({
     to:             { type: Schema.Types.ObjectId, ref: 'Principal' }, // principal message is to (optional)
     response_to:    [{ type: Schema.Types.ObjectId, ref: 'Message' }], // message(s) this is in response to
 
-    tags:           [{ type: String}],
+    tags:           [{ type: String }],
     body:           { type: Schema.Types.Mixed, default: {} },
 
     // internal fields
