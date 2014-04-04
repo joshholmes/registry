@@ -1,6 +1,6 @@
 # Nitrogen Service
   
-Nitrogen is a platform for building connected devices.  Nitrogen provides the authentication, authorization, and realtime messaging platform so that you can focus on your device and/or application.  All with a consistent development platform that leverages the ubiquity of Javascript.  You can learn more about the project's goals at a high level from [my talk at LXJS.](https://www.youtube.com/watch?v=xV0x3boaZwU)
+Nitrogen is a platform for building connected devices.  Nitrogen provides the authentication, authorization, and realtime messaging platform so that you can focus on your device and/or application.  All with a consistent development platform that leverages the ubiquity of Javascript.  You can learn more about the project's goals at a high level from [my talk at LXJS.](https://www.youtube.com/watch?v=xV0x3boaZwU) and how to get started [on the project site](http://nitrogen.io).
   
 ## Device Development Model
 
@@ -20,7 +20,7 @@ var camera = new RaspberryPiCamera({
 service.connect(config.camera, function(err, session, camera) {
     if (err) { return console.log('failed to connect camera: ' + err); }
 
-    // startup opencv based camera manager (supports software based motion detection) for this camera. 
+    // startup camera manager that watches the message stream for this camera. 
     new CameraManager(camera).start(session, function(err, message) {
         if (err) return session.log.error(JSON.stringify(err));
     });
@@ -31,11 +31,11 @@ service.connect(config.camera, function(err, session, camera) {
 
 The service.connect() call in this example handles all the authentication and realtime communication details and encapsulates these in a session object that you subsequently use to communicate with a Nitrogen service.
 
-It also starts up a CommandManager for the camera.  A CommandManager in Nitrogen follows the message stream for the device and react to commands sent to it by typically controlling a device associated with it.  In this case, we are starting a OpenCVCameraManager and passing in a Nitrogen device for a Raspberry Pi camera.  This manager will watch for cameraCommand messages and execute them against them against this camera.
+It also starts up a CommandManager for the camera.  A CommandManager in Nitrogen follows the message stream for the device and reacts to commands sent to it by typically controlling a device associated with it.  In this case, we are starting a CameraManager and passing in a Nitrogen device for a Raspberry Pi camera.  This manager will watch for cameraCommand messages and execute them against this camera.
 
-CommandManager are mixed into a service or device project so that you can choose which commands you want your service and devices to support.  The Nitrogen project maintains a set of commands in the [commands](http://github.com/nitrogenjs/commands) project but you are free to define your own and mix them in as well.  Have a look at the definition of one of these command packages and package.json for the service project for a template for how to do that.
+By including a CommandManager module in your Nitrogen service's package.json, you can mix in the commands you want your service to support. The Nitrogen project maintains a set of commands in the [commands](http://github.com/nitrogenjs/commands) project but you are free to define your own and mix them in as well. Have a look at the definition of one of these command packages and package.json for the service project for a template for how to do that.
 
-The sample camera application above can be found in the [camera](https://github.com/nitrogenjs/camera) project.   This project uses the [Nitrogen client node.js module](http://github.com/nitrogenjs/client) to communicate with the service.  The documentation for this API is [documented here](http://nitrogen.io/docs/client/index.html).
+The sample camera application above can be found in the [camera](https://github.com/nitrogenjs/camera) project. This project uses the [Nitrogen client node.js module](http://github.com/nitrogenjs/client) to communicate with the service.  The documentation for this API is [documented here](http://nitrogen.io/docs/client/index.html).
 
 Nitrogen also maintains a set of standard schemas to enable cross application / device interoperability.  See [docs/schema.md](docs/schemas.md).  You can opt out of schema checking by prepending the message type with an underscore or mix in your own schemas.
 
@@ -77,11 +77,11 @@ nitrogen.Message.find(session, { type: 'image', from: camera.id }, function(err,
 
 We've really only scratched the surface of what's possible with Nitrogen and how all of the parts fit together.
 
-The best way to get started with Nitrogen is to build something. We recommend using the free hosted Nitrogen service running in the cloud to get started quickly.  Go to [https://admin.nitrogen.io](https://admin.nitrogen.io) to sign up for an account and then follow the [first devicewalkthrough](docs/walkthrough.md) to see how to get a device up and running.
+The best way to get started with Nitrogen is to build something. We have a [getting started guide](http://nitrogen.io/guides/start/setup.html) and a [free hosted version of the Nitrogen service](https://admin.nitrogen.io) running in the cloud.
 
 If at any time you run into issues, please file an issue with this project. It is very helpful to know what is hard for beginners to understand so please don't hesitate to reach out.
 
-To run a Nitrogen service locally:
+## Running the Nitrogen service locally:
 
 1. Clone or fork this repo: `https://github.com/nitrogenjs/service`
 2. Fetch and install its node.js dependencies: `npm install`
