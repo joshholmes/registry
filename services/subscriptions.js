@@ -101,10 +101,15 @@ var findOrCreate = function(subscription, callback) {
     });
 };
 
+var initialize = function(callback) {
+    config.pubsub_provider.services = services;
+    return callback();
+}
+
 var janitor = function(callback) {
     var cutoffTime = config.pubsub_provider.staleSubscriptionCutoff();
 
-    find(services.principals.servicePrincipal, { 
+    find(services.principals.servicePrincipal, {
         $and: [
             { last_receive: { $lt: cutoffTime } },
             { permanent: false }
@@ -146,7 +151,7 @@ var remove = function(subscription, callback) {
             return callback(err);
         }
 
-        if (subscription.socket) 
+        if (subscription.socket)
             delete subscription.socket.subscriptions[subscription.clientId];
 
         subscription.remove(callback);
@@ -184,7 +189,7 @@ var start = function(socket, spec, callback) {
         log.debug('subscriptions: connecting subscription: ' + subscription.id + ' with clientId: ' + spec.id);
 
         subscription.clientId = spec.id;
-        
+
         socket.subscriptions[subscription.clientId] = subscription;
 
         stream(socket, subscription);
@@ -209,8 +214,8 @@ var stop = function(subscription, callback) {
 
 var stream = function(socket, subscription) {
     async.whilst(
-        function() { 
-            return socket.subscriptions[subscription.clientId] !== undefined; 
+        function() {
+            return socket.subscriptions[subscription.clientId] !== undefined;
         },
         function(callback) {
             receive(subscription, function(err, item) {
@@ -250,6 +255,7 @@ module.exports = {
     find: find,
     findOne: findOne,
     findOrCreate: findOrCreate,
+    initialize: initialize,
     janitor: janitor,
     publish: publish,
     receive: receive,

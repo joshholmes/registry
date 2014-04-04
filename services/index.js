@@ -20,6 +20,7 @@ exports.initialize = function(callback) {
         exports.messages.initialize,
         exports.blobs.initialize,
         exports.permissions.initialize,
+        exports.subscriptions.initialize,
 
         exports.global.startJanitor
     ], callback);

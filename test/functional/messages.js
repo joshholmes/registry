@@ -91,8 +91,9 @@ describe('messages endpoint', function() {
     });
 
     it('should create and fetch a message', function(done) {
-        var subscriptionPassed = false,
-            restPassed = false;
+        var subscriptionPassed = false
+          , restPassed = false
+          , isDone = false;
 
         var socket = io.connect(config.subscriptions_endpoint, {
             query: "auth=" + encodeURIComponent(fixtures.models.accessTokens.device.token),
@@ -109,18 +110,19 @@ describe('messages endpoint', function() {
             subscriptionPassed = true;
             socket.emit('stop', { id: subscriptionId });
 
-            if (subscriptionPassed && restPassed) {
+            if (subscriptionPassed && restPassed && !isDone) {
+                isDone = true;
                 done();
             }
         });
 
         setTimeout(function() {
-            request.post(config.messages_endpoint, { 
-                json: [{ 
+            request.post(config.messages_endpoint, {
+                json: [{
                     from: fixtures.models.principals.device.id,
                     type: "_messageSubscriptionTest",
                     expires: 'never',
-                    body: { reading: 5.1 } 
+                    body: { reading: 5.1 }
                 }],
                 headers: { Authorization: fixtures.models.accessTokens.device.toAuthHeader() } }, function(post_err, post_resp, post_body) {
                     assert.equal(post_err, null);
@@ -155,13 +157,14 @@ describe('messages endpoint', function() {
                                     assert.equal(del_resp.statusCode, 200);
 
                                     restPassed = true;
-                                    if (subscriptionPassed && restPassed) {
+                                    if (subscriptionPassed && restPassed && !isDone) {
+                                        isDone = true;
                                         done();
                                     }
                                 }
                             );
                         });
                 });
-        }, 200);
+        }, config.pubsub_provider.MAX_LATENCY || 200);
     });
 });

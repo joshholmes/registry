@@ -15,145 +15,99 @@ function AzurePubSubProvider(config) {
     this.serviceBus = azure.createServiceBusService(process.env.AZURE_SERVICEBUS_NAMESPACE, process.env.AZURE_SERVICEBUS_ACCESS_KEY)
                            .withFilter(retryOperations);
 
-    this.serviceBus.createTopicIfNotExists('message', function(err) {
-        if (err) return log.error("AzurePubSubProvider: Not able to create/confirm service bus topics: " + err);
-    });
-
     this.SUPPORTS_PERMANENT_SUBSCRIPTIONS = true;
 }
 
 AzurePubSubProvider.RECEIVE_TIMEOUT_SECONDS = 5 * 60;
+AzurePubSubProvider.prototype.MAX_LATENCY = 5000;
 
-// sample JSON query
-// {
-//    "$and": [
-//        { "type": "cameraCommand" },
-//        { "$or": [
-//                {"public":true},
-//                {"visible_to":"5279287eb876269422000018"}
-//          ]
-//        }
-//    ],
-//    { "foo": "bar"}
-// }
-
-AzurePubSubProvider.buildFromSubArray = function(array, operation) {
-    var subqueries = [];
-    array.forEach(function(element) {
-        subqueries.push(AzurePubSubProvider.sqlFromJsonQuery(element));        
-    });
-
-    return "(" + subqueries.join(operation) + ")";
-};
-
-AzurePubSubProvider.sqlFromJsonQuery = function(jsonQuery) {
-    var subqueries = [];
-    for (var key in jsonQuery) {
-        if (key === "$and") {
-            subqueries.push(AzurePubSubProvider.buildFromSubArray(jsonQuery[key], " AND "));
-        } else if (key === "$or") {
-            subqueries.push(AzurePubSubProvider.buildFromSubArray(jsonQuery[key], " OR "));
-        } else {
-            var value = JSON.stringify(jsonQuery[key]).replace(/"/g, "'");
-            if (key !== 'visible_to')
-                subqueries.push(key + '=' + value);
-            else
-                subqueries.push('visible_to_' + jsonQuery[key] + '=true');
-        }
-
-    }
-
-    if (subqueries.length > 0)
-        return "(" + subqueries.join(" AND ") + ")";
-    else
-        return "";
+AzurePubSubProvider.buildQueueName = function(type, id) {
+    return type + "." + id;
 };
 
 AzurePubSubProvider.prototype.createSubscription = function(subscription, callback) {
-    var self = this;    
-    log.info('AzurePubSubProvider:creating subscription for type: ' + subscription.type + ' with id: ' + subscription.id);
-    this.serviceBus.createSubscription(subscription.type, subscription.id, function(err) {
-        if (err) {
-            // non error - already exists.
-            if (err.detail && err.detail.indexOf('already exists') !== -1)
-                return callback();
-            else
-                return callback(err);
-        }
+    var self = this;
+    log.info('AzurePubSubProvider:creating subscription for type: ' + subscription.type + ' with id: ' + subscription.id + ' with filter: ' + JSON.stringify(subscription.filter));
 
-        // TODO: disable service bus rules for now.
-        return callback(null, subscription);
+    var options = {
+      MaxSizeInMegabytes: '5120'
+    };
 
-        if (subscription.filter) {
+    var queueName = AzurePubSubProvider.buildQueueName(subscription.type, subscription.id);
 
-            self.serviceBus.deleteRule(
-                subscription.type, 
-                subscription.id, 
-                azure.Constants.ServiceBusConstants.DEFAULT_RULE_NAME,
-                function(err) {
-                    if (err) return callback(err);
-
-                    self.serviceBus.createRule(
-                        subscription.type, 
-                        subscription.id, subscription.id + "_filter", {
-                            sqlExpressionFilter: AzurePubSubProvider.sqlFromJsonQuery(subscription.filter)
-                        }, function(err) {
-                            return callback(err, subscription);
-                        }
-                    );  
-                }
-            );
-        } else {
-            return callback(null, subscription);
-        }
+    this.serviceBus.createQueueIfNotExists(queueName, options, function(err) {
+        return callback(err, subscription);
     });
 };
 
 AzurePubSubProvider.prototype.publish = function(type, item, callback) {
-    log.debug("AzurePubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    var self = this;
+    log.info("AzurePubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
 
-    var serviceBusMessage = {
-        customProperties: item.toObject(),
-        body: JSON.stringify(item)
-    };
+    // for each principal this message is visible_to
+    async.each(item.visible_to, function(visibleToId, visibleToCallback) {
 
-    for (var principalId in item.visible_to) {
-        serviceBusMessage.customProperties['visible_to_' + principalId] = true;
-    }
+        log.info(visibleToId.toString());
 
-    this.serviceBus.sendTopicMessage(type, serviceBusMessage, callback);
+        // query the subscriptions that principal has
+        self.services.subscriptions.find(self.services.principals.servicePrincipal, {  }, {}, function(err, subscriptions) {
+            if (err) return visibleToCallback(err);
+
+            log.info('subscriptions: ' + JSON.stringify(subscriptions));
+
+            async.each(subscriptions, function(subscription, subscriptionCallback) {
+                log.info("AzurePubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+
+                if (subscription.type !== type) return subscriptionCallback();
+
+                log.info("message: " + JSON.stringify(item));
+
+                var unfilteredItems = sift(subscription.filter, [item]);
+
+                if (unfilteredItems.length === 0) return subscriptionCallback();
+
+                log.info("AzurePubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+
+                var serviceBusMessage = {
+                    customProperties: item.toObject(),
+                    body: JSON.stringify(item)
+                };
+
+                var queueName = AzurePubSubProvider.buildQueueName(subscription.type, subscription.id);
+
+                self.serviceBus.sendQueueMessage(queueName, serviceBusMessage, subscriptionCallback);
+            }, visibleToCallback);
+        });
+    }, callback);
 };
 
 AzurePubSubProvider.prototype.receive = function(subscription, callback) {
     if (!subscription.type) return callback(new Error('Subscription type required.'));
     if (!subscription.id) return callback(new Error('Subscription id required.'));
 
-    this.serviceBus.receiveSubscriptionMessage(
-        subscription.type,
-        subscription.id,
-        { timeoutIntervalInS: AzurePubSubProvider.RECEIVE_TIMEOUT_SECONDS },
-        function (err, item) {
-            if (err) {
-                // squelch non error error from Azure.
-                if (err === 'No messages to receive') err = null;
-                callback(err);
-            }
-            else {
-                var message = JSON.parse(item.body)
-                var unfiltered = sift(subscription.filter, [message]);
+    var queueName = AzurePubSubProvider.buildQueueName(subscription.type, subscription.id);
 
-                if (unfiltered.length > 0) {
-                    callback(null, message);
-                } else {
-                    callback();
-                }
-            }
+    this.serviceBus.receiveQueueMessage(queueName, {
+        timeoutIntervalInS: AzurePubSubProvider.RECEIVE_TIMEOUT_SECONDS
+    }, function(err, serviceBusMessage) {
+        if (err) {
+            // squelch non error error from Azure.
+            if (err === 'No messages to receive') err = null;
+            callback(err);
         }
-    );
+        else {
+            log.info("AzurePubSubProvider: RECEIVED: " + serviceBusMessage.body);
+
+            var message = JSON.parse(serviceBusMessage.body)
+            return callback(null, message);
+        }
+    });
 };
 
 AzurePubSubProvider.prototype.removeSubscription = function(subscription, callback) {
-    this.serviceBus.deleteSubscription(subscription.type, subscription.id, function(err) {
+    var queueName = AzurePubSubProvider.buildQueueName(subscription.type, subscription.id);
+
+    this.serviceBus.deleteQueue(queueName, function(err) {
         // squelch NotFound and treat it like success
         if (err && err.code && err.code === 'NotFound')
             return callback();
@@ -171,24 +125,22 @@ AzurePubSubProvider.prototype.staleSubscriptionCutoff = function() {
 AzurePubSubProvider.prototype.resetForTest = function(callback) {
     if (process.env.NODE_ENV === "production") return callback();
 
-    log.debug('AzurePubSubProvider: resetting service bus topic completely for test');
+    log.debug('AzurePubSubProvider: resetting service bus queues completely for test');
     var self = this;
-    
-    this.serviceBus.listSubscriptions('message', function(err, subscriptions) {
+
+    this.serviceBus.listQueues(function(err, queues) {
         assert.ifError(err);
 
-        async.each(subscriptions, function(subscription, removeCallback) {
-            self.serviceBus.deleteSubscription(subscription.TopicName, subscription.SubscriptionName, removeCallback);
+        async.each(queues, function(queue, removeCallback) {
+            self.serviceBus.deleteQueue(queue.QueueName, removeCallback);
         }, function() {});
-
     });
 
-    // don't wait for deleting all the current subscriptions
     return callback();
 };
 
 AzurePubSubProvider.prototype.subscriptionsForServer = function(serverId, callback) {
-    this.serviceBus.listSubscriptions('message', callback); 
+    this.serviceBus.listQueues(callback);
 };
 
 module.exports = AzurePubSubProvider;
