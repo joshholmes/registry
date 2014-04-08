@@ -1,7 +1,7 @@
 # Nitrogen Service
-  
+
 Nitrogen is a platform for building connected devices.  Nitrogen provides the authentication, authorization, and realtime messaging platform so that you can focus on your device and/or application.  All with a consistent development platform that leverages the ubiquity of Javascript.  You can learn more about the project's goals at a high level from [my talk at LXJS.](https://www.youtube.com/watch?v=xV0x3boaZwU) and how to get started [on the project site](http://nitrogen.io).
-  
+
 ## Device Development Model
 
 Nitrogen at its heart uses messaging between principals. Messages can follow a well known schema to enable interoperability between applications or use their own private custom message types for specialized applications. Devices and applications follow and send messages to each other in a manner you can think of mentally as "Twitter for Devices."
@@ -20,7 +20,7 @@ var camera = new RaspberryPiCamera({
 service.connect(config.camera, function(err, session, camera) {
     if (err) { return console.log('failed to connect camera: ' + err); }
 
-    // startup camera manager that watches the message stream for this camera. 
+    // startup camera manager that watches the message stream for this camera.
     new CameraManager(camera).start(session, function(err, message) {
         if (err) return session.log.error(JSON.stringify(err));
     });
@@ -47,7 +47,7 @@ Let's say that we wanted write an application that asked this camera device we h
 
 ``` javascript
 var times = SunCalc.getTimes(new Date(), 36.972, -122.0263);
-            
+
 var cmd = new nitrogen.Message({
   to: camera.id,
   type: 'cameraCommand',
@@ -104,7 +104,9 @@ The Nitrogen project is housed in a set of GitHub projects:
 
 1. [service](https://github.com/nitrogenjs/service): Core platform responsible for managing principals, security, and messaging.
 2. [client](https://github.com/nitrogenjs/client): JavaScript client library for building Nitrogen devices and applications.
-3. [admin](https://github.com/nitrogenjs/admin): Administrative tool for managing the Nitrogen service.
-4. [device](https://github.com/nitrogenjs/devices): Adaptors for common pieces of hardware.
+3. [admin](https://github.com/nitrogenjs/admin): Web admin tool for working with the Nitrogen service.
+4. [device](https://github.com/nitrogenjs/devices): Device principals for common pieces of hardware.
 5. [commands](https://github.com/nitrogenjs/commands): CommandManagers and schemas for well known command types.
-6. [cli](https://github.com/nitrogenjs/cli): Command line interface for working with a Nitrogen service.
+6. [cli](https://github.com/nitrogenjs/cli): Command line interface for working with the Nitrogen service.
+7. [reactor](https://github.com/nitrogenjs/reactor): Always-on hosted application execution platform.
+8. [apps](https://github.com/nitrogenjs/apps): Project maintained Nitrogen applications.
