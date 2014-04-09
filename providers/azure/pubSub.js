@@ -27,7 +27,7 @@ AzurePubSubProvider.buildQueueName = function(type, id) {
 
 AzurePubSubProvider.prototype.createSubscription = function(subscription, callback) {
     var self = this;
-    log.info('AzurePubSubProvider:creating subscription for type: ' + subscription.type + ' with id: ' + subscription.id + ' with filter: ' + JSON.stringify(subscription.filter));
+    log.debug('AzurePubSubProvider:creating subscription for type: ' + subscription.type + ' with id: ' + subscription.id + ' with filter: ' + JSON.stringify(subscription.filter));
 
     var options = {
       MaxSizeInMegabytes: '5120'
@@ -42,31 +42,29 @@ AzurePubSubProvider.prototype.createSubscription = function(subscription, callba
 
 AzurePubSubProvider.prototype.publish = function(type, item, callback) {
     var self = this;
-    log.info("AzurePubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.debug("AzurePubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
 
     // for each principal this message is visible_to
     async.each(item.visible_to, function(visibleToId, visibleToCallback) {
-
-        log.info(visibleToId.toString());
 
         // query the subscriptions that principal has
         self.services.subscriptions.find(self.services.principals.servicePrincipal, {  }, {}, function(err, subscriptions) {
             if (err) return visibleToCallback(err);
 
-            log.info('subscriptions: ' + JSON.stringify(subscriptions));
+            log.debug('subscriptions: ' + JSON.stringify(subscriptions));
 
             async.each(subscriptions, function(subscription, subscriptionCallback) {
-                log.info("AzurePubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("AzurePubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 if (subscription.type !== type) return subscriptionCallback();
 
-                log.info("message: " + JSON.stringify(item));
+                log.debug("message: " + JSON.stringify(item));
 
                 var unfilteredItems = sift(subscription.filter, [item]);
 
                 if (unfilteredItems.length === 0) return subscriptionCallback();
 
-                log.info("AzurePubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("AzurePubSubProvider: MATCHED subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 var serviceBusMessage = {
                     customProperties: item.toObject(),
