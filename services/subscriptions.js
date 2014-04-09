@@ -148,7 +148,6 @@ var remove = function(subscription, callback) {
     config.pubsub_provider.removeSubscription(subscription, function(err) {
         if (err) {
             log.error('subscriptions: remove failed in provider with error: ' + err);
-            return callback(err);
         }
 
         if (subscription.socket)
