@@ -69,7 +69,7 @@ config.permissions_endpoint = config.base_endpoint + config.permissions_path;
 config.principals_path = config.v1_api_path + "/principals";
 config.principals_endpoint = config.base_endpoint + config.principals_path;
 
-// Security configuration parameters.  Make sure you know what you are doing before changing 
+// Security configuration parameters.  Make sure you know what you are doing before changing
 // any of these parameters.
 
 config.password_hash_iterations = 10000;
@@ -105,8 +105,8 @@ config.cache_provider = new providers.local.NullCacheProvider(config);
 
 if (process.env.REDIS_SERVERS) {
 
-    // To use Redis as a realtime backend, the env variable REDIS_SERVERS 
-    // should be set to a JSON specification like this with the set of 
+    // To use Redis as a realtime backend, the env variable REDIS_SERVERS
+    // should be set to a JSON specification like this with the set of
     // redis servers used for pubsub:
     //
     // { "redis1": { "port": 6379, "host": "redis1.myapp.com", id: "redis1" }
@@ -118,6 +118,9 @@ if (process.env.REDIS_SERVERS) {
 } else if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
     console.log('pubsub_provider: using Service Bus pubsub.');
     config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
+} else if (process.env.RABBITMQ_URL) {
+    console.log('pubsub_provider: using RabbitMQ pubsub.');
+    config.pubsub_provider = new providers.rabbitmq.RabbitMQPubSubProvider(config);
 } else {
     console.log('pubsub_provider: using memory pubsub.');
     config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
@@ -135,11 +138,11 @@ if (process.env.SENDGRID_API_USER && process.env.SENDGRID_API_KEY) {
 
 config.request_log_format = ':remote-addr - - [:date] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ":referrer" ":user-agent"';
 
-// You can use Loggly's log service by uncommenting this lines and providing the appropriate 
+// You can use Loggly's log service by uncommenting this lines and providing the appropriate
 // environmental variables
-if (process.env.LOGGLY_SUBDOMAIN && 
-    process.env.LOGGLY_INPUT_TOKEN && 
-    process.env.LOGGLY_USERNAME && 
+if (process.env.LOGGLY_SUBDOMAIN &&
+    process.env.LOGGLY_INPUT_TOKEN &&
+    process.env.LOGGLY_USERNAME &&
     process.env.LOGGLY_PASSWORD) {
     log.add(winston.transports.Loggly, {
         "subdomain": process.env.LOGGLY_SUBDOMAIN,
