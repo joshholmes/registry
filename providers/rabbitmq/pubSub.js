@@ -21,6 +21,9 @@ function RabbitMQPubSubProvider(config) {
     })
 
     this.SUPPORTS_PERMANENT_SUBSCRIPTIONS = true;
+
+    // for test only
+    this.subscriptions = {};
 }
 
 RabbitMQPubSubProvider.RECEIVE_TIMEOUT_SECONDS = 5 * 60;
@@ -48,7 +51,7 @@ RabbitMQPubSubProvider.prototype.createSubscription = function(subscription, cal
 
 RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
     var self = this;
-    log.debug("RabbitMQPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.info("RabbitMQPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
 
     // for each principal this message is visible_to
     async.each(item.visible_to, function(visibleToId, visibleToCallback) {
@@ -60,7 +63,7 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
             //log.debug('subscriptions: ' + JSON.stringify(subscriptions));
 
             async.each(subscriptions, function(subscription, subscriptionCallback) {
-                log.debug("RabbitMQPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.info("RabbitMQPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 if (subscription.type !== type) return subscriptionCallback();
 
@@ -68,8 +71,8 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
 
                 if (unfilteredItems.length === 0) return subscriptionCallback();
 
-                log.debug("RabbitMQPubSubProvider: MATCHED subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
-                log.debug("RabbitMQPubSubProvider: MATCHED message: " + JSON.stringify(item));
+                log.info("RabbitMQPubSubProvider: MATCHED subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.info("RabbitMQPubSubProvider: MATCHED message: " + JSON.stringify(item));
 
                 var queueName = RabbitMQPubSubProvider.buildQueueName(subscription.type, subscription.id);
                 self.exchange.publish(queueName, JSON.stringify(item), { deliveryMode: 2 });
@@ -98,6 +101,7 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
             var item = JSON.parse(itemJson);
 
             queue.unsubscribe(ctag);
+            queue.shift();
             return callback(null, item);
         }).addCallback(function(ok) {
             ctag = ok.consumerTag;
