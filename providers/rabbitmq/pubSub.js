@@ -51,7 +51,7 @@ RabbitMQPubSubProvider.prototype.createSubscription = function(subscription, cal
 
 RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
     var self = this;
-    log.info("RabbitMQPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.debug("RabbitMQPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
 
     // for each principal this message is visible_to
     async.each(item.visible_to, function(visibleToId, visibleToCallback) {
@@ -63,7 +63,7 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
             //log.debug('subscriptions: ' + JSON.stringify(subscriptions));
 
             async.each(subscriptions, function(subscription, subscriptionCallback) {
-                log.info("RabbitMQPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("RabbitMQPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 if (subscription.type !== type) return subscriptionCallback();
 
@@ -71,8 +71,8 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
 
                 if (unfilteredItems.length === 0) return subscriptionCallback();
 
-                log.info("RabbitMQPubSubProvider: MATCHED subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
-                log.info("RabbitMQPubSubProvider: MATCHED message: " + JSON.stringify(item));
+                log.debug("RabbitMQPubSubProvider: MATCHED subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("RabbitMQPubSubProvider: MATCHED message: " + JSON.stringify(item));
 
                 var queueName = RabbitMQPubSubProvider.buildQueueName(subscription.type, subscription.id);
                 self.exchange.publish(queueName, JSON.stringify(item), { deliveryMode: 2 });
