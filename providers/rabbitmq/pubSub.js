@@ -90,7 +90,7 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
     var queueName = RabbitMQPubSubProvider.buildQueueName(subscription.type, subscription.id);
     var self = this;
 
-    this.connection.queue(queueName, { durable: true, autoDelete: false }, function(queue) {
+    this.connection.queue(queueName, { durable: true, autoDelete: false, closeChannelOnUnsubscribe: true }, function(queue) {
         var ctag;
 
         // TODO: reimplement with persistent subscriptions?
