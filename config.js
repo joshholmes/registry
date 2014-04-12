@@ -138,13 +138,12 @@ if (process.env.SENDGRID_API_USER && process.env.SENDGRID_API_KEY) {
 
 config.request_log_format = ':remote-addr - - [:date] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ":referrer" ":user-agent"';
 
-// You can use Loggly's log service by uncommenting this lines and providing the appropriate
-// environmental variables
-if (process.env.LOGGLY_SUBDOMAIN &&
-    process.env.LOGGLY_INPUT_TOKEN &&
-    process.env.LOGGLY_USERNAME &&
-    process.env.LOGGLY_PASSWORD) {
-    log.add(winston.transports.Loggly, {
+// You can use Loggly's log service by specifying these 4 environmental variables
+
+if (process.env.LOGGLY_SUBDOMAIN && process.env.LOGGLY_INPUT_TOKEN &&
+    process.env.LOGGLY_USERNAME && process.env.LOGGLY_PASSWORD) {
+
+    winston.add(Loggly, {
         "subdomain": process.env.LOGGLY_SUBDOMAIN,
         "inputToken": process.env.LOGGLY_INPUT_TOKEN,
         "auth": {
@@ -154,6 +153,7 @@ if (process.env.LOGGLY_SUBDOMAIN &&
     });
 }
 
+log.remove(winston.transports.Console);
 log.add(winston.transports.Console, { colorize: true, timestamp: true, level: 'info' });
 
 // if you'd like additional indexes applied to messages at the database layer, you can specify them here.
