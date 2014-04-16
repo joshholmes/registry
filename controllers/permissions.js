@@ -32,13 +32,3 @@ exports.remove = function(req, res) {
         res.send(200);
     });
 };
-
-/*
-exports.update = function(req, res) {
-    services.agents.update(req.user, req.params.id, req.body, function(err, agent) {
-        if (err) return utils.handleError(res, err);
-
-        res.send({ agent: agent });
-    });
-};
-*/

@@ -60,25 +60,6 @@ var createServiceUserFixtures = function(callback) {
     });
 };
 
-var createAgentFixtures = function(callback) {
-    log.debug("creating agent fixtures");
-
-    var agent = new models.Agent({
-        action: ";",
-        execute_as: fixtures.principals.user.id,
-        name: "nop"
-    });
-
-    services.agents.create(services.principals.servicePrincipal, agent, function(err, agent) {
-        if (err) throw err;
-
-        fixtures.agents.nop = agent;
-        log.debug("creating agent fixtures: FINISHED");
-
-        callback();
-    });
-};
-
 var createUserFixtures = function(callback) {
     log.debug("creating user fixtures");
 
@@ -184,7 +165,6 @@ exports.reset = function(callback) {
         var fixtureFactories = [
             createUserFixtures,
             createDeviceFixtures,
-            createAgentFixtures,
             createDeviceIpMessageFixture,
             createServiceUserFixtures
         ];
@@ -199,7 +179,6 @@ exports.reset = function(callback) {
 
 var fixtures = {
     accessTokens: {},
-    agents: {},
     blobs: {},
     messages: {},
     principals: {}

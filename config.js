@@ -48,9 +48,6 @@ config.api_endpoint = config.base_endpoint + config.v1_api_path;
 config.subscriptions_path = '/';
 config.subscriptions_endpoint = config.base_endpoint + config.subscriptions_path;
 
-config.agents_path = config.v1_api_path + "/agents";
-config.agents_endpoint = config.base_endpoint + config.agents_path;
-
 config.blobs_path = config.v1_api_path + "/blobs";
 config.blobs_endpoint = config.base_endpoint + config.blobs_path;
 

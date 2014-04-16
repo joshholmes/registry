@@ -3,7 +3,6 @@ var async = require('async')
   , log = require('../log');
 
 exports.accessTokens = require('./accessTokens');
-exports.agents = require('./agents');
 exports.blobs = require('./blobs');
 exports.email = require('./email');
 exports.global = require('./global');
@@ -16,7 +15,6 @@ exports.initialize = function(callback) {
     async.series([
         exports.principals.initialize,
         exports.global.migrate,
-        exports.agents.initialize,
         exports.messages.initialize,
         exports.blobs.initialize,
         exports.permissions.initialize,

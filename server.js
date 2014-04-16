@@ -49,10 +49,6 @@ mongoose.connection.once('open', function () {
 
         app.get(config.headwaiter_path,                                            controllers.headwaiter.index);
 
-        app.get(config.agents_path,                middleware.authenticateRequest, controllers.agents.index);
-        app.post(config.agents_path,               middleware.authenticateRequest, controllers.agents.create);
-        app.put(config.agents_path + '/:id',       middleware.authenticateRequest, controllers.agents.update);
-
         if (config.blob_provider) {
             app.get(config.blobs_path + '/:id',    middleware.authenticateRequest, controllers.blobs.show);
             app.post(config.blobs_path,            middleware.authenticateRequest, controllers.blobs.create);
@@ -72,7 +68,7 @@ mongoose.connection.once('open', function () {
         app.post(config.principals_path + '/auth',                                 controllers.principals.authenticate);
         app.post(config.principals_path + '/impersonate', middleware.authenticateRequest, controllers.principals.impersonate);
         app.post(config.principals_path + '/reset',                                controllers.principals.resetPassword);
-        app.put(config.principals_path + '/:id',   middleware.authenticateRequest, controllers.principals.update);        
+        app.put(config.principals_path + '/:id',   middleware.authenticateRequest, controllers.principals.update);
         app.post(config.principals_path + '/password', middleware.authenticateRequest, controllers.principals.changePassword);
         app.delete(config.principals_path + '/:id', middleware.authenticateRequest, controllers.principals.remove);
 
@@ -83,21 +79,14 @@ mongoose.connection.once('open', function () {
 
         app.use('/docs', express.static(path.join(__dirname, 'node_modules/nitrogen/docs')));
 
-        app.get('/client/nitrogen.js', function(req, res) { res.send(services.messages.clients['nitrogen.js']) });
-        app.get('/client/nitrogen-min.js', function(req, res) { res.send(services.messages.clients['nitrogen-min.js']) });
+        app.get('/client/nitrogen.js', function(req, res) { res.send(services.messages.clients['nitrogen.js']); });
+        app.get('/client/nitrogen-min.js', function(req, res) { res.send(services.messages.clients['nitrogen-min.js']); });
 
         app.use(express.static(path.join(__dirname, '/static')));
 
         log.info("service has initialized endpoints");
 
-        // TODO: make starting this and API endpoint configurable to enable single vs. horizontally scaled deployments
-        services.agents.start(config, function(err) {
-            if (err) log.error("agent service failed to start: " + err);
-        });
-
-        mongoose.connection.on('error', function(err) {
-            log.error('mongodb error: ' + err);
-        });
+        mongoose.connection.on('error', log.error);
     });
 
 });

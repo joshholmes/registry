@@ -1,4 +1,3 @@
-exports.agents = require("./agents.js");
 exports.blobs = require("./blobs.js");
 exports.headwaiter = require("./headwaiter.js");
 exports.permissions = require("./permissions.js");
