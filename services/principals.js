@@ -470,6 +470,7 @@ var updateLastConnection = function(principal, ip) {
         var ipMessage = new models.Message({
             type: 'ip',
             from: principal,
+            expires: utils.dateDaysFromNow(1),
             body: {
                 ip_address: ip
             }
