@@ -4,8 +4,10 @@ var BaseSchema = require('./baseSchema')
 
 var principalSchema = new BaseSchema();
 principalSchema.add({
-    type: { type: String },       
+    type: { type: String },
     name: { type: String },                                 // user friendly name for this principal
+
+    created_at: { type: Date, default: Date.now },
 
     claim_code: { type: String },
 

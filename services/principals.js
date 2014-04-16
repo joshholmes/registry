@@ -72,13 +72,13 @@ var changePassword = function(principal, newPassword, callback) {
             services.accessTokens.findOrCreateToken(principal, function(err, accessToken) {
 
                 update(services.principals.servicePrincipal, principal.id, {
-                    salt: principal.salt, 
+                    salt: principal.salt,
                     password_hash: principal.password_hash
                 }, function(err, principal) {
                     return callback(err, principal, accessToken);
                 });
             });
-        }); 
+        });
     });
 };
 
@@ -142,18 +142,18 @@ var createPermissions = function(principal, callback) {
             issued_to: principal.id,
             principal_for: principal.id,
             priority: nitrogen.Permission.NORMAL_PRIORITY
-        });                        
+        });
 
-        services.permissions.create(services.principals.servicePrincipal, permission, callback);        
+        services.permissions.create(services.principals.servicePrincipal, permission, callback);
     } else {
         log.info('principals service: adding blanket permission for service principal: ' + principal.id);
         var permission = new models.Permission({
             authorized: true,
             issued_to: principal.id,
             priority: 0
-        }); 
+        });
 
-        services.permissions.createInternal(permission, callback);           
+        services.permissions.createInternal(permission, callback);
     }
 };
 
@@ -198,7 +198,7 @@ var createUserCredentials = function(principal, callback) {
 var filterForPrincipal = function(principal, filter) {
     if (typeof filter !== 'object') {
         log.warn('principals service: filterForPrincipal: squelching non object filter');
-        filter = {};        
+        filter = {};
     }
 
     // used only the first query during bootstrap before service principal is established.
@@ -230,7 +230,7 @@ var findById = function(principal, id, callback) {
 var checkClaimCode = function(code, callback) {
     find(services.principals.servicePrincipal, { claim_code: code }, {}, function (err, principals) {
         if (err) return callback(true);
-        callback(principals.length > 0);  
+        callback(principals.length > 0);
     });
 };
 
@@ -242,14 +242,14 @@ var generateClaimCode = function() {
     for (var i=0; i < config.claim_code_length / 2; i++) {
         var idx = Math.floor(Math.random() * characters.length);
         characterCode += characters[idx];
-        numberCode += Math.floor(Math.random() * 10); 
+        numberCode += Math.floor(Math.random() * 10);
     }
 
     return characterCode + '-' + numberCode;
 };
 
 var issueClaimCode = function(principal, callback) {
-    if (principal.is('user')) return callback(null,null); 
+    if (principal.is('user')) return callback(null,null);
 
     var wasCollision = true;
     var claimCode = null;
@@ -261,9 +261,9 @@ var issueClaimCode = function(principal, callback) {
                 wasCollision = collision;
                 callback();
             });
-        },           
+        },
         function(err) {
-           if (err) return callback(err); 
+           if (err) return callback(err);
            callback(null, claimCode);
         }
     );
@@ -302,7 +302,7 @@ var impersonate = function(authzPrincipal, impersonatedPrincipalId, callback) {
 
         services.permissions.authorize({
             principal: authzPrincipal.id,
-            principal_for: impersonatedPrincipalId, 
+            principal_for: impersonatedPrincipalId,
             action: 'impersonate'
         }, impersonatedPrincipal, function(err, permission) {
             if (err) return callback(err);
@@ -315,7 +315,7 @@ var impersonate = function(authzPrincipal, impersonatedPrincipalId, callback) {
 
                 log.info("principal service: principal " + authzPrincipal.id + " impersonated principal: " + impersonatedPrincipalId + " via permission: " + permission);
                 callback(null, impersonatedPrincipal, accessToken);
-            });                
+            });
         });
     });
 };
@@ -325,7 +325,10 @@ var initialize = function(callback) {
     // we don't use services find() here because it is a chicken and an egg visibility problem.
     // we aren't service so we can't find service. :)
 
-    models.Principal.find({ type: 'service' }, null, {}, function(err, principals) {
+    // make sure to sort by created_at so that we get the very first service principal that was created by this service
+    // when it bootstrapped itself.
+
+    models.Principal.find({ type: 'service' }, null, { sort: { created_at: 1 } }, function(err, principals) {
         if (err) return callback(err);
 
         if (principals.length === 0) {
@@ -360,20 +363,20 @@ var removeById = function(authzPrincipal, principalId, callback) {
 
         services.permissions.authorize({
             principal: authzPrincipal.id,
-            principal_for: principalId, 
+            principal_for: principalId,
             action: 'admin'
         }, principal, function(err, permission) {
             if (err) return callback(err);
             if (!permission.authorized)  {
                 var authError = utils.authorizationError('You are not authorized to delete this principal.');
                 log.warn('principals: removeById: auth failure: ' + JSON.stringify(authError));
-                
+
                 return callback(authError);
             }
 
             services.messages.remove(services.principals.servicePrincipal, { from: principalId }, function(err, removed) {
                 if (err) return callback(err);
- 
+
                 models.Principal.remove({ _id: principalId }, callback);
             });
         });
@@ -410,7 +413,7 @@ var resetPassword = function(authorizingPrincipal, principal, callback) {
                     });
                 });
             });
-        });      
+        });
 };
 
 var generateRandomPassword = function(callback) {
@@ -501,7 +504,7 @@ var updateVisibleTo = function(principalId, callback) {
                 { principal_for: null }
               ]
             },
-            { 
+            {
                 sort: { priority: 1 }
             },
             function(err, permissions) {
@@ -510,7 +513,7 @@ var updateVisibleTo = function(principalId, callback) {
                 var visibilityMap = {};
                 permissions.forEach(function(permission) {
                     if (permission.issued_to) {
-                        if (!visibilityMap[permission.issued_to])                         
+                        if (!visibilityMap[permission.issued_to])
                             visibilityMap[permission.issued_to] = permission.authorized;
                     } else {
 //                      // NEED TO THINK ABOUT THIS - THIS OVERRIDES ALL OF THE HIGHER PRIORITY AUTHORIZED=FALSE ACLS
@@ -546,7 +549,7 @@ var validate = function(principal, callback) {
 
     if (principal.is('user')) {
         if (!principal.email) return callback(utils.badRequestError("user principal must have email"));
-        if (!principal.password) return callback(utils.badRequestError("user principal must have password"));        
+        if (!principal.password) return callback(utils.badRequestError("user principal must have password"));
     }
 
     callback(null);

@@ -22,7 +22,7 @@ exports.authenticate = function(req, res) {
 
 exports.changePassword = function(req, res) {
 
-    // even though we have an accesstoken to validate this request, we still want the 
+    // even though we have an accesstoken to validate this request, we still want the
     // user to provide a password to reauthenticate such that we know it is them, and not a hijacked
     // browser window that is making the change password request.
 
@@ -31,7 +31,7 @@ exports.changePassword = function(req, res) {
 
     services.principals.authenticate(req.body, function(err, principal) {
         if (err) return utils.handleError(res, utils.authorizationError("The current password was not accepted by the service."));
- 
+
         if (!principal.is('user')) return utils.handleError(res, utils.badRequest("principal must be of type user to change password."));
 
         services.principals.changePassword(principal, req.body.new_password, function(err, principal, accessToken) {
@@ -43,6 +43,8 @@ exports.changePassword = function(req, res) {
 };
 
 exports.create = function(req, res) {
+    delete req.body.created_at;
+
 	var principal = new models.Principal(req.body);
 
 	services.principals.create(principal, function(err, principal) {
@@ -70,18 +72,18 @@ exports.impersonate = function(req, res) {
     services.principals.impersonate(req.user, req.body.id, function (err, impersonatedPrincipal, accessToken) {
         if (err) return utils.handleError(res, err);
 
-        // don't use sendAuthResponse above or it will wipe out the request session for the impersonated one. 
+        // don't use sendAuthResponse above or it will wipe out the request session for the impersonated one.
         res.send({ principal: impersonatedPrincipal, accessToken: accessToken });
     });
 };
 
 exports.index = function(req, res) {
     var query = utils.parseQuery(req);
-    if (typeof query !== 'object') 
+    if (typeof query !== 'object')
         return utils.handleError(res, utils.badRequestError('Invalid query format.'));
 
     var options = utils.parseOptions(req);
-    if (typeof options !== 'object') 
+    if (typeof options !== 'object')
         return utils.handleError(res, utils.badRequestError('Invalid options format.'));
 
     if (!options.sort) options.sort = { last_connection: -1 };

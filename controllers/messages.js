@@ -8,8 +8,9 @@ var async = require('async')
 exports.create = function(req, res) {
     async.concat(req.body, function(messageObject, callback) {
         delete messageObject.from;
+        delete messageObject.created_at;
 
-        // translate constants to ObjectIds, apply defaults.        
+        // translate constants to ObjectIds, apply defaults.
         services.messages.translate(messageObject);
 
         var message = new models.Message(messageObject);
