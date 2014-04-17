@@ -23,7 +23,7 @@
     "mongodb": "~1.4.0",
     "mongoose": "~3.8",
     "newrelic": "~1.4.0",
-    "nitrogen": "~0.1.233",
+    "nitrogen": "~0.1.234",
     "nitrogen-camera": "~0.1.12",
     "nitrogen-light": "~0.1.13",
     "nitrogen-reactor": "~0.1.19",

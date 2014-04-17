@@ -105,12 +105,25 @@ var create = function(principal, callback) {
                             if (!principal.is('user'))
                                 updatedPrincipal.secret = principal.secret;
 
-                            return callback(err, updatedPrincipal);
+                            if (principal.is('reactor')) {
+                                return initializeIfFirstReactor(updatedPrincipal, callback);
+                            } else {
+                                return callback(err, updatedPrincipal);
+                            }
                         });
                     });
                 });
             });
         });
+    });
+};
+
+var initializeIfFirstReactor = function(reactor, callback) {
+    find(services.principals.servicePrincipal, { type: 'reactor' }, { limit: 2 }, function(err, reactors) {
+        if (err) return callback(err);
+        if (reactors.length !== 1) return callback(null, reactor);
+
+        return initializeServiceReactor(reactor, callback);
     });
 };
 
@@ -316,6 +329,62 @@ var impersonate = function(authzPrincipal, impersonatedPrincipalId, callback) {
                 log.info("principal service: principal " + authzPrincipal.id + " impersonated principal: " + impersonatedPrincipalId + " via permission: " + permission);
                 callback(null, impersonatedPrincipal, accessToken);
             });
+        });
+    });
+};
+
+var buildReactorCommands = function(reactor) {
+    var commands = [];
+
+    config.service_applications.forEach(function(app) {
+        commands.push(new models.Message({
+            from: services.principals.servicePrincipal.id,
+            to: reactor.id,
+            type: 'reactorCommand',
+            expires: new Date(2050,1,1),
+            tags: [ nitrogen.CommandManager.commandTag(reactor.id) ],
+            body: {
+                command: 'install',
+                execute_as: services.principals.servicePrincipal.id,
+                instance_id: app.instance_id,
+                module: app.module
+            }
+        }));
+
+        commands.push(new models.Message({
+            from: services.principals.servicePrincipal.id,
+            to: reactor.id,
+            type: 'reactorCommand',
+            expires: new Date(2050,1,1),
+            tags: [ nitrogen.CommandManager.commandTag(reactor.id) ],
+            body: {
+                command: 'start',
+                instance_id: app.instance_id,
+                module: app.module,
+                params: app.params
+            }
+        }));
+    });
+
+    console.log('commands: ' + JSON.stringify(commands));
+    return commands;
+};
+
+var initializeServiceReactor = function(reactor, callback) {
+    var impersonatePerm = new models.Permission({
+        action: 'impersonate',
+        issued_to: reactor.id,
+        principal_for: services.principals.servicePrincipal.id,
+        priority: nitrogen.Permission.NORMAL_PRIORITY,
+        authorized: true
+    });
+
+    services.permissions.create(services.principals.servicePrincipal, impersonatePerm, function(err, permission) {
+        if (err) return callback(err);
+        services.messages.createMany(services.principals.servicePrincipal, buildReactorCommands(reactor), function(err) {
+            if (err) return callback(err);
+
+            return callback(null, reactor);
         });
     });
 };

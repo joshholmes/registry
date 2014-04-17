@@ -170,4 +170,9 @@ config.validate_schemas = true;
 // Email address that the service should use for administrative emails.
 config.service_email_address = "admin@nitrogen.io";
 
+config.service_applications = [
+    { instance_id: 'claim-agent', module: 'claim-agent' },
+    { instance_id: 'matcher', module: 'nitrogen-matcher' }
+];
+
 module.exports = config;
