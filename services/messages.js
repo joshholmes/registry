@@ -24,7 +24,7 @@ var buildVisibility = function(message, callback) {
         if (message.to)
             authorizedHash[message.to] = true;
 
-        // iterate through permissions in priority order. 
+        // iterate through permissions in priority order.
         // track specific or all-principals authorizations.
         permissions.forEach(function(permission) {
             if (!permission.action || permission.action === 'subscribe') {
@@ -58,20 +58,19 @@ var create = function(principal, message, callback) {
 
         services.permissions.authorize({
             principal: principal.id,
-            principal_for: toPrincipalId, 
+            principal_for: toPrincipalId,
             action: 'send'
         }, message, function(err, permission) {
             if (err) return callback(err);
             if (!permission.authorized) {
                 log.warn('principal: ' + principal.id + ' attempted unauthorized send of message: ' + JSON.stringify(message));
-                return callback(utils.authorizationError());  
-            } 
+                return callback(utils.authorizationError());
+            }
 
-            buildVisibility(message, function(err, message) { 
+            buildVisibility(message, function(err, message) {
                 if (err) return callback(err);
 
                 message.body_length = JSON.stringify(message.body).length;
-                message.created_at = new Date();
 
                 message.save(function(err, message) {
                     if (err) return callback(err);
@@ -89,7 +88,15 @@ var createMany = function(principal, messages, callback) {
     validateAll(messages, function(err) {
         if (err) return callback(err);
 
+        var ts = new Date();
+
         async.concat(messages, function(message, cb) {
+            if (!message.ts) {
+                message.ts = ts;
+                // increment the timestamp of the next message (if any) by 1ms to preserve ordering.
+                ts = new Date(ts.getTime() + 1);
+            }
+
             create(principal, message, cb);
         }, callback);
     });
@@ -183,7 +190,7 @@ var remove = function(principal, filter, callback) {
     if (!principal || !principal.is('service')) return callback(utils.authorizationError());
 
     // remove all of the messages without links first
-    filter.link = { $exists: false };    
+    filter.link = { $exists: false };
     models.Message.remove(filter, function(err) {
         if (err) return callback(err);
 
@@ -269,7 +276,7 @@ var validateSchema = function(message, callback) {
     if (message.isCustomType()) return callback(null, { valid: true });
     if (!(message.type in schemas)) {
         return callback(utils.badRequestError('Message type (' + message.type + ') not recognized.  Custom message types must be prefixed by _'));
-    }    
+    }
 
     var results = revalidator.validate(message.body, schemas[message.type]);
     if (!results.valid) {
