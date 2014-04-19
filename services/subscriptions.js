@@ -51,13 +51,19 @@ var attachSubscriptionsEndpoint = function() {
             log.info('subscriptions: socket: ' + socket.id + ' disconnected.  stopping ' + subscriptionKeys.length + ' subscriptions on this socket.');
 
             async.each(subscriptionKeys, function(clientId, callback) {
-                stop(socket.subscriptions[clientId], callback);
+                stop(socket.subscriptions[clientId], function(err) {
+                    delete socket.subscriptions[clientId];
+
+                    return callback(err);
+                });
             });
         });
 
         socket.on('stop', function(spec) {
             stop(socket.subscriptions[spec.id], function(err) {
                 if (err) log.error(err);
+
+                delete socket.subscriptions[spec.id];
             });
         });
 
@@ -83,13 +89,13 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findOne = function(subscription, callback) {
-    log.debug('subscriptions: start: looking for existing subscription: principal: ' + subscription.principal + ' type: ' + subscription.type + ' name: ' + subscription.name);
-
-    models.Subscription.findOne({
+    var filter = {
         principal: subscription.principal,
         type: subscription.type,
         name: subscription.name
-    }, callback);
+    };
+
+    models.Subscription.findOne(filter, callback);
 };
 
 var findOrCreate = function(subscription, callback) {
@@ -217,19 +223,21 @@ var stream = function(socket, subscription) {
             return socket.subscriptions[subscription.clientId] !== undefined;
         },
         function(callback) {
-            receive(subscription, function(err, item) {
+            receive(subscription, function(err, item, ref) {
                 if (err) return callback(err);
 
-                // there might not be an item when the pubsub_provider's timed out waiting for an item.
-                // in this case, we just need to check that we are still connected and restart the receive.
+                // if the socket has disconnected in the meantime, reject the message.
+                if (socket.subscriptions[subscription.clientId] === undefined) {
+                    log.info('subscription service:  subscription is closed, rejecting message.');
+                    config.pubsub_provider.ackReceive(ref, false);
+                } else {
+                    // there might not be an item when the provider timed out waiting for an item.
+                    if (item) {
+                        log.debug('subscription service:  new message from subscription: ' + subscription.clientId + ' with name: ' + subscription.name + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
+                        socket.emit(subscription.clientId, item);
+                    }
 
-                // TODO: ACKing received messages.  It might be the case that the socket this subscription on has
-                // disconnected in the meantime.  We also might in the future want to ACK the reception and processing
-                // of the message before proceeding.
-
-                if (item) {
-                    log.debug('subscription service:  new message from subscription: ' + subscription.clientId + ' of type: ' + subscription.type + ": " + JSON.stringify(item));
-                    socket.emit(subscription.clientId, item);
+                    config.pubsub_provider.ackReceive(ref, true);
                 }
 
                 callback();

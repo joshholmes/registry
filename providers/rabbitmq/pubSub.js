@@ -93,7 +93,7 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
     this.connection.queue(queueName, { durable: true, autoDelete: false, closeChannelOnUnsubscribe: true }, function(queue) {
         var ctag;
 
-        // TODO: reimplement with persistent subscriptions?
+        // TODO: reimplement with streaming subscriptions?
         queue.subscribe({ ack: true, prefetchCount: 1 }, function (message) {
             var itemJson = unescape(message.data);
 
@@ -101,12 +101,22 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
             var item = JSON.parse(itemJson);
 
             queue.unsubscribe(ctag);
-            queue.shift();
-            return callback(null, item);
+
+            return callback(null, item, queue);
         }).addCallback(function(ok) {
             ctag = ok.consumerTag;
         });
     });
+};
+
+RabbitMQPubSubProvider.prototype.ackReceive = function(queue, sent) {
+    if (sent) {
+        log.debug("RabbitMQPubSubProvider: ACKING message.");
+        queue.shift();
+    } else {
+        log.debug("RabbitMQPubSubProvider: REJECTING AND REQUEUING message.");
+        queue.shift(true, true);
+    }
 };
 
 RabbitMQPubSubProvider.prototype.removeSubscription = function(subscription, callback) {

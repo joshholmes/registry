@@ -64,7 +64,7 @@ describe('subscriptions service', function() {
 
                         config.pubsub_provider.subscriptionsForServer(subscription.assignment, function(err, subscriptions) {
                             assert.ifError(err);
-            
+
                             assert.equal(1, startingSubscriptions - subscriptions.length);
                             done();
                         });
@@ -139,16 +139,21 @@ describe('subscriptions service', function() {
                             assert.ifError(err);
 
                             // receive messages and make sure we get both and in order and they are relevant.
-                            services.subscriptions.receive(subscription, function(err, message) {
+                            services.subscriptions.receive(subscription, function(err, message, ref) {
                                 assert.ifError(err);
 
                                 assert.equal(message.type, '_permanentQueueTest');
                                 assert.equal(message.body.seq, 1);
 
-                                services.subscriptions.receive(subscription, function(err, message) {
+                                config.pubsub_provider.ackReceive(ref, true);
+
+                                services.subscriptions.receive(subscription, function(err, message, ref) {
                                     assert.ifError(err);
                                     assert.equal(message.type, '_permanentQueueTest');
                                     assert.equal(message.body.seq, 2);
+
+                                    config.pubsub_provider.ackReceive(ref, true);
+
                                     done();
                                 });
                             });
@@ -159,7 +164,7 @@ describe('subscriptions service', function() {
         });
     }
 
-    
+
     it('running the janitor should remove abandoned session subscriptions', function(done) {
         var permSub = new models.Subscription({
             assignment: 'localhost',

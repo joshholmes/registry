@@ -71,12 +71,26 @@ var removeByPrincipal = function(principal, callback) {
 var verify = function(token, done) {
     findByToken(token, function(err, accessToken) {
         if (err) return done(err);
-        if (!accessToken) { return done("Access token not found.", false); }
-        if (accessToken.expired()) { return done("Access token has expired.", false); }
+
+        if (!accessToken) {
+            var msg = "Access token " + token + " not found.";
+            log.error(msg);
+            return done(msg, false);
+        }
+
+        if (accessToken.expired()) {
+            var msg = "Access token has expired.";
+            log.error(msg);
+            return done(msg, false);
+        }
 
         services.principals.findById(services.principals.servicePrincipal, accessToken.principal, function(err, principal) {
             if (err) return done(err);
-            if (!principal) return done(new Error("AccessToken service.verify: principal for accessToken " + accessToken.id + " not found."));
+            if (!principal) {
+                var msg = "AccessToken service.verify: principal for accessToken " + accessToken.id + " not found.";
+                log.error(msg);
+                return done(new Error(msg));
+            }
 
             principal.accessToken = accessToken;
             done(null, principal);

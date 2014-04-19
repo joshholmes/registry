@@ -102,6 +102,9 @@ AzurePubSubProvider.prototype.receive = function(subscription, callback) {
     });
 };
 
+AzurePubSubProvider.prototype.ackReceive = function(ref, sent) {
+};
+
 AzurePubSubProvider.prototype.removeSubscription = function(subscription, callback) {
     var queueName = AzurePubSubProvider.buildQueueName(subscription.type, subscription.id);
 

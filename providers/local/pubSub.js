@@ -18,7 +18,7 @@ MemoryPubSubProvider.prototype.publish = function(type, item, callback) {
     var self = this;
 
     async.each(Object.keys(this.subscriptions), function(subscriptionId, subscriptionCallback) {
-        
+
         var subscription = self.subscriptions[subscriptionId];
 
         if (subscription.type === type && subscription.callback) {
@@ -34,6 +34,9 @@ MemoryPubSubProvider.prototype.publish = function(type, item, callback) {
 
 MemoryPubSubProvider.prototype.receive = function(subscription, callback) {
     subscription.callback = callback;
+};
+
+MemoryPubSubProvider.prototype.ackReceive = function(ref, sent) {
 };
 
 MemoryPubSubProvider.prototype.removeSubscription = function(subscription, callback) {

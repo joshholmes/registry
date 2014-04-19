@@ -49,7 +49,7 @@ RedisPubSubProvider.prototype.createClient = function(serverId) {
     return client;
 };
 
-RedisPubSubProvider.prototype.createSubscription = function(subscription, callback) {   
+RedisPubSubProvider.prototype.createSubscription = function(subscription, callback) {
     // TODO: choose server based on subscription load not randomly.
     var serverIds = Object.keys(this.config.redis_servers);
     var serverAssignmentIdx = Math.floor(serverIds.length * Math.random());
@@ -123,9 +123,12 @@ RedisPubSubProvider.prototype.receive = function(subscription, callback) {
     });
 };
 
+RedisPubSubProvider.prototype.ackReceive = function(subscription, callback) {
+};
+
 RedisPubSubProvider.prototype.removeSubscription = function(subscription, callback) {
     if (!subscription.assignment) return callback('Subscription not assigned to Redis server.');
-    
+
     var subscriptionJson = RedisPubSubProvider.redisifySubscription(subscription);
 
     log.debug("RedisPubSubProvider: removing subscription: " + subscriptionJson);
@@ -143,7 +146,7 @@ RedisPubSubProvider.prototype.removeSubscription = function(subscription, callba
 RedisPubSubProvider.prototype.subscriptionsForServer = function(serverId, callback) {
     var client = this.clientForServer(serverId);
 
-    client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, callback); 
+    client.smembers(RedisPubSubProvider.SUBSCRIPTIONS_KEY, callback);
 };
 
 RedisPubSubProvider.prototype.staleSubscriptionCutoff = function() {
@@ -172,7 +175,7 @@ RedisPubSubProvider.prototype.displaySubscriptions = function(callback) {
 };
 
 RedisPubSubProvider.prototype.resetForTest = function(callback) {
-    if (process.env.NODE_ENV === "production") return callback();    
+    if (process.env.NODE_ENV === "production") return callback();
 
     log.info('RedisPubSubProvider: resetting Redis store completely for test');
 
