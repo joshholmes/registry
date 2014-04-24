@@ -27,6 +27,7 @@
     "nitrogen-camera": "~0.1.12",
     "nitrogen-light": "~0.1.13",
     "nitrogen-reactor": "~0.1.19",
+    "nitrogen-sensor": "~0.1.1",
     "nitrogen-switch": "~0.1.10",
     "passport": "~0.2",
     "passport-http-bearer": "~1.0",
