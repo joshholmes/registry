@@ -1,6 +1,7 @@
 var async = require('async')
   , models = require('../models')
-  , services = require('../services');
+  , services = require('../services')
+  , utils = require('../utils');
 
 // migrates capabilities into tags
 
@@ -12,7 +13,7 @@ exports.up = function(callback) {
             principal.tags = [];
 
             principal.capabilities.forEach(function(capability) {
-                if (capability.stringEndsWith("Command")) {
+                if (utils.stringEndsWith(capability, "Command")) {
                     principal.tags.push("executes:" + capability);
                 }
             });

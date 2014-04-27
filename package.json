@@ -48,6 +48,6 @@
     "socket.io-client": "~0.9.16"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "NODE_ENV=test mocha"
   }
 }
