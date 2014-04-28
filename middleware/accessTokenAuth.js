@@ -12,7 +12,7 @@ var tokenNearExpirationCheck = function(req, res, callback) {
         res.set('X-n2-set-access-token', JSON.stringify(accessToken));
 
         callback();
-    })
+    });
 };
 
 module.exports = function(req, res, next) {
