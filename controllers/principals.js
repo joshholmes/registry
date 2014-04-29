@@ -9,7 +9,7 @@ var sendAuthResponse = function(res, principal, accessToken) {
     res.send({ principal: principal, accessToken: accessToken });
 };
 
-exports.authenticate = function(req, res) {
+exports.legacyAuthentication = function(req, res) {
     services.principals.authenticate(req.body, function(err, principal, accessToken) {
         if (err) return utils.handleError(res, err);
 

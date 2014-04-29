@@ -47,35 +47,40 @@ mongoose.connection.once('open', function () {
 
         // REST endpoints
 
-        app.get(config.headwaiter_path,                                            controllers.headwaiter.index);
+        app.get(config.headwaiter_path,                                               controllers.headwaiter.index);
 
         if (config.blob_provider) {
-            app.get(config.blobs_path + '/:id',    middleware.authenticateRequest, controllers.blobs.show);
-            app.post(config.blobs_path,            middleware.authenticateRequest, controllers.blobs.create);
+            app.get(config.blobs_path + '/:id',    middleware.accessTokenAuth,        controllers.blobs.show);
+            app.post(config.blobs_path,            middleware.accessTokenAuth,        controllers.blobs.create);
         } else {
             log.warn("not exposing blob endpoints because no blob provider configured (see config.js).");
         }
 
-        app.get(config.ops_path + '/health',                                       controllers.ops.health);
+        app.get(config.ops_path + '/health',                                          controllers.ops.health);
 
-        app.get(config.permissions_path,           middleware.authenticateRequest, controllers.permissions.index);
-        app.post(config.permissions_path,          middleware.authenticateRequest, controllers.permissions.create);
-        app.delete(config.permissions_path + '/:id', middleware.authenticateRequest, controllers.permissions.remove);
+        app.get(config.permissions_path,           middleware.accessTokenAuth,        controllers.permissions.index);
+        app.post(config.permissions_path,          middleware.accessTokenAuth,        controllers.permissions.create);
+        app.delete(config.permissions_path + '/:id', middleware.accessTokenAuth,      controllers.permissions.remove);
 
-        app.get(config.principals_path + '/:id',   middleware.authenticateRequest, controllers.principals.show);
-        app.get(config.principals_path,            middleware.authenticateRequest, controllers.principals.index);
-        app.post(config.principals_path,                                           controllers.principals.create);
-        app.post(config.principals_path + '/auth',                                 controllers.principals.authenticate);
-        app.post(config.principals_path + '/impersonate', middleware.authenticateRequest, controllers.principals.impersonate);
-        app.post(config.principals_path + '/reset',                                controllers.principals.resetPassword);
-        app.put(config.principals_path + '/:id',   middleware.authenticateRequest, controllers.principals.update);
-        app.post(config.principals_path + '/password', middleware.authenticateRequest, controllers.principals.changePassword);
-        app.delete(config.principals_path + '/:id', middleware.authenticateRequest, controllers.principals.remove);
+        // DEPRECIATED LEGACY AUTH ENDPOINT
+        app.post(config.principals_path + '/auth',                                    controllers.principals.legacyAuthentication);
 
-        app.get(config.messages_path + '/:id',     middleware.authenticateRequest, controllers.messages.show);
-        app.get(config.messages_path,              middleware.authenticateRequest, controllers.messages.index);
-        app.post(config.messages_path,             middleware.authenticateRequest, controllers.messages.create);
-        app.delete(config.messages_path,           middleware.authenticateRequest, controllers.messages.remove);
+        //app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
+        //app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
+
+        app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
+        app.get(config.principals_path,            middleware.accessTokenAuth,        controllers.principals.index);
+        app.post(config.principals_path,                                              controllers.principals.create);
+        app.post(config.principals_path + '/impersonate', middleware.accessTokenAuth, controllers.principals.impersonate);
+        app.post(config.principals_path + '/reset',                                   controllers.principals.resetPassword);
+        app.put(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.update);
+        app.post(config.principals_path + '/password', middleware.accessTokenAuth,    controllers.principals.changePassword);
+        app.delete(config.principals_path + '/:id', middleware.accessTokenAuth,       controllers.principals.remove);
+
+        app.get(config.messages_path + '/:id',     middleware.accessTokenAuth,        controllers.messages.show);
+        app.get(config.messages_path,              middleware.accessTokenAuth,        controllers.messages.index);
+        app.post(config.messages_path,             middleware.accessTokenAuth,        controllers.messages.create);
+        app.delete(config.messages_path,           middleware.accessTokenAuth,        controllers.messages.remove);
 
         app.use('/docs', express.static(path.join(__dirname, 'node_modules/nitrogen/docs')));
 
