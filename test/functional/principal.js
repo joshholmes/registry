@@ -74,7 +74,7 @@ describe('principals endpoint', function() {
     });
 
     it('should be able to remove principal', function(done) {
-        request.post(config.principals_endpoint, { 
+        request.post(config.principals_endpoint, {
           json: { type: 'user',
                   email: 'deluser@server.org',
                   password: 'sEcReT55' } }, function(err, resp, body) {
@@ -93,7 +93,7 @@ describe('principals endpoint', function() {
     });
 
     it('should be able to reset a principals password', function(done) {
-        request.post(config.principals_endpoint, { 
+        request.post(config.principals_endpoint, {
           json: { type: 'user',
                   email: 'resetuser@server.org',
                   password: 'sEcReT55' } }, function(err, resp, body) {
@@ -101,10 +101,10 @@ describe('principals endpoint', function() {
             assert.ifError(err);
             assert.equal(resp.statusCode, 200);
 
-            request.post({ 
+            request.post({
               url: config.principals_endpoint + "/reset",
-              json: { 
-                email: 'resetuser@server.org' 
+              json: {
+                email: 'resetuser@server.org'
               }
             }, function(err, resp, body) {
                 assert.ifError(err);
@@ -123,16 +123,15 @@ describe('principals endpoint', function() {
         };
 
         request.post(config.principals_endpoint, { json: authObject }, function(err, resp, body) {
-
             assert.ifError(err);
             assert.equal(resp.statusCode, 200);
             var accessToken = new models.AccessToken(body.accessToken);
 
             authObject.new_password = "SUPERS3CRET";
-            request.post({ 
+            request.post({
                 json: authObject,
                 headers: { Authorization: accessToken.toAuthHeader() },
-                url: config.principals_endpoint + "/password" 
+                url: config.principals_endpoint + "/password"
             }, function(err, resp, body) {
                 assert.ifError(err);
                 assert.equal(resp.statusCode, 200);
@@ -144,17 +143,22 @@ describe('principals endpoint', function() {
     });
 
     it('you should not be able to change a password without knowing the current password', function(done) {
-        fixtures.models.principals.user.new_password = 'HAXXER';
 
-        request.post({ 
-            json: fixtures.models.principals.user,
+        var authObject = {
+            type: 'user',
+            email: fixtures.models.principals.user.email,
+            password: 'WRONGPASSWORD',
+            new_password: 'HAXXER'
+        };
+
+        request.post({
+            json: authObject,
             headers: { Authorization: fixtures.models.accessTokens.user.toAuthHeader() },
-            url: config.principals_endpoint + "/password" 
+            url: config.principals_endpoint + "/password"
         }, function(err, resp, body) {
             assert.ifError(err);
 
-            console.dir(body);
-            assert.equal(resp.statusCode, 403);
+            assert.equal(resp.statusCode, 401);
             assert.notEqual(body.error.message, undefined);
 
             done();
@@ -222,7 +226,7 @@ describe('principals endpoint', function() {
             });
     });
 
-    it('should login user principal', function(done) {
+    it('should login user principal at legacy endpoint', function(done) {
         request.post(config.principals_endpoint + '/auth',
             { json: { type: 'user',
                       email: 'user@server.org',
@@ -238,20 +242,42 @@ describe('principals endpoint', function() {
             });
     });
 
-    it('should return failed authorization for wrong password', function(done) {
-        request.post(config.principals_endpoint + '/auth',
-            { json: { type: 'user',
+    it('should login user principal', function(done) {
+        request.post(config.principals_endpoint + '/user/auth', {
+            json: {
+                type: 'user',
                 email: 'user@server.org',
-                password: 'WRONGPASSWORD'} }, function(err, resp, body) {
-                assert.equal(resp.statusCode, 401);
-                assert.equal(body.accessToken, undefined);
-                assert.notEqual(body.error, undefined);
+                password: 'sEcReT44'
+            }
+        }, function(err, resp, body) {
+            assert.equal(resp.statusCode, 200);
+            assert.notEqual(body.accessToken.token, undefined);
 
-                assert.equal(body.error.statusCode, 401);
-                assert.notEqual(body.error.message, undefined);
+            assert.equal(Date.parse(body.principal.last_connection) > fixtures.models.principals.user.last_connection.getTime(), true);
+            assert.notEqual(body.principal.last_ip, undefined);
+            assert.equal(body.principal.password, undefined);
 
-                done();
-            });
+            done();
+        });
+    });
+
+    it('should return failed authorization for wrong password', function(done) {
+        request.post(config.principals_endpoint + '/auth', {
+          json: {
+              type: 'user',
+              email: 'user@server.org',
+              password: 'WRONGPASSWORD'
+          }
+        }, function(err, resp, body) {
+            assert.equal(resp.statusCode, 401);
+            assert.equal(body.accessToken, undefined);
+            assert.notEqual(body.error, undefined);
+
+            assert.equal(body.error.statusCode, 401);
+            assert.notEqual(body.error.message, undefined);
+
+            done();
+        });
     });
 
     it('should allow updates to a principals name', function(done) {
@@ -276,7 +302,7 @@ describe('principals endpoint', function() {
               json: fixtures.models.principals.user }, function(err, resp, body) {
                 assert.equal(resp.statusCode, 200);
                 assert.notEqual(body.accessToken.token, undefined);
-                
+
                 if (resp.headers['x-n2-set-access-token']) {
                   var headerToken = JSON.parse(resp.headers['x-n2-set-access-token']);
                   assert.notEqual(headerToken.token, body.accessToken.token);

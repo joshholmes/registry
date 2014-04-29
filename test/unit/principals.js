@@ -71,7 +71,7 @@ describe('principals service', function() {
         var code = services.principals.generateClaimCode();
         assert.notEqual(code, undefined);
         assert.equal(code.length, config.claim_code_length + 1);
- 
+
         done();
     });
 
@@ -80,7 +80,7 @@ describe('principals service', function() {
         var request = { id: fixtures.models.principals.device.id,
                         secret: fixtures.models.principals.device.secret };
 
-        services.principals.authenticate(request, function(err, principal, accessToken) {
+        services.principals.legacyAuthentication(request, function(err, principal, accessToken) {
             assert.ifError(err);
             assert.notEqual(principal, undefined);
             assert.notEqual(accessToken, undefined);
@@ -104,7 +104,7 @@ describe('principals service', function() {
 
         fixtures.models.principals.device.visible_to.push("52747742e2948d8e7f000001");
 
-        services.principals.update(services.principals.servicePrincipal, fixtures.models.principals.device.id, 
+        services.principals.update(services.principals.servicePrincipal, fixtures.models.principals.device.id,
             { visible_to: fixtures.models.principals.device.visible_to }, function(err, updatedPrincipal) {
             assert.ifError(err);
 
@@ -174,10 +174,10 @@ describe('principals service', function() {
     });
 
     it('can create a user, change its password, and then reset its password.', function(done) {
-        var user = new models.Principal({ 
+        var user = new models.Principal({
             type: "user",
             email: "changePassword@gmail.com",
-            password: "firstPassword" 
+            password: "firstPassword"
         });
 
         services.principals.create(user, function(err, user) {

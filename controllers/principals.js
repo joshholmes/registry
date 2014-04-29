@@ -10,7 +10,7 @@ var sendAuthResponse = function(res, principal, accessToken) {
 };
 
 exports.legacyAuthentication = function(req, res) {
-    services.principals.authenticate(req.body, function(err, principal, accessToken) {
+    services.principals.legacyAuthentication(req.body, function(err, principal, accessToken) {
         if (err) return utils.handleError(res, err);
 
         // since the authenticateRequest middleware was not run on this request run it manually.
@@ -20,26 +20,36 @@ exports.legacyAuthentication = function(req, res) {
     });
 };
 
-exports.changePassword = function(req, res) {
+// Authentication is actually done by middleware that handles publickey vs. user creds.
+// This just fields the authenicated principal and creates and auth response.
+exports.authenticate = function(req, res) {
+    services.accessTokens.findOrCreateToken(req.user, function(err, accessToken) {
+        if (err) return callback(err);
 
+        log.debug("authenticated principal: " + req.user.id);
+        sendAuthResponse(res, req.user, accessToken);
+    });
+};
+
+exports.changePassword = function(req, res) {
     // even though we have an accesstoken to validate this request, we still want the
-    // user to provide a password to reauthenticate such that we know it is them, and not a hijacked
-    // browser window that is making the change password request.
+    // user to provide a password to reauthenticate such that we know it is them, and
+    // not a hijacked browser window that is making the change password request.
 
     // but if this fails, send back a 403 not 401 to match up that the operation is not authorized but
     // signal that the session itself is still authenticated.
 
-    services.principals.authenticate(req.body, function(err, principal) {
-        if (err) return utils.handleError(res, utils.authorizationError("The current password was not accepted by the service."));
+//    services.principals.authenticate(req.body, function(err, principal) {
+//        if (err) return utils.handleError(res, utils.authorizationError("The current password was not accepted by the service."));
 
-        if (!principal.is('user')) return utils.handleError(res, utils.badRequest("principal must be of type user to change password."));
+        if (!req.user.is('user')) return utils.handleError(res, utils.badRequest("principal must be of type user to change password."));
 
-        services.principals.changePassword(principal, req.body.new_password, function(err, principal, accessToken) {
+        services.principals.changePassword(req.user, req.body.new_password, function(err, principal, accessToken) {
             if (err) return utils.handleError(res, err);
 
             sendAuthResponse(res, principal.toObject(), accessToken);
         });
-    });
+//    });
 };
 
 exports.create = function(req, res) {

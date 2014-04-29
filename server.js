@@ -8,6 +8,7 @@ var express = require('express')
   , BearerStrategy = require('passport-http-bearer').Strategy
   , config = require('./config')
   , controllers = require('./controllers')
+  , LocalStrategy = require('passport-local').Strategy
   , log = require('./log')
   , middleware = require('./middleware')
   , models = require('./models')
@@ -26,6 +27,7 @@ app.use(express.bodyParser());
 
 app.use(passport.initialize());
 passport.use(new BearerStrategy({}, services.accessTokens.verify));
+passport.use(new LocalStrategy({ usernameField: 'email' }, services.principals.authenticateUser));
 
 app.use(middleware.crossOrigin);
 
@@ -66,7 +68,7 @@ mongoose.connection.once('open', function () {
         app.post(config.principals_path + '/auth',                                    controllers.principals.legacyAuthentication);
 
         //app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
-        //app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
+        app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
 
         app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
         app.get(config.principals_path,            middleware.accessTokenAuth,        controllers.principals.index);
@@ -74,7 +76,7 @@ mongoose.connection.once('open', function () {
         app.post(config.principals_path + '/impersonate', middleware.accessTokenAuth, controllers.principals.impersonate);
         app.post(config.principals_path + '/reset',                                   controllers.principals.resetPassword);
         app.put(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.update);
-        app.post(config.principals_path + '/password', middleware.accessTokenAuth,    controllers.principals.changePassword);
+        app.post(config.principals_path + '/password', middleware.accessTokenAuth, middleware.userAuth, controllers.principals.changePassword);
         app.delete(config.principals_path + '/:id', middleware.accessTokenAuth,       controllers.principals.remove);
 
         app.get(config.messages_path + '/:id',     middleware.accessTokenAuth,        controllers.messages.show);
@@ -91,5 +93,4 @@ mongoose.connection.once('open', function () {
 
         mongoose.connection.on('error', log.error);
     });
-
 });

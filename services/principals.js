@@ -11,11 +11,26 @@ var async = require('async')
 var DEVICE_AUTH_FAILURE_MESSAGE = "The device authentication details provided were not accepted.";
 var USER_AUTH_FAILURE_MESSAGE = "The email or password provided were not accepted.";
 
-var authenticate = function(authBody, callback) {
+// TODO: DEPRECATED.  Moved out to userAuth.js middleware and generic controller for response.
+var legacyAccessTokenLookup = function(callback) {
+    return function(err, principal) {
+        if (err) return callback(err);
+
+        services.accessTokens.findOrCreateToken(principal, function(err, accessToken) {
+            if (err) return callback(err);
+
+            log.debug("authenticated user principal: " + principal.id);
+            callback(null, principal, accessToken);
+        });
+    };
+};
+
+// TODO: DEPRECATED.  Moved out to userAuth.js middleware and generic controller for response.
+var legacyAuthentication = function(authBody, callback) {
     if (authBody.email && authBody.password) {
-        authenticateUser(authBody.email, authBody.password, callback);
+        authenticateUser(authBody.email, authBody.password, legacyAccessTokenLookup(callback));
     } else if (authBody.id && authBody.secret) {
-        authenticateDevice(authBody.id, authBody.secret, callback);
+        authenticateDevice(authBody.id, authBody.secret, legacyAccessTokenLookup(callback));
     } else {
         callback(utils.authenticationError('Please sign in with your email and password.'));
     }
@@ -30,13 +45,7 @@ var authenticateUser = function(email, password, callback) {
         verifyPassword(password, principal, function(err) {
             if (err) return callback(err);
 
-            log.debug("verified password, fetching access token.");
-            services.accessTokens.findOrCreateToken(principal, function(err, accessToken) {
-                if (err) return callback(err);
-
-                log.debug("authenticated user principal: " + principal.id);
-                callback(null, principal, accessToken);
-            });
+            return callback(null, principal);
         });
     });
 };
@@ -49,12 +58,7 @@ var authenticateDevice = function(principalId, secret, callback) {
         verifySecret(secret, principal, function(err) {
             if (err) return callback(err);
 
-            services.accessTokens.findOrCreateToken(principal, function(err, accessToken) {
-                if (err) return callback(err);
-
-                log.debug("authenticated device principal: " + principal.id);
-                callback(null, principal, accessToken);
-            });
+            return callback(err, principal);
         });
     });
 };
@@ -650,7 +654,8 @@ var verifySecret = function(secret, principal, callback) {
 };
 
 module.exports = {
-    authenticate: authenticate,
+    legacyAuthentication: legacyAuthentication,
+    authenticateUser: authenticateUser,
     changePassword: changePassword,
     create: create,
     filterForPrincipal: filterForPrincipal,
