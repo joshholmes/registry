@@ -82,8 +82,6 @@ mongoose.connection.once('open', function () {
         app.post(config.messages_path,             middleware.accessTokenAuth,        controllers.messages.create);
         app.delete(config.messages_path,           middleware.accessTokenAuth,        controllers.messages.remove);
 
-        app.use('/docs', express.static(path.join(__dirname, 'node_modules/nitrogen/docs')));
-
         app.get('/client/nitrogen.js', function(req, res) { res.send(services.messages.clients['nitrogen.js']); });
         app.get('/client/nitrogen-min.js', function(req, res) { res.send(services.messages.clients['nitrogen-min.js']); });
 
