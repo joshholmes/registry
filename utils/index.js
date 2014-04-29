@@ -21,7 +21,7 @@ var authorizationError = function(msg) {
 
 var badRequestError = function(msg) {
     log.error('bad request: ' + msg);
-    
+
     return new ServiceError({
         statusCode: 400,
         message: msg
@@ -71,8 +71,13 @@ var ipFromRequest = function(req) {
         return req.ip;
 };
 
-var nop = function(callback) {
-    return callback();
+var nop = function() {
+    var callback;
+    if (arguments) {
+        callback = arguments[arguments.length-1];
+    }
+
+    if (callback) return callback();
 }
 
 var notFoundError = function(msg) {
