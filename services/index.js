@@ -7,6 +7,7 @@ exports.blobs = require('./blobs');
 exports.email = require('./email');
 exports.global = require('./global');
 exports.messages = require('./messages');
+exports.nonce = require('./nonce');
 exports.permissions = require('./permissions');
 exports.principals = require('./principals');
 exports.subscriptions = require('./subscriptions');

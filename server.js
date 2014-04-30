@@ -15,6 +15,7 @@ var express = require('express')
   , mongoose = require('mongoose')
   , passport = require('passport')
   , path = require('path')
+  , PublicKeyStrategy = require('passport-publickey').Strategy
   , services = require('./services')
   , utils = require('./utils');
 
@@ -27,6 +28,7 @@ app.use(express.bodyParser());
 app.use(passport.initialize());
 passport.use(new BearerStrategy({}, services.accessTokens.verify));
 passport.use(new LocalStrategy({ usernameField: 'email' }, services.principals.authenticateUser));
+passport.use(new PublicKeyStrategy({}, services.principals.verifySignature));
 
 app.use(middleware.crossOrigin);
 
@@ -66,11 +68,12 @@ mongoose.connection.once('open', function () {
         // DEPRECIATED LEGACY AUTH ENDPOINT
         app.post(config.principals_path + '/auth',                                    controllers.principals.legacyAuthentication);
 
-        //app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
+        app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
         app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
 
         app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
         app.get(config.principals_path,            middleware.accessTokenAuth,        controllers.principals.index);
+
         app.post(config.principals_path,                                              controllers.principals.create);
         app.post(config.principals_path + '/impersonate', middleware.accessTokenAuth, controllers.principals.impersonate);
         app.post(config.principals_path + '/reset',                                   controllers.principals.resetPassword);

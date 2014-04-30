@@ -145,10 +145,11 @@ var checkForExistingPrincipal = function(principal, callback) {
 };
 
 var createCredentials = function(principal, callback) {
+    // only user credentials need to be hashed. non-users have public key.
     if (principal.is('user')) {
         createUserCredentials(principal, callback);
     } else {
-        createSecretCredentials(principal, callback);
+        return callback(null, principal);
     }
 };
 
@@ -174,6 +175,7 @@ var createPermissions = function(principal, callback) {
     }
 };
 
+// TODO: legacy device credential support - remove once migration complete.
 var createSecretCredentials = function(principal, callback) {
     if (!config.device_secret_bytes) return callback(
         utils.internalError('principals service: Service is missing required configuration item device_secret_bytes.')
@@ -370,7 +372,6 @@ var buildReactorCommands = function(reactor) {
         }));
     });
 
-    console.log('commands: ' + JSON.stringify(commands));
     return commands;
 };
 
@@ -606,7 +607,7 @@ var updateVisibleTo = function(principalId, callback) {
             }
         );
     });
-}
+};
 
 var validate = function(principal, callback) {
     var validType = false;
@@ -622,8 +623,11 @@ var validate = function(principal, callback) {
     }
 
     if (principal.is('user')) {
-        if (!principal.email) return callback(utils.badRequestError("user principal must have email"));
-        if (!principal.password) return callback(utils.badRequestError("user principal must have password"));
+        if (!principal.email) return callback(utils.badRequestError("User principal must have email"));
+        if (!principal.password) return callback(utils.badRequestError("User principal must have password"));
+    } else {
+        // TODO: need to comment to support legacy secret credential support tests - remove once migration complete.
+        // if (!principal.public_key) return callback(utils.badRequestError("Non-user principal must have public_key"));
     }
 
     callback(null);
@@ -641,9 +645,11 @@ var verifyPassword = function(password, user, callback) {
     });
 };
 
+// TODO: legacy secret credential support - remove once migration complete.
 var verifySecret = function(secret, principal, callback) {
     hashSecret(secret, function(err, hashedSecret) {
         if (err) return callback(err);
+
         if (hashedSecret != principal.secret_hash) {
             log.warn("verification of secret for principal: " + principal.id + " failed");
             return callback(utils.authenticationError(DEVICE_AUTH_FAILURE_MESSAGE));
@@ -653,8 +659,40 @@ var verifySecret = function(secret, principal, callback) {
     });
 };
 
+var verifySignature = function(nonceString, signature, callback) {
+    services.nonce.find({ nonce: nonceString }, {}, function(err, nonces) {
+        if (err) return callback(utils.internalError(err));
+        if (!nonces || nonces.length === 0) return callback(utils.authenticationError("Nonce not found."));
+
+        var nonce = nonces[0];
+
+        services.principals.findById(services.principals.servicePrincipal, nonce.principal, function(err, principal) {
+            if (err) return callback(utils.internalError(err));
+            if (!principal) return callback(utils.authenticationError("Nonce principal not found."));
+            if (!principal.public_key) return callback(utils.authenticationError("Principal does not use public key to authenticate."));
+
+            var verifier = crypto.createVerify("RSA-SHA256");
+            verifier.update(nonceString);
+
+            var publicKeyBuf = new Buffer(principal.public_key, 'base64');
+
+            var result = verifier.verify(publicKeyBuf, signature, "base64");
+
+            services.nonce.remove({ nonce: nonceString }, function(err) {
+                if (err) return callback(err);
+
+                if (result) {
+                    return callback(null, principal);
+                } else {
+                    return callback(utils.authenticationError("Signature authentication failed."));
+                }
+
+            });
+        });
+    });
+};
+
 module.exports = {
-    legacyAuthentication: legacyAuthentication,
     authenticateUser: authenticateUser,
     changePassword: changePassword,
     create: create,
@@ -669,8 +707,13 @@ module.exports = {
     update: update,
     updateLastConnection: updateLastConnection,
     updateVisibleTo: updateVisibleTo,
-    verifySecret: verifySecret,
     verifyPassword: verifyPassword,
+    verifySignature: verifySignature,
 
-    servicePrincipal: null
+    servicePrincipal: null,
+
+    // TODO: legacy secret credential support - remove once migration complete.
+    legacyAuthentication: legacyAuthentication,
+    createSecretCredentials: createSecretCredentials,
+    verifySecret: verifySecret
 };

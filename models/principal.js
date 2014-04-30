@@ -21,6 +21,9 @@ principalSchema.add({
 
 // non-user items
 
+    public_key:     { type: String },  // base64
+
+    // TODO: legacy device credential support - remove once migration complete.
     secret_hash:     { type: String }, // base64
 
 // user items

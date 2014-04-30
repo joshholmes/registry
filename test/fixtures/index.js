@@ -3,7 +3,8 @@ var async = require('async')
   , fs = require('fs')
   , log = require('../../log')
   , models = require('../../models')
-  , services = require('../../services');
+  , services = require('../../services')
+  , ursa = require('ursa');
 
 var fixtures = {};
 
@@ -11,11 +12,38 @@ var removeAll = function (modelType, callback) {
     modelType.remove({}, callback);
 };
 
+// TODO: legacy device credential support - remove once migration complete.
+var createLegacyDeviceFixture = function(callback) {
+    var legacyDevice = new models.Principal({
+        type: 'device',
+        name: 'legacyDevice'
+    });
+
+    services.principals.create(legacyDevice, function(err, legacyDevice) {
+        if (err) return callback(err);
+
+        services.principals.createSecretCredentials(legacyDevice, function(err, legacyDevice) {
+            if (err) return callback(err);
+
+            legacyDevice.save(function(err, legacyDevice) {
+                if (err) return callback(err);
+
+                fixtures.principals.legacyDevice = legacyDevice;
+                return callback();
+            });
+        });
+    });
+};
+
 var createDeviceFixtures = function(callback) {
     log.debug("creating device fixtures");
 
     var device = new models.Principal({ type: 'device',
                                         name: 'existing_device' });
+
+    var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
+
+    device.public_key = keys.toPublicPem().toString('base64');
 
     services.principals.create(device, function(err, device) {
         if (err) throw err;
@@ -31,6 +59,9 @@ var createDeviceFixtures = function(callback) {
             if (err) throw err;
 
             services.principals.updateLastConnection(device, '127.0.0.1');
+
+            device.private_key = keys.toPrivatePem().toString('base64');
+
             fixtures.principals.device = device;
 
             services.accessTokens.create(device, function(err, accessToken) {
@@ -166,7 +197,10 @@ exports.reset = function(callback) {
             createUserFixtures,
             createDeviceFixtures,
             createDeviceIpMessageFixture,
-            createServiceUserFixtures
+            createServiceUserFixtures,
+
+            // TODO: legacy device credential support - remove once migration complete.
+            createLegacyDeviceFixture
         ];
 
         if (config.blob_provider) {

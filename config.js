@@ -71,9 +71,16 @@ config.principals_endpoint = config.base_endpoint + config.principals_path;
 
 config.password_hash_iterations = 10000;
 config.password_hash_length = 128;
-config.device_secret_bytes = 128;
 config.salt_length_bytes = 64;
 config.reset_password_length = 10;
+
+config.nonce_bytes = 32;
+config.nonce_lifetime_seconds = 5 * 60;
+config.public_key_bits = 2048;
+config.public_key_exponent = 65537;
+
+// TODO: legacy device credential support - remove once migration complete.
+config.device_secret_bytes = 128;
 
 config.access_token_bytes = 32;
 config.access_token_lifetime = 1; // days

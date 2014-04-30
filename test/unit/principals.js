@@ -1,9 +1,11 @@
 var assert = require('assert')
   , config = require('../../config')
+  , crypto = require('crypto')
   , fixtures = require('../fixtures')
   , log = require('../../log')
   , models = require('../../models')
-  , services = require('../../services');
+  , services = require('../../services')
+  , ursa = require('ursa');
 
 describe('principals service', function() {
     var passwordFixture = "sEcReT44";
@@ -38,30 +40,56 @@ describe('principals service', function() {
     });
 
     it('can create an app', function(done) {
-        var device = new models.Principal({ type: "app" });
+        var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
+
+        var device = new models.Principal({
+            type: "app",
+            public_key: keys.toPublicPem().toString('base64')
+        });
+
         services.principals.create(device, function(err, device) {
             assert.ifError(err);
             assert.notEqual(device.id, undefined);
-            assert.notEqual(device.secret_hash, undefined);
-            assert(device.secret);
 
             done();
         });
     });
 
     it('can create and validate a device', function(done) {
-        var device = new models.Principal({ type: "device" });
+        var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
+
+        var device = new models.Principal({
+            type: "device",
+            public_key: keys.toPublicPem().toString('base64')
+        });
+
         services.principals.create(device, function(err, device) {
             assert.ifError(err);
             assert.notEqual(device.id, undefined);
-            assert.notEqual(device.secret_hash, undefined);
-            assert(device.secret);
+            assert.notEqual(device.public_key, undefined);
+            assert(!device.secret);
 
-            services.principals.verifySecret(device.secret, device, function(err) {
+            services.nonce.create(device.id, function(err, nonce) {
                 assert.ifError(err);
-                services.principals.verifySecret("NOTCORRECT", device, function(err) {
-                    assert.notEqual(err, null);
-                    done();
+                assert(nonce);
+                assert(nonce.nonce);
+
+                var signer = crypto.createSign("RSA-SHA256");
+                signer.update(nonce.nonce);
+
+                var signature = signer.sign(keys.toPrivatePem(), "base64");
+
+                services.principals.verifySignature(nonce.nonce, signature, function(err, principal) {
+
+                    assert(!err);
+                    assert(principal);
+
+                    // you should not be able to reuse a nonce.
+                    services.principals.verifySignature(nonce.nonce, signature, function(err, principal) {
+                        assert(err);
+                        assert(!principal);
+                        done();
+                    });
                 });
             });
         });
@@ -75,10 +103,10 @@ describe('principals service', function() {
         done();
     });
 
-    it('can authenticate a device', function(done) {
+    it('can authenticate a device using legacy method', function(done) {
 
-        var request = { id: fixtures.models.principals.device.id,
-                        secret: fixtures.models.principals.device.secret };
+        var request = { id: fixtures.models.principals.legacyDevice.id,
+                        secret: fixtures.models.principals.legacyDevice.secret };
 
         services.principals.legacyAuthentication(request, function(err, principal, accessToken) {
             assert.ifError(err);
@@ -155,7 +183,6 @@ describe('principals service', function() {
     });
 
     it('should allow device deleting itself', function(done) {
-        console.log('user id: ' + fixtures.models.principals.user.id);
         services.principals.removeById(fixtures.models.principals.device, fixtures.models.principals.device.id, function(err) {
             assert.ifError(err);
             done();

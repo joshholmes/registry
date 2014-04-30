@@ -1,76 +1,49 @@
 var app = require('../../server')
   , assert = require('assert')
   , config = require('../../config')
+  , crypto = require('crypto')
   , fixtures = require('../fixtures')
   , io = require('socket.io-client')
   , models = require('../../models')
   , request = require('request')
-  , services = require('../../services');
+  , services = require('../../services')
+  , ursa = require('ursa');
 
 describe('principals endpoint', function() {
 
     it('should create and fetch a device principal', function(done) {
+        var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
 
-        // TODO: principals_realtime:  Disabled until rate limited to prevent update storms.
-        var subscriptionPassed = true,
-            restPassed = false;
+        request.post(config.principals_endpoint,
+            { json: { type: 'device',
+                      public_key: keys.toPublicPem().toString('base64'),
+                      name: "createTest" } }, function(post_err, post_resp, post_body) {
+              assert.ifError(post_err);
+              assert.equal(post_resp.statusCode, 200);
 
-        var socket = io.connect(config.subscriptions_endpoint, {
-          query: "auth=" + encodeURIComponent(fixtures.models.accessTokens.service.token),
-          'force new connection': true
+              assert.equal(post_body.principal.name, "createTest");
+              assert.ok(Date.now() < Date.parse(post_body.accessToken.expires_at));
+
+              assert.equal(post_body.principal.id, post_body.accessToken.principal);
+
+              var principalId = post_body.principal.id;
+              var token = post_body.accessToken.token;
+
+              request({ url: config.principals_endpoint + '/' + post_body.principal.id,
+                        json: true,
+                        headers: { Authorization: "Bearer " + post_body.accessToken.token } }, function(get_err, get_resp, get_body) {
+                    assert.equal(get_err, null);
+                    assert.equal(get_resp.statusCode, 200);
+
+                    assert.equal(get_body.principal.secret, undefined);
+                    assert.equal(get_body.principal.name, "createTest");
+                    assert.equal(post_body.principal.salt, undefined);
+                    assert.notEqual(get_body.principal.last_connection, undefined);
+                    assert.notEqual(get_body.principal.last_ip, undefined);
+
+                    done();
+              });
         });
-
-        var subscriptionId = 'sub2';
-        socket.emit('start', { id: subscriptionId, type: 'principal' });
-
-        socket.on(subscriptionId, function(principal) {
-          if (principal.name !== 'subscription_test') return;
-
-          subscriptionPassed = true;
-          socket.emit('stop', { id: subscriptionId });
-
-          if (subscriptionPassed && restPassed) {
-              done();
-          }
-        });
-
-        setTimeout(function() {
-          request.post(config.principals_endpoint,
-              { json: { type: 'device',
-                        name: "subscription_test" } }, function(post_err, post_resp, post_body) {
-                assert.ifError(post_err);
-                assert.equal(post_resp.statusCode, 200);
-
-                assert.equal(!!post_body.principal.secret, true);
-                assert.equal(post_body.principal.secret_hash, undefined);
-                assert.equal(post_body.principal.salt, undefined);
-                assert.equal(post_body.principal.name, "subscription_test");
-                assert.ok(Date.now() < Date.parse(post_body.accessToken.expires_at));
-
-                assert.equal(post_body.principal.id, post_body.accessToken.principal);
-
-                var principalId = post_body.principal.id;
-                var token = post_body.accessToken.token;
-
-                request({ url: config.principals_endpoint + '/' + post_body.principal.id,
-                          json: true,
-                          headers: { Authorization: "Bearer " + post_body.accessToken.token } }, function(get_err, get_resp, get_body) {
-                      assert.equal(get_err, null);
-                      assert.equal(get_resp.statusCode, 200);
-
-                      assert.equal(get_body.principal.secret, undefined);
-                      assert.equal(get_body.principal.name, "subscription_test");
-                      assert.equal(post_body.principal.salt, undefined);
-                      assert.notEqual(get_body.principal.last_connection, undefined);
-                      assert.notEqual(get_body.principal.last_ip, undefined);
-
-                      restPassed = true;
-                      if (subscriptionPassed && restPassed) {
-                          done();
-                      }
-                });
-          });
-        }, 200);
     });
 
     it('should be able to remove principal', function(done) {
@@ -143,7 +116,6 @@ describe('principals endpoint', function() {
     });
 
     it('you should not be able to change a password without knowing the current password', function(done) {
-
         var authObject = {
             type: 'user',
             email: fixtures.models.principals.user.email,
@@ -209,14 +181,51 @@ describe('principals endpoint', function() {
         });
     });
 
-    it('should login device principal', function (done) {
-        var deviceId = fixtures.models.principals.device.id;
-        var secret = fixtures.models.principals.device.secret;
+    it('should login device principal using legacy endpoint', function (done) {
+        var legacyDevice = fixtures.models.principals.legacyDevice;
 
-        request.post(config.principals_endpoint + '/auth',
-            { json: { type: 'device',
-                      id: deviceId,
-                      secret: secret} }, function(err, resp, body) {
+        request.post(config.principals_endpoint + '/auth', {
+            json: {
+                type: 'device',
+                id: legacyDevice.id,
+                secret: legacyDevice.secret
+            }
+        }, function(err, resp, body) {
+            assert.ifError(err);
+            assert.equal(resp.statusCode, 200);
+            assert.notEqual(body.accessToken.token, undefined);
+
+            assert.equal(Date.parse(body.principal.last_connection) > legacyDevice.last_connection.getTime(), true);
+            assert.notEqual(body.principal.last_ip, undefined);
+            done();
+        });
+    });
+
+    it('should login device principal', function (done) {
+        var device = fixtures.models.principals.device;
+
+        request.get({
+            url: config.headwaiter_uri + "?principal_id=" + device.id,
+            json: true
+        }, function(err, resp, headwaiterBody) {
+            assert.ifError(err);
+            assert(headwaiterBody.nonce);
+
+            var signer = crypto.createSign("RSA-SHA256");
+            signer.update(headwaiterBody.nonce);
+            var privateKeyBuf = new Buffer(device.private_key, 'base64');
+
+            var signature = signer.sign(privateKeyBuf, "base64");
+
+            request.post(config.principals_endpoint + '/publickey/auth', {
+                headers: {
+                    nonce: headwaiterBody.nonce,
+                    signature: signature
+                },
+                json: true
+            }, function(err, resp, body) {
+                assert.ifError(err);
+
                 assert.equal(resp.statusCode, 200);
                 assert.notEqual(body.accessToken.token, undefined);
 
@@ -224,6 +233,7 @@ describe('principals endpoint', function() {
                 assert.notEqual(body.principal.last_ip, undefined);
                 done();
             });
+        });
     });
 
     it('should login user principal at legacy endpoint', function(done) {

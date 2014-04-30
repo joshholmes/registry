@@ -26,6 +26,11 @@ exports.authenticate = function(req, res) {
     services.accessTokens.findOrCreateToken(req.user, function(err, accessToken) {
         if (err) return callback(err);
 
+        // opportunistically update the last connection details for this principal.
+        if (req.user && req.ips) {
+            services.principals.updateLastConnection(req.user, utils.ipFromRequest(req));
+        }
+
         log.debug("authenticated principal: " + req.user.id);
         sendAuthResponse(res, req.user, accessToken);
     });
