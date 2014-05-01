@@ -18,7 +18,7 @@ function RabbitMQPubSubProvider(config) {
         self.connection.exchange(RabbitMQPubSubProvider.EXCHANGE_NAME, { type: 'direct', durable: true, autoDelete: false }, function(exchange) {
             self.exchange = exchange;
         });
-    })
+    });
 
     this.SUPPORTS_PERMANENT_SUBSCRIPTIONS = true;
 
@@ -26,7 +26,7 @@ function RabbitMQPubSubProvider(config) {
     this.subscriptions = {};
 }
 
-RabbitMQPubSubProvider.RECEIVE_TIMEOUT_SECONDS = 5 * 60;
+RabbitMQPubSubProvider.RECEIVE_TIMEOUT_SECONDS = 24 * 60 * 60; // seconds (24 hours - matched up with default)
 RabbitMQPubSubProvider.EXCHANGE_NAME = 'nitrogen';
 RabbitMQPubSubProvider.prototype.MAX_LATENCY = 200;
 

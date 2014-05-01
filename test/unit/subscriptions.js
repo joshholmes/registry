@@ -174,7 +174,7 @@ describe('subscriptions service', function() {
             permanent: true,
             principal: services.principals.servicePrincipal,
             type: "message",
-            last_receive: utils.dateDaysFromNow(-2)
+            last_receive: utils.dateDaysFromNow(-5)
         });
 
         services.subscriptions.findOrCreate(permSub, function(err, permSub) {
@@ -187,7 +187,7 @@ describe('subscriptions service', function() {
                 type: "message",
                 permanent: false,
                 name: utils.uuid(),
-                last_receive: utils.dateDaysFromNow(-2)
+                last_receive: utils.dateDaysFromNow(-5)
             });
 
             services.subscriptions.findOrCreate(sessionSub, function(err, sessionSub) {
