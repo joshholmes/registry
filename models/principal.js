@@ -4,10 +4,12 @@ var BaseSchema = require('./baseSchema')
 
 var principalSchema = new BaseSchema();
 principalSchema.add({
+//  From BaseSchema:
+//  created_at:      { type: Date, default: Date.now },
+
     type:            { type: String },
     name:            { type: String },
 
-    created_at:      { type: Date, default: Date.now },
 
     claim_code:      { type: String },
 
@@ -19,18 +21,25 @@ principalSchema.add({
 
     tags:            [{ type: String }],
 
-// non-user items
+// non-user fields
 
     public_key:     { type: String },  // base64
 
     // TODO: legacy device credential support - remove once migration complete.
     secret_hash:     { type: String }, // base64
 
-// user items
+// application fields
+
+    api_key:         { type: Schema.Types.ObjectId, ref: 'ApiKey' },
+    parent:          { type: Schema.Types.ObjectId, ref: 'Principal' },
+
+// user fields
 
     email:           { type: String },
     password_hash:   { type: String }, // base64
     salt:            { type: String }, // base64
+
+// internally used fields
 
     visible_to:      [{ type: Schema.Types.ObjectId, ref: 'Principal' }]
 });
@@ -38,6 +47,7 @@ principalSchema.add({
 principalSchema.index({ claim_code: 1 });
 principalSchema.index({ email: 1 });
 principalSchema.index({ last_ip: 1 });
+principalSchema.index({ parent: 1 });
 principalSchema.index({ tags: 1 });
 principalSchema.index({ type: 1 });
 principalSchema.index({ visible_to: 1 });

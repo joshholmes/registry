@@ -8,6 +8,9 @@ var express = require('express')
   , BearerStrategy = require('passport-http-bearer').Strategy
   , config = require('./config')
   , controllers = require('./controllers')
+  , ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn(config.user_login_path)
+  , exphbs = require('express3-handlebars')
+  , hbs = exphbs.create({ defaultLayout: 'main' })
   , LocalStrategy = require('passport-local').Strategy
   , log = require('./log')
   , middleware = require('./middleware')
@@ -24,8 +27,11 @@ mongoose.connect(config.mongodb_connection_string);
 
 app.use(express.logger(config.request_log_format));
 app.use(express.bodyParser());
-
+app.use(express.cookieParser());
+app.use(express.session({ secret: config.user_session_secret, cookie: { maxAge: config.user_session_timeout_seconds } }));
 app.use(passport.initialize());
+app.use(passport.session());
+
 passport.use(new BearerStrategy({}, services.accessTokens.verify));
 passport.use(new LocalStrategy({ usernameField: 'email' }, services.principals.authenticateUser));
 passport.use(new PublicKeyStrategy({}, services.principals.verifySignature));
@@ -34,6 +40,9 @@ app.use(middleware.crossOrigin);
 
 app.enable('trust proxy');
 app.disable('x-powered-by');
+
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
 
 // only open endpoints when we have a connection to MongoDB.
 mongoose.connection.once('open', function () {
@@ -71,14 +80,13 @@ mongoose.connection.once('open', function () {
         app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
         app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
 
+
         app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
         app.get(config.principals_path,            middleware.accessTokenAuth,        controllers.principals.index);
 
         app.post(config.principals_path,                                              controllers.principals.create);
         app.post(config.principals_path + '/impersonate', middleware.accessTokenAuth, controllers.principals.impersonate);
-        app.post(config.principals_path + '/reset',                                   controllers.principals.resetPassword);
         app.put(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.update);
-        app.post(config.principals_path + '/password', middleware.accessTokenAuth, middleware.userAuth, controllers.principals.changePassword);
         app.delete(config.principals_path + '/:id', middleware.accessTokenAuth,       controllers.principals.remove);
 
         app.get(config.messages_path + '/:id',     middleware.accessTokenAuth,        controllers.messages.show);
@@ -86,12 +94,37 @@ mongoose.connection.once('open', function () {
         app.post(config.messages_path,             middleware.accessTokenAuth,        controllers.messages.create);
         app.delete(config.messages_path,           middleware.accessTokenAuth,        controllers.messages.remove);
 
+        // OAuth2 and user management endpoints
+
+        app.get(config.user_login_path,                                               controllers.users.showLogin);
+        app.post(config.user_login_path, passport.authenticate('local', {
+            successReturnToOrRedirect: 'https://admin.nitrogen.io',
+            failureRedirect: config.user_login_path
+        }));
+
+        passport.serializeUser(function(user, done) {
+          done(null, user);
+        });
+
+        passport.deserializeUser(function(user, done) {
+          done(null, user);
+        });
+
+//        app.get(config.users_path + '/password',                             controllers.users.showChangePassword);
+//        app.post(config.users_path + '/password', ensureLoggedIn, middleware.userAuth, controllers.users.changePassword);
+
+//        app.get(config.users_path + '/reset', ensureLoggedIn,                controllers.users.showResetPassword);
+//        app.post(config.users_path + '/reset', ensureLoggedIn,               controllers.users.resetPassword);
+
+        app.get(config.users_path + '/authorize', ensureLoggedIn, controllers.users.authorize);
+        app.post(config.users_path + '/decision', ensureLoggedIn, controllers.users.decision);
+
         app.get('/client/nitrogen.js', function(req, res) { res.send(services.messages.clients['nitrogen.js']); });
         app.get('/client/nitrogen-min.js', function(req, res) { res.send(services.messages.clients['nitrogen-min.js']); });
 
-        app.use(express.static(path.join(__dirname, '/static')));
-
         log.info("service has initialized endpoints");
+
+        app.use(express.static(path.join(__dirname, '/static')));
 
         mongoose.connection.on('error', log.error);
     });

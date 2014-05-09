@@ -6,8 +6,11 @@ var async = require('async')
 
 var metadataSchema = new BaseSchema();
 metadataSchema.add({
-    key:           { type: String },
-    value:         { type: String }
+//  From BaseSchema:
+//  created_at:     { type: Date, default: Date.now },
+
+    key:            { type: String },
+    value:          { type: String }
 });
 
 metadataSchema.index({ key: 1 });

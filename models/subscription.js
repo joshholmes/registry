@@ -4,13 +4,16 @@ var BaseSchema = require('./baseSchema'),
 
 var subscriptionSchema = new BaseSchema();
 subscriptionSchema.add({
-    assignment: { type: String },                   // used by provider to determine the backend used for this subscription.
-    filter_string: { type: String },                 // can't have Mixed because of $ operators, use virtual below to proxy this.
-    last_receive: { type: Date, default: Date.now },
-    name: { type: String },
-    permanent: { type: Boolean },
-    principal: { type: Schema.Types.ObjectId, ref: 'Principal' },
-    type: { type: String }
+//  From BaseSchema:
+//  created_at:     { type: Date, default: Date.now },
+
+    assignment:     { type: String },                   // used by provider to determine the backend used for this subscription.
+    filter_string:  { type: String },                 // can't have Mixed because of $ operators, use virtual below to proxy this.
+    last_receive:   { type: Date, default: Date.now },
+    name:           { type: String },
+    permanent:      { type: Boolean },
+    principal:      { type: Schema.Types.ObjectId, ref: 'Principal' },
+    type:           { type: String }
 });
 
 subscriptionSchema.index({ last_receive: 1 });

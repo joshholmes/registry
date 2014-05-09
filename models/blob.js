@@ -4,15 +4,18 @@ var BaseSchema = require('./baseSchema'),
 
 var blobSchema = new BaseSchema();
 blobSchema.add({
-	content_length: { type: Number },
-	content_type: { type: String },
+//  From BaseSchema:
+//  created_at:        { type: Date, default: Date.now },
 
-	owner: { type: Schema.Types.ObjectId, ref: 'Principal' },
+	content_length:    { type: Number },
+	content_type:      { type: String },
+
+	owner:             { type: Schema.Types.ObjectId, ref: 'Principal' },
 
     // a link is an unique objectId that ties this blob to a message.
-    link: { type: Schema.Types.ObjectId },
+    link:              { type: Schema.Types.ObjectId },
 
-    url: { type: String }
+    url:               { type: String }
 });
 
 blobSchema.index({ link: 1 });

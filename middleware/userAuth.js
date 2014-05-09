@@ -1,10 +1,16 @@
-var log = require('../log')
+var config = require('../config')
+  , log = require('../log')
   , passport = require('passport')
   , services = require('../services')
   , utils = require('../utils');
 
 module.exports = function(req, res, next) {
-    var auth = passport.authenticate(['local'], { session: false });
+    var auth = passport.authenticate(['local'], {
+      successRedirect: '/',
+      failureRedirect: '/login',
+      failureFlash: true
+    });
+
     req.pause();
 
     auth(req, res, function(err, failed) {

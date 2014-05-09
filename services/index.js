@@ -2,15 +2,17 @@ var async = require('async')
   , config = require('../config')
   , log = require('../log');
 
-exports.accessTokens = require('./accessTokens');
-exports.blobs = require('./blobs');
-exports.email = require('./email');
-exports.global = require('./global');
-exports.messages = require('./messages');
-exports.nonce = require('./nonce');
-exports.permissions = require('./permissions');
-exports.principals = require('./principals');
-exports.subscriptions = require('./subscriptions');
+exports.accessTokens        = require('./accessTokens');
+exports.apiKeys             = require('./apiKeys');
+exports.authCodes           = require('./authCodes');
+exports.blobs               = require('./blobs');
+exports.email               = require('./email');
+exports.global              = require('./global');
+exports.messages            = require('./messages');
+exports.nonce               = require('./nonce');
+exports.permissions         = require('./permissions');
+exports.principals          = require('./principals');
+exports.subscriptions       = require('./subscriptions');
 
 exports.initialize = function(callback) {
     async.series([

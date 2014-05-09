@@ -7,14 +7,17 @@ var BaseSchema = require('./baseSchema')
 var permissionSchema = new BaseSchema();
 
 permissionSchema.add({
-    issued_to:     { type: Schema.Types.ObjectId, ref: 'Principal' },
-    principal_for: { type: Schema.Types.ObjectId, ref: 'Principal' },
+//  From BaseSchema:
+//  created_at:     { type: Date, default: Date.now },
 
-    expires:      { type: Date },
-    action:       { type: String, enum: ['admin', 'impersonate', 'send', 'subscribe', 'view'] },
-    filter:       { type: String },
-    priority:     { type: Number, required: true },
-    authorized:   { type: Boolean, required: true }
+    issued_to:      { type: Schema.Types.ObjectId, ref: 'Principal' },
+    principal_for:  { type: Schema.Types.ObjectId, ref: 'Principal' },
+
+    expires:        { type: Date },
+    action:         { type: String, enum: ['admin', 'impersonate', 'send', 'subscribe', 'view'] },
+    filter:         { type: String },
+    priority:       { type: Number, required: true },
+    authorized:     { type: Boolean, required: true }
 });
 
 permissionSchema.index({ issued_to: 1 });

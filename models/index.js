@@ -1,4 +1,6 @@
 exports.AccessToken = require('./accessToken');
+exports.ApiKey = require('./apiKey');
+exports.AuthCode = require('./authCode');
 exports.Blob = require('./blob');
 exports.Message = require('./message');
 exports.Metadata = require('./metadata');

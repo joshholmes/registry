@@ -66,6 +66,15 @@ config.permissions_endpoint = config.base_endpoint + config.permissions_path;
 config.principals_path = config.v1_api_path + "/principals";
 config.principals_endpoint = config.base_endpoint + config.principals_path;
 
+config.users_path = "/user";
+config.user_authorize_path = config.users_path + "/authorize";
+config.user_decision_path = config.users_path + "/decision";
+config.user_login_path = config.users_path + "/login";
+config.users_endpoint = config.base_endpoint + config.users_path;
+
+config.user_session_secret = process.env.USER_SESSION_SECRET || "development";
+config.user_session_timeout_seconds = 30 * 24 * 60 * 60; // seconds (30 days)
+
 // Security configuration parameters.  Make sure you know what you are doing before changing
 // any of these parameters.
 
@@ -74,10 +83,15 @@ config.password_hash_length = 128;
 config.salt_length_bytes = 64;
 config.reset_password_length = 10;
 
+config.auth_code_bytes = 16;
+config.api_key_bytes = 16;
+
 config.nonce_bytes = 32;
 config.nonce_lifetime_seconds = 5 * 60;
 config.public_key_bits = 2048;
 config.public_key_exponent = 65537;
+
+config.auth_code_lifetime_seconds = 60 * 60; // seconds (default: 1 hour)
 
 // TODO: legacy device credential support - remove once migration complete.
 config.device_secret_bytes = 128;
@@ -169,7 +183,7 @@ config.message_indexes = [
 config.claim_code_length = 8;
 
 // run the janitor every minute
-config.janitor_interval = 60 * 1000;
+config.janitor_interval = 60 * 1000; // ms
 
 // Validate all message schemas to conform to all core and installed schemas.
 config.validate_schemas = true;

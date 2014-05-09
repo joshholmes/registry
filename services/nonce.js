@@ -13,7 +13,6 @@ var create = function(principalId, callback) {
         log.info('nonce: creating nonce for principal: ' + principalId);
 
         var nonce = new models.Nonce({
-    //        expires: utils.dateDaysFromNow(config.nonce_lifetime),
             principal: principal
         });
 

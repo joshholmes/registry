@@ -70,6 +70,7 @@ exports.create = function(req, res) {
 
             var principalJSON = principal.toObject();
 
+            // TODO: Legacy secret authentication - remove.
             if (!principal.is('user')) {
                 // for create (and create only) we want to pass back the secret to the device.
                 principalJSON.secret = principal.secret;
@@ -119,7 +120,7 @@ exports.remove = function(req, res) {
 };
 
 exports.resetPassword = function(req, res) {
-    if (!req.body.email) return utils.handleError(res, utils.badRequestError("Email requested to reset password."))
+    if (!req.body.email) return utils.handleError(res, utils.badRequestError("Email requested to reset password."));
 
     services.principals.find(services.principals.servicePrincipal, { email: req.body.email }, function(err, principals) {
         if (err) return utils.handleError(res, err);

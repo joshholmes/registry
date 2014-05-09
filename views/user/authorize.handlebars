@@ -1,0 +1,22 @@
+<div class="row">
+  <div class="col-md-4"></div>
+  <div class="col-md-4">
+      <h3>Authorize</h3>
+      <form class="register-form" action="{{userDecisionPath}}" method="POST">
+
+        <p>The application {{apiKey.name}} wants to access your Nitrogen account.</p>
+
+        <input type="hidden" name="code" value="{{authCode.code}}" />
+
+        <div class="form-group">
+            <button type="submit" name="authorize" class="btn green">Authorize</button>
+            <button type="submit" name="deny"      class="btn btn-default">Deny</button>
+        </div>
+
+        <a>Forgot password?</a>
+
+        </div>
+      </form>
+  </div>
+  <div class="col-md-4"></div>
+</div>
