@@ -26,9 +26,11 @@ log.info("connecting to mongodb instance: " + config.mongodb_connection_string);
 mongoose.connect(config.mongodb_connection_string);
 
 app.use(express.logger(config.request_log_format));
+app.use(express.compress());
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 app.use(express.session({ secret: config.user_session_secret, cookie: { maxAge: config.user_session_timeout_seconds } }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -57,10 +59,12 @@ mongoose.connection.once('open', function () {
 
         log.info("service has initialized itself, exposing api at: " + config.api_endpoint);
 
-        // REST endpoints
+        // REST API ENDPOINTS
 
+        // headwaiter endpoint
         app.get(config.headwaiter_path,                                               controllers.headwaiter.index);
 
+        // blob endpoints
         if (config.blob_provider) {
             app.get(config.blobs_path + '/:id',    middleware.accessTokenAuth,        controllers.blobs.show);
             app.post(config.blobs_path,            middleware.accessTokenAuth,        controllers.blobs.create);
@@ -68,17 +72,19 @@ mongoose.connection.once('open', function () {
             log.warn("not exposing blob endpoints because no blob provider configured (see config.js).");
         }
 
+        // health endpoint
         app.get(config.ops_path + '/health',                                          controllers.ops.health);
 
+        // permissions endpoints
         app.get(config.permissions_path,           middleware.accessTokenAuth,        controllers.permissions.index);
         app.post(config.permissions_path,          middleware.accessTokenAuth,        controllers.permissions.create);
         app.delete(config.permissions_path + '/:id', middleware.accessTokenAuth,      controllers.permissions.remove);
 
-        // DEPRECIATED LEGACY AUTH ENDPOINT
+        // principal endpoints
         app.post(config.principals_path + '/auth',                                    controllers.principals.legacyAuthentication);
 
         app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
-        app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
+        //app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
 
 
         app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
@@ -89,42 +95,51 @@ mongoose.connection.once('open', function () {
         app.put(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.update);
         app.delete(config.principals_path + '/:id', middleware.accessTokenAuth,       controllers.principals.remove);
 
+        // message endpoints
         app.get(config.messages_path + '/:id',     middleware.accessTokenAuth,        controllers.messages.show);
         app.get(config.messages_path,              middleware.accessTokenAuth,        controllers.messages.index);
         app.post(config.messages_path,             middleware.accessTokenAuth,        controllers.messages.create);
         app.delete(config.messages_path,           middleware.accessTokenAuth,        controllers.messages.remove);
 
-        // OAuth2 and user management endpoints
+        // USER AND OAUTH2 ENDPOINTS
 
-        app.get(config.user_login_path,                                               controllers.users.showLogin);
-        app.post(config.user_login_path, passport.authenticate('local', {
-            successReturnToOrRedirect: 'https://admin.nitrogen.io',
-            failureRedirect: config.user_login_path
-        }));
+        // create user
+        app.get(config.user_create_path,                                              controllers.users.createForm);
+        app.post(config.user_create_path,                                             controllers.users.create);
 
+        // login user
+        app.get(config.user_login_path,                                               controllers.users.loginForm);
+        app.post(config.user_login_path,                                              controllers.users.login);
+
+        // change password
+        app.get(config.user_change_password_path,                                     controllers.users.changePasswordForm);
+        app.post(config.user_change_password_path, ensureLoggedIn,                    controllers.users.changePassword);
+
+        // reset password
+        app.get(config.user_reset_password_path,                                      controllers.users.resetPasswordForm);
+        app.post(config.user_reset_password_path,                                     controllers.users.resetPassword);
+
+        // user serialization and deserialization
         passport.serializeUser(function(user, done) {
-          done(null, user);
+            done(null, user.id);
         });
 
-        passport.deserializeUser(function(user, done) {
-          done(null, user);
+        passport.deserializeUser(function(id, done) {
+            services.principals.findById(services.principals.servicePrincipal, id, done);
         });
 
-//        app.get(config.users_path + '/password',                             controllers.users.showChangePassword);
-//        app.post(config.users_path + '/password', ensureLoggedIn, middleware.userAuth, controllers.users.changePassword);
-
-//        app.get(config.users_path + '/reset', ensureLoggedIn,                controllers.users.showResetPassword);
-//        app.post(config.users_path + '/reset', ensureLoggedIn,               controllers.users.resetPassword);
-
+        // OAuth2 endpoints
         app.get(config.users_path + '/authorize', ensureLoggedIn, controllers.users.authorize);
         app.post(config.users_path + '/decision', ensureLoggedIn, controllers.users.decision);
 
+        // client libraries
         app.get('/client/nitrogen.js', function(req, res) { res.send(services.messages.clients['nitrogen.js']); });
         app.get('/client/nitrogen-min.js', function(req, res) { res.send(services.messages.clients['nitrogen-min.js']); });
 
-        log.info("service has initialized endpoints");
-
+        // static files (static/ is mapped to the root API url for any path not already covered above)
         app.use(express.static(path.join(__dirname, '/static')));
+
+        log.info("service has initialized API endpoints");
 
         mongoose.connection.on('error', log.error);
     });

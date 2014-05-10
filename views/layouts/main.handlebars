@@ -13,6 +13,20 @@
         <div class="page-container">
           <div class="page-content-wrapper">
             <div class="page-content">
+
+{{#if error}}
+    <div class='container'>
+        <div class='row'>
+            <div class='col-md-2'></div>
+            <div class='col-md-8'>
+                <div class="alert alert-danger">
+                    <center>{{error}}</center>
+                </div>
+            </div>
+            <div class='col-md-2'></div>
+        </div>
+    </div>
+{{/if}}
                 {{{body}}}
             </div>
           </div>

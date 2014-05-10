@@ -65,78 +65,6 @@ describe('principals endpoint', function() {
         });
     });
 
-    it('should be able to reset a principals password', function(done) {
-        request.post(config.principals_endpoint, {
-          json: { type: 'user',
-                  email: 'resetuser@server.org',
-                  password: 'sEcReT55' } }, function(err, resp, body) {
-
-            assert.ifError(err);
-            assert.equal(resp.statusCode, 200);
-
-            request.post({
-              url: config.principals_endpoint + "/reset",
-              json: {
-                email: 'resetuser@server.org'
-              }
-            }, function(err, resp, body) {
-                assert.ifError(err);
-                assert.equal(resp.statusCode, 200);
-
-                done();
-            });
-        });
-    });
-
-    it('should be able to change a principals password', function(done) {
-        var authObject = {
-            type: 'user',
-            email: 'changeuser@server.org',
-            password: 'sEcReT55'
-        };
-
-        request.post(config.principals_endpoint, { json: authObject }, function(err, resp, body) {
-            assert.ifError(err);
-            assert.equal(resp.statusCode, 200);
-            var accessToken = new models.AccessToken(body.accessToken);
-
-            authObject.new_password = "SUPERS3CRET";
-            request.post({
-                json: authObject,
-                headers: { Authorization: accessToken.toAuthHeader() },
-                url: config.principals_endpoint + "/password"
-            }, function(err, resp, body) {
-                assert.ifError(err);
-                assert.equal(resp.statusCode, 200);
-                assert.notEqual(body.accessToken.token, accessToken.token);
-
-                done();
-            });
-        });
-    });
-
-    it('you should not be able to change a password without knowing the current password', function(done) {
-        var authObject = {
-            type: 'user',
-            email: fixtures.models.principals.user.email,
-            password: 'WRONGPASSWORD',
-            new_password: 'HAXXER'
-        };
-
-        request.post({
-            json: authObject,
-            headers: { Authorization: fixtures.models.accessTokens.user.toAuthHeader() },
-            url: config.principals_endpoint + "/password"
-        }, function(err, resp, body) {
-            assert.ifError(err);
-
-            assert.equal(resp.statusCode, 401);
-            assert.notEqual(body.error.message, undefined);
-
-            done();
-        });
-    });
-
     it('should reject requests for a principal without access token', function(done) {
         request({ url: config.principals_endpoint + '/' + fixtures.models.principals.device.id, json: true }, function(get_err, get_resp, get_body) {
             assert.equal(get_err, null);
@@ -250,25 +178,6 @@ describe('principals endpoint', function() {
 
                 done();
             });
-    });
-
-    it('should login user principal', function(done) {
-        request.post(config.principals_endpoint + '/user/auth', {
-            json: {
-                type: 'user',
-                email: 'user@server.org',
-                password: 'sEcReT44'
-            }
-        }, function(err, resp, body) {
-            assert.equal(resp.statusCode, 200);
-            assert.notEqual(body.accessToken.token, undefined);
-
-            assert.equal(Date.parse(body.principal.last_connection) > fixtures.models.principals.user.last_connection.getTime(), true);
-            assert.notEqual(body.principal.last_ip, undefined);
-            assert.equal(body.principal.password, undefined);
-
-            done();
-        });
     });
 
     it('should return failed authorization for wrong password', function(done) {

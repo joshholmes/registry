@@ -36,27 +36,6 @@ exports.authenticate = function(req, res) {
     });
 };
 
-exports.changePassword = function(req, res) {
-    // even though we have an accesstoken to validate this request, we still want the
-    // user to provide a password to reauthenticate such that we know it is them, and
-    // not a hijacked browser window that is making the change password request.
-
-    // but if this fails, send back a 403 not 401 to match up that the operation is not authorized but
-    // signal that the session itself is still authenticated.
-
-//    services.principals.authenticate(req.body, function(err, principal) {
-//        if (err) return utils.handleError(res, utils.authorizationError("The current password was not accepted by the service."));
-
-        if (!req.user.is('user')) return utils.handleError(res, utils.badRequest("principal must be of type user to change password."));
-
-        services.principals.changePassword(req.user, req.body.new_password, function(err, principal, accessToken) {
-            if (err) return utils.handleError(res, err);
-
-            sendAuthResponse(res, principal.toObject(), accessToken);
-        });
-//    });
-};
-
 exports.create = function(req, res) {
     delete req.body.created_at;
 
@@ -116,21 +95,6 @@ exports.remove = function(req, res) {
         if (err) return utils.handleError(res, err);
 
         res.send(200);
-    });
-};
-
-exports.resetPassword = function(req, res) {
-    if (!req.body.email) return utils.handleError(res, utils.badRequestError("Email requested to reset password."));
-
-    services.principals.find(services.principals.servicePrincipal, { email: req.body.email }, function(err, principals) {
-        if (err) return utils.handleError(res, err);
-        if (principals.length < 1) return utils.handleError(res, utils.notFoundError('User ' + req.body.email + ' not found.'));
-
-        services.principals.resetPassword(services.principals.servicePrincipal, principals[0], function(err) {
-            if (err) return utils.handleError(res, err);
-
-            res.send(200, {});
-        });
     });
 };
 

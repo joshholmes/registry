@@ -68,9 +68,13 @@ config.principals_endpoint = config.base_endpoint + config.principals_path;
 
 config.users_path = "/user";
 config.user_authorize_path = config.users_path + "/authorize";
+config.user_change_password_path = config.users_path + "/changepassword";
+config.user_create_path = config.users_path + "/create";
 config.user_decision_path = config.users_path + "/decision";
 config.user_login_path = config.users_path + "/login";
+config.user_reset_password_path = config.users_path + "/resetpassword";
 config.users_endpoint = config.base_endpoint + config.users_path;
+config.default_user_redirect = "http://admin.nitrogen.io";
 
 config.user_session_secret = process.env.USER_SESSION_SECRET || "development";
 config.user_session_timeout_seconds = 30 * 24 * 60 * 60; // seconds (30 days)

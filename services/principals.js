@@ -326,7 +326,7 @@ var impersonate = function(authzPrincipal, impersonatedPrincipalId, callback) {
         }, impersonatedPrincipal, function(err, permission) {
             if (err) return callback(err);
             if (!permission.authorized)  {
-                return callback(utils.authorizationError('You are not authorized to delete this principal.'));
+                return callback(utils.authorizationError('You are not authorized to impersonate this principal.'));
             }
 
             services.accessTokens.findOrCreateToken(impersonatedPrincipal, function(err, accessToken) {
