@@ -1,4 +1,5 @@
-var config = require('../config')
+var async = require('async')
+  , config = require('../config')
   , log = require('../log')
   , models = require('../models')
   , services = require('../services')
@@ -6,36 +7,79 @@ var config = require('../config')
 
 var authorize = function(req, res) {
     var key = req.param('api_key');
+    var app_id = req.param('app_id');
     var redirect_uri = req.param('redirect_uri');
-    var perms = []; // req.param('perms');
+    var scope = req.param('scope');
 
     services.apiKeys.check(key, redirect_uri, function(err, apiKey) {
         if (err) return utils.handleError(res, err);
 
-        services.principals.find(services.principals.servicePrincipal, { api_key: apiKey.id, parent: req.user.id }, {}, function(err, apps) {
-            if (err) return utils.handleError(res, err);
-            if (apps.length > 0) return redirectWithSession(res, apps[0], redirect_uri);
+        if (!app_id) return redirectWithError(res, redirect_uri, "app_id required for authorize");
+        if (!scope) return redirectWithError(res, redirect_uri, "scope required for authorize");
+
+        services.principals.find(services.principals.servicePrincipal, { id: app_id }, {}, function(err, apps) {
+            if (err) return redirectWithError(res, redirect_uri, err);
+
+            if (!app_id && apps.length > 0) return redirectWithSession(res, apps[0], redirect_uri);
+            if (app_id && apps.length !== 1) return redirectWithError(res, redirect_uri, "app_id referenced unknown application.");
 
             var authCode = models.AuthCode({
                 api_key: apiKey.id,
+                app: app_id,
                 name: apiKey.name,
-                principal: req.user.id,
-                perms: perms,
+                user: req.user.id,
+                scope: scope,
                 redirect_uri: redirect_uri
             });
 
             services.authCodes.create(authCode, function(err, authCode) {
-                if (err) return utils.handleError(res, err);
+                if (err) return redirectWithError(res, redirect_uri, err);
 
-                res.render('user/authorize', {
-                    apiKey:             apiKey,
-                    authCode:           authCode,
-                    userDecisionPath:  config.user_decision_path
+                populateClauses(authCode.scope, function(err) {
+                    if (err) return redirectWithError(res, redirect_uri, err);
+
+                    res.render('user/authorize', {
+                        apiKey:             apiKey,
+                        authCode:           authCode,
+                        user_decision_path: config.user_decision_path
+                    });
                 });
             });
         });
     });
 };
+
+var populateClauses = function(scope, callback) {
+    async.each(scope, function(clause, clauseCallback) {
+        services.principals.find(req.user, clause.filter, {}, function(err, clausePrincipals) {
+            if (err) return callback(err);
+
+            clause.principals = clausePrincipals;
+            return clauseCallback();
+        });
+    }, callback);
+};
+
+/*
+var translate = function(scope, userId) {
+    var idx = 0;
+    for (idx = 0; idx < scope.length; idx++) {
+        scope[idx].filter = translateObject(scope[idx].filter, userId);
+    }
+};
+
+var translateObject = function(obj, userId) {
+    Object.keys(scope).forEach(function(key) {
+        if (typeof scope[key] === 'object') {
+            scope[key] = translateScope(scope[key]);
+        } else if (scope[key] === 'user') {
+            scope[key] = userId;
+        }
+    });
+
+    return scope;
+};
+*/
 
 var changePassword = function(req, res) {
     var currentPassword = req.param('currentPassword');
@@ -114,36 +158,50 @@ var decision = function(req, res) {
 
     services.authCodes.check(code, req.user, function(err, authCode) {
         if (err) return utils.handleError(res, err);
+        if (!authorized) return redirectWithError(res, authCode.redirect_uri, "Authorization request not approved by user.");
 
-        if (authorized) {
-            var app = new models.Principal({
-                type: 'app',
-                api_key: authCode.api_key,
-                parent: authCode.principal,
-                name: authCode.name
-            });
+        services.principals.findById(services.principals.servicePrincipal, authCode.app_id, function(err, app) {
+            if (err) return redirectWithError(res, authCode.redirect_uri, err);
+            if (!app) return redirectWithError(res, authCode.redirect_uri, "Application not found");
 
-            services.principals.create(app, function(err, app) {
-                if (err) return utils.handleError(res, err);
+            populateClauses(authCode.scope, function(err) {
 
-                // TODO: in the future: implement full OAuth2 permission request/grant cycle.
+                async.each(authCode.scope, function(clause, clauseCallback) {
+                    async.each(clause.actions, function(action, actionCallback) {
+                        async.each(clause.principals, function(principal, principalCallback) {
 
-                var permission = new models.Permission({
-                    action: 'impersonate',
-                    authorized: true,
-                    issued_to: app.id,
-                    principal_for: req.user.id,
-                    priority: models.Permission.DEFAULT_PRIORITY_BASE
+                            var permission = new models.Permission({
+                                action: action,
+                                authorized: true,
+                                issued_to: app.id,
+                                principal_for: principal.id,
+                                priority: models.Permission.DEFAULT_PRIORITY_BASE
+                            });
+
+                            services.permissions.create(req.user, permission, principalCallback);
+
+                        }, actionCallback);
+                    }, clauseCallback);
+                }, function(err) {
+                    if (err) redirectWithError(res, err);
+
+                    return redirectWithSuccess(res);
                 });
 
-                services.permissions.create(req.user, permission, function(err) {
-                    if (err) return utils.handleError(res, err);
-
-                    return redirectWithSession(res, app, authCode.redirect_uri);
-                });
-
             });
-        }
+        });
+    });
+};
+
+var impersonate = function(req, res) {
+    var key = req.param('api_key');
+    var redirect_uri = req.param('redirect_uri');
+
+    services.apiKeys.check(key, redirect_uri, function(err, apiKey) {
+        if (err) return utils.handleError(res, err);
+        if (!apiKey.can('impersonate')) return redirectWithError(res, redirect_uri, "Impersonation of user not allowed.");
+
+        return redirectWithSession(res, req.user, redirect_uri);
     });
 };
 
@@ -183,12 +241,16 @@ var loginForm = function(req, res) {
     return renderLoginForm(res);
 };
 
-var redirectWithSession = function(res, app, redirectUri) {
-    services.accessTokens.findOrCreateToken(app, function (err, accessToken) {
+var redirectWithError = function(res, redirectUri, error) {
+    res.redirect(redirectUri + "?error=" + encodeURI(error));
+};
+
+var redirectWithSession = function(res, user, redirectUri) {
+    services.accessTokens.findOrCreateToken(user, function (err, accessToken) {
         if (err) return res.redirect(redirectUri);
 
-        res.redirect(redirectUri + "?principal=" + encodeURI(JSON.stringify(app.toObject())) +
-                                   "&accessToken=" + encodeURI(JSON.stringify(accessToken.toObject())));
+        res.redirect(redirectUri + "?principal=" + encodeURIComponent(JSON.stringify(user.toObject())) +
+                                   "&accessToken=" + encodeURIComponent(JSON.stringify(accessToken.toObject())));
     });
 };
 
@@ -229,6 +291,7 @@ module.exports = {
     create:                 create,
     createForm:             createForm,
     decision:               decision,
+    impersonate:            impersonate,
     login:                  login,
     loginForm:              loginForm,
     resetPassword:          resetPassword,

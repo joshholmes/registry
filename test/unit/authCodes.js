@@ -7,9 +7,8 @@ var assert = require('assert')
 describe('authCodes service', function() {
     it('can create, check, and remove authCodes', function(done) {
         var authCode = new models.AuthCode({
-            principal: fixtures.models.principals.anotherUser,
-            redirect_uri: "http://localhost:9000/",
-            perms: {}
+            user: fixtures.models.principals.anotherUser.id,
+            redirect_uri: "http://localhost:9000/"
         });
 
         services.authCodes.create(authCode, function(err, authCode) {
@@ -21,7 +20,6 @@ describe('authCodes service', function() {
             assert(authCode.id);
 
             services.authCodes.check(authCode.code, fixtures.models.principals.anotherUser, function(err, checkAuthCode) {
-                console.log(err);
                 assert(!err);
 
                 assert(checkAuthCode);

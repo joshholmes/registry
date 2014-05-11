@@ -3,7 +3,7 @@ var app = require('../../server')
   , config = require('../../config')
   , fixtures = require('../fixtures')
   , models = require('../../models')
-  , request = require('request')
+  , request = require('request').defaults({jar: true})
   , services = require('../../services');
 
 describe('users endpoint', function() {
@@ -89,7 +89,7 @@ describe('users endpoint', function() {
         });
     });
 
-    it('should not change password without you knowing current password', function(done) {
+    it('should not change password without current password', function(done) {
         request.post(config.users_endpoint + '/create', {
             form: {
                 email: 'changeuser2@server.org',
@@ -119,4 +119,60 @@ describe('users endpoint', function() {
         });
     });
 
+    it('can impersonate user if apiKey allows', function(done) {
+        request.post(config.users_endpoint + '/login', {
+            form: {
+                email: fixtures.models.principals.user.email,
+                password: 'sEcReT44'
+            },
+            jar: true
+        }, function(err, resp, body) {
+            assert(!err);
+
+            console.log(fixtures.models.apiKeys.admin.key);
+
+            request.get(config.users_endpoint + '/impersonate' +
+                '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.admin.key) +
+                '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.admin.redirect_uri), {
+                    followRedirect: false
+                }, function(err, resp, body) {
+
+                assert(!err);
+
+                assert(resp.body.indexOf('accessToken') !== -1);
+                assert(resp.body.indexOf('principal') !== -1);
+                assert(resp.body.indexOf('error') === -1);
+
+                done();
+            });
+        });
+    });
+
+    it('can not impersonate user if apiKey doesnt allow', function(done) {
+        request.post(config.users_endpoint + '/login', {
+            form: {
+                email: fixtures.models.principals.user.email,
+                password: 'sEcReT44'
+            },
+            jar: true
+        }, function(err, resp, body) {
+            assert(!err);
+            assert(resp.statusCode, 200);
+
+            request.get(config.users_endpoint + '/impersonate' +
+                '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.key) +
+                '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.redirect_uri, {
+                    followRedirect: false
+                }), function(err, resp, body) {
+
+                assert(!err);
+
+                assert(resp.request.uri.query.indexOf('accessToken') === -1);
+                assert(resp.request.uri.query.indexOf('principal') === -1);
+                assert(resp.request.uri.query.indexOf('error') !== -1);
+
+                done();
+            });
+        });
+    });
 });

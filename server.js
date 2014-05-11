@@ -35,7 +35,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new BearerStrategy({}, services.accessTokens.verify));
-passport.use(new LocalStrategy({ usernameField: 'email' }, services.principals.authenticateUser));
+//passport.use(new LocalStrategy({ usernameField: 'email' }, services.principals.authenticateUser));
 passport.use(new PublicKeyStrategy({}, services.principals.verifySignature));
 
 app.use(middleware.crossOrigin);
@@ -84,8 +84,9 @@ mongoose.connection.once('open', function () {
         app.post(config.principals_path + '/auth',                                    controllers.principals.legacyAuthentication);
 
         app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
-        //app.post(config.principals_path + '/user/auth', middleware.userAuth,          controllers.principals.authenticate);
 
+        // TODO: need this for command line auth for now.
+        app.post(config.principals_path + '/user/auth',                               controllers.principals.authenticateUser);
 
         app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
         app.get(config.principals_path,            middleware.accessTokenAuth,        controllers.principals.index);
@@ -129,6 +130,7 @@ mongoose.connection.once('open', function () {
         });
 
         // OAuth2 endpoints
+        app.get(config.users_path + '/impersonate', ensureLoggedIn, controllers.users.impersonate);
         app.get(config.users_path + '/authorize', ensureLoggedIn, controllers.users.authorize);
         app.post(config.users_path + '/decision', ensureLoggedIn, controllers.users.decision);
 

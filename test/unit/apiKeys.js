@@ -8,6 +8,7 @@ describe('apiKeys service', function() {
     it('can create, check, and remove apiKeys', function(done) {
         var apiKey = new models.ApiKey({
             owner: fixtures.models.principals.anotherUser,
+            name: 'my app',
             redirect_uri: "http://localhost:9000/"
         });
 

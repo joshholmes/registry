@@ -10,9 +10,10 @@ authCodeSchema.add({
 
     code:           { type: String },
     api_key:        { type: Schema.Types.ObjectId, ref: 'ApiKey' },
+    app:            { type: Schema.Types.ObjectId, ref: 'Principal' },
     name:           { type: String },
-    perms:          { type: Object },
-    principal:      { type: Schema.Types.ObjectId, ref: 'Principal' },
+    scope:          [{ type: Object }],
+    user:           { type: Schema.Types.ObjectId, ref: 'Principal' },
     redirect_uri:   { type: String }
 });
 

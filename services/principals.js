@@ -41,10 +41,12 @@ var authenticateUser = function(email, password, callback) {
         if (err) return callback(err);
         if (!principal) return callback(utils.authenticationError(USER_AUTH_FAILURE_MESSAGE));
 
-        log.debug("found user email: " + email + " verifying password.");
+        log.info("found user email: " + email + " verifying password.");
         verifyPassword(password, principal, function(err) {
+            log.info('verify password returned: ' + err);
             if (err) return callback(err);
 
+            log.info('calling back with principal: ' + JSON.stringify(principal));
             return callback(null, principal);
         });
     });

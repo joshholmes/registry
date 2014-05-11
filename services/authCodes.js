@@ -16,17 +16,14 @@ var create = function(authCode, callback) {
     });
 };
 
-var check = function(code, principal, callback) {
+var check = function(code, user, callback) {
     find({ code: code }, {}, function(err, authCodes) {
         if (err) return callback(err);
         if (authCodes.length === 0) return callback(utils.badRequestError('authCode not found.'));
 
         var authCode = authCodes[0];
 
-        console.log(authCode.principal.toString());
-        console.log(principal.id.toString());
-
-        if (!authCode.principal.equals(principal.id)) return callback(utils.badRequestError('authCode for different principal.'));
+        if (!authCode.user.equals(user.id)) return callback(utils.badRequestError('authCode for different user.'));
         return callback(null, authCode);
     });
 };

@@ -35,11 +35,43 @@ var createLegacyDeviceFixture = function(callback) {
     });
 };
 
+var createApiKeyFixtures = function(callback) {
+    var adminKey = new models.ApiKey({
+        name: 'Admin',
+        capabilities: ['impersonate'],
+        redirect_uri: 'http://localhost:9000/',
+        owner: fixtures.principals.user.id
+    });
+
+    services.apiKeys.create(adminKey, function(err, adminKey) {
+        if (err) throw err;
+
+        fixtures.apiKeys.admin = adminKey;
+
+        var regularAppKey = new models.ApiKey({
+            name: 'Regular App',
+            capabilities: [],
+            redirect_uri: 'http://localhost:9000/',
+            owner: fixtures.principals.anotherUser.id
+        });
+
+        services.apiKeys.create(regularAppKey, function(err, regularAppKey) {
+            if (err) throw err;
+
+            fixtures.apiKeys.regularApp = regularAppKey;
+
+            return callback();
+        });
+    });
+};
+
 var createDeviceFixtures = function(callback) {
     log.debug("creating device fixtures");
 
-    var device = new models.Principal({ type: 'device',
-                                        name: 'existing_device' });
+    var device = new models.Principal({
+        type: 'device',
+        name: 'existing_device'
+    });
 
     var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
 
@@ -198,6 +230,7 @@ exports.reset = function(callback) {
             createDeviceFixtures,
             createDeviceIpMessageFixture,
             createServiceUserFixtures,
+            createApiKeyFixtures,
 
             // TODO: legacy device credential support - remove once migration complete.
             createLegacyDeviceFixture
@@ -213,6 +246,7 @@ exports.reset = function(callback) {
 
 var fixtures = {
     accessTokens: {},
+    apiKeys: {},
     blobs: {},
     messages: {},
     principals: {}

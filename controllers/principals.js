@@ -20,8 +20,22 @@ exports.legacyAuthentication = function(req, res) {
     });
 };
 
-// Authentication is actually done by middleware that handles publickey vs. user creds.
-// This just fields the authenicated principal and creates and auth response.
+exports.authenticateUser = function(req, res) {
+    var email = req.body.email;
+    var password = req.body.password;
+
+    if (!email || !password) return utils.handleError(res, utils.badRequestError("You must provide both an email and password to authenticate."));
+
+    services.principals.authenticateUser(email, password, function(err, principal) {
+        if (err) return utils.handleError(res, utils.authenticationError('Your email or password were not accepted.'));
+
+        req.user = principal;
+
+        return exports.authenticate(req, res);
+    });
+};
+
+// Authentication is assumed to be done done by middleware that handles publickey vs. user creds.
 exports.authenticate = function(req, res) {
     services.accessTokens.findOrCreateToken(req.user, function(err, accessToken) {
         if (err) return callback(err);
