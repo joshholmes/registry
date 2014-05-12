@@ -21,9 +21,6 @@ principalSchema.add({
 
     public_key:     { type: String },  // base64
 
-    // TODO: legacy device credential support - remove once migration complete.
-    secret_hash:     { type: String }, // base64
-
 // application fields
 
     api_key:         { type: Schema.Types.ObjectId, ref: 'ApiKey' },
@@ -47,9 +44,6 @@ principalSchema.index({ tags: 1 });
 principalSchema.index({ type: 1 });
 principalSchema.index({ visible_to: 1 });
 
-principalSchema.virtual('secret').set(function(value) { this._secret = value; });
-principalSchema.virtual('secret').get(function() { return this._secret; });
-
 principalSchema.virtual('password').set(function(value) { this._password = value; });
 principalSchema.virtual('password').get(function() { return this._password; });
 
@@ -57,7 +51,6 @@ var principalObjectTransform = function(doc, ret, options) {
     BaseSchema.baseObjectTransform(doc, ret, options);
 
     delete ret.salt;
-    delete ret.secret_hash;
     delete ret.password_hash;
     delete ret.visible_to;
 };

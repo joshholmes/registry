@@ -103,20 +103,6 @@ describe('principals service', function() {
         done();
     });
 
-    it('can authenticate a device using legacy method', function(done) {
-
-        var request = { id: fixtures.models.principals.legacyDevice.id,
-                        secret: fixtures.models.principals.legacyDevice.secret };
-
-        services.principals.legacyAuthentication(request, function(err, principal, accessToken) {
-            assert.ifError(err);
-            assert.notEqual(principal, undefined);
-            assert.notEqual(accessToken, undefined);
-
-            done();
-        });
-    });
-
     it('service can update name', function(done) {
         fixtures.models.principals.device.name = 'my camera';
         services.principals.update(services.principals.servicePrincipal, fixtures.models.principals.device.id, { name: "my camera"}, function(err, principal) {

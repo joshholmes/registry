@@ -12,29 +12,6 @@ var removeAll = function (modelType, callback) {
     modelType.remove({}, callback);
 };
 
-// TODO: legacy device credential support - remove once migration complete.
-var createLegacyDeviceFixture = function(callback) {
-    var legacyDevice = new models.Principal({
-        type: 'device',
-        name: 'legacyDevice'
-    });
-
-    services.principals.create(legacyDevice, function(err, legacyDevice) {
-        if (err) return callback(err);
-
-        services.principals.createSecretCredentials(legacyDevice, function(err, legacyDevice) {
-            if (err) return callback(err);
-
-            legacyDevice.save(function(err, legacyDevice) {
-                if (err) return callback(err);
-
-                fixtures.principals.legacyDevice = legacyDevice;
-                return callback();
-            });
-        });
-    });
-};
-
 var createApiKeyFixtures = function(callback) {
     var adminKey = new models.ApiKey({
         name: 'Admin',
@@ -268,10 +245,7 @@ exports.reset = function(callback) {
             createServiceUserFixtures,
             createApiKeyFixtures,
             createAppFixtures,
-            createAuthCodeFixtures,
-
-            // TODO: legacy device credential support - remove once migration complete.
-            createLegacyDeviceFixture
+            createAuthCodeFixtures
         ];
 
         if (config.blob_provider) {

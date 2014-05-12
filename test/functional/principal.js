@@ -115,26 +115,6 @@ describe('principals endpoint', function() {
         });
     });
 
-    it('should login device principal using legacy endpoint', function (done) {
-        var legacyDevice = fixtures.models.principals.legacyDevice;
-
-        request.post(config.principals_endpoint + '/auth', {
-            json: {
-                type: 'device',
-                id: legacyDevice.id,
-                secret: legacyDevice.secret
-            }
-        }, function(err, resp, body) {
-            assert.ifError(err);
-            assert.equal(resp.statusCode, 200);
-            assert.notEqual(body.accessToken.token, undefined);
-
-            assert.equal(Date.parse(body.principal.last_connection) > legacyDevice.last_connection.getTime(), true);
-            assert.notEqual(body.principal.last_ip, undefined);
-            done();
-        });
-    });
-
     it('should login device principal', function (done) {
         var device = fixtures.models.principals.device;
 

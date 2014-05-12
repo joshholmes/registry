@@ -78,6 +78,8 @@ var create = function(principal, message, callback) {
                     services.subscriptions.publish('message', message, function(err) {
                         callback(err, [message]);
                     });
+
+                    // TODO: add write of message to archive provider (if any) in parallel.
                 });
             });
         });

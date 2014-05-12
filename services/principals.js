@@ -11,7 +11,7 @@ var async = require('async')
 var DEVICE_AUTH_FAILURE_MESSAGE = "The device authentication details provided were not accepted.";
 var USER_AUTH_FAILURE_MESSAGE = "The email or password provided were not accepted.";
 
-// TODO: DEPRECATED.  Moved out to userAuth.js middleware and generic controller for response.
+// TODO: Remove once legacy user authentication endpoint is no longer needed.
 var legacyAccessTokenLookup = function(callback) {
     return function(err, principal) {
         if (err) return callback(err);
@@ -25,12 +25,10 @@ var legacyAccessTokenLookup = function(callback) {
     };
 };
 
-// TODO: DEPRECATED.  Moved out to userAuth.js middleware and generic controller for response.
+// TODO: Remove once legacy user authentication endpoint is removed.
 var legacyAuthentication = function(authBody, callback) {
     if (authBody.email && authBody.password) {
         authenticateUser(authBody.email, authBody.password, legacyAccessTokenLookup(callback));
-    } else if (authBody.id && authBody.secret) {
-        authenticateDevice(authBody.id, authBody.secret, legacyAccessTokenLookup(callback));
     } else {
         callback(utils.authenticationError('Please sign in with your email and password.'));
     }
@@ -46,19 +44,6 @@ var authenticateUser = function(email, password, callback) {
             if (err) return callback(err);
 
             return callback(null, principal);
-        });
-    });
-};
-
-var authenticateDevice = function(principalId, secret, callback) {
-    findById(services.principals.servicePrincipal, principalId, function(err, principal) {
-        if (err) return callback(err);
-        if (!principal) return callback(utils.authenticationError(DEVICE_AUTH_FAILURE_MESSAGE));
-
-        verifySecret(secret, principal, function(err) {
-            if (err) return callback(err);
-
-            return callback(err, principal);
         });
     });
 };
@@ -178,30 +163,6 @@ var createPermissions = function(principal, callback) {
 
         services.permissions.createInternal(permission, callback);
     }
-};
-
-// TODO: legacy device credential support - remove once migration complete.
-var createSecretCredentials = function(principal, callback) {
-    if (!config.device_secret_bytes) return callback(
-        utils.internalError('principals service: Service is missing required configuration item device_secret_bytes.')
-    );
-
-    crypto.randomBytes(config.device_secret_bytes, function(err, secretBuf) {
-        if (err) return callback(err);
-
-        principal.secret = secretBuf.toString('base64');
-        issueClaimCode(principal, function(err, code) {
-            if (err) return callback(err);
-            principal.claim_code = code;
-
-            hashSecret(principal.secret, function(err, hashedSecret) {
-                if (err) return callback(err);
-
-                principal.secret_hash = hashedSecret;
-                callback(null, principal);
-            });
-        });
-    });
 };
 
 var createUserCredentials = function(principal, callback) {
@@ -650,20 +611,6 @@ var verifyPassword = function(password, user, callback) {
     });
 };
 
-// TODO: legacy secret credential support - remove once migration complete.
-var verifySecret = function(secret, principal, callback) {
-    hashSecret(secret, function(err, hashedSecret) {
-        if (err) return callback(err);
-
-        if (hashedSecret != principal.secret_hash) {
-            log.warn("verification of secret for principal: " + principal.id + " failed");
-            return callback(utils.authenticationError(DEVICE_AUTH_FAILURE_MESSAGE));
-        }
-
-        callback(null);
-    });
-};
-
 var verifySignature = function(nonceString, signature, callback) {
     services.nonce.find({ nonce: nonceString }, {}, function(err, nonces) {
         if (err) return callback(utils.internalError(err));
@@ -717,8 +664,5 @@ module.exports = {
 
     servicePrincipal: null,
 
-    // TODO: legacy secret credential support - remove once migration complete.
-    legacyAuthentication: legacyAuthentication,
-    createSecretCredentials: createSecretCredentials,
-    verifySecret: verifySecret
+    legacyAuthentication: legacyAuthentication
 };
