@@ -15,9 +15,6 @@ principalSchema.add({
     last_ip:         { type: String },
     last_connection: { type: Date, default: Date.now },
 
-    // OBSOLETE - remove after migration 00004 has run.
-    capabilities:    { type: Array },
-
     tags:            [{ type: String }],
 
 // non-user fields
