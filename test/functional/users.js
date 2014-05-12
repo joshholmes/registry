@@ -175,4 +175,26 @@ describe('users endpoint', function() {
             });
         });
     });
+
+    var device_scope = [{
+        actions: [ 'view', 'subscribe' ],
+        filter: {
+            $or: [
+                { tags: 'sends:temperature' },
+                { tags: 'sends:humidity' }
+            ]
+        }
+    }];
+
+    it('can render authorize form', function(done) {
+        request.get(config.users_endpoint + '/authorize' +
+            '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.key) +
+            '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.redirect_uri) +
+            '&scope=' + encodeURIComponent(JSON.stringify(config.device_scope)), function(err, resp, body) {
+            assert(!err);
+            assert(resp.statusCode, 200);
+
+            done();
+        });
+    });
 });
