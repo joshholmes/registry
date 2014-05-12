@@ -16,12 +16,17 @@ describe('principals endpoint', function() {
 
         request.post(config.principals_endpoint,
             { json: { type: 'device',
+                      tags: ['executes:cameraCommand', 'sends:image'],
                       public_key: keys.toPublicPem().toString('base64'),
                       name: "createTest" } }, function(post_err, post_resp, post_body) {
               assert.ifError(post_err);
               assert.equal(post_resp.statusCode, 200);
 
               assert(post_body.principal.claim_code);
+
+              assert(post_body.principal.tags.length === 2);
+              assert(post_body.principal.tags.indexOf('sends:image') !== -1);
+
               assert.equal(post_body.principal.name, "createTest");
               assert.ok(Date.now() < Date.parse(post_body.accessToken.expires_at));
 

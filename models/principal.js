@@ -10,7 +10,6 @@ principalSchema.add({
     type:            { type: String },
     name:            { type: String },
 
-
     claim_code:      { type: String },
 
     last_ip:         { type: String },
