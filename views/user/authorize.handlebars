@@ -1,22 +1,35 @@
 <div class="row">
-  <div class="col-md-4"></div>
-  <div class="col-md-4">
+  <div class="col-md-3"></div>
+  <div class="col-md-6">
       <h3>Authorize</h3>
-      <form class="register-form" action="{{userDecisionPath}}" method="POST">
+      <form class="register-form" action="{{user_decision_path}}" method="POST">
 
-        <p>The application {{apiKey.name}} wants to access your Nitrogen account.</p>
+        <p>The application "{{apiKey.name}}" would like to access your Nitrogen account.</p>
 
-        <input type="hidden" name="code" value="{{authCode.code}}" />
+        <ol>
+        {{#each scope}}
+            <li>It would like to have "{{actions}}" access to the following:
+                <ul>
+            {{#if principals}}
+                {{#each principals}}
+                    <li>{{name}} ({{id}}): {{tags}}</li>
+                {{/each}}
+            {{else}}
+                <li>(none found matching app's criteria)</li>
+            {{/if}}
+                </ul>
+            </li>
+        {{/each}}
+        </ol>
+
+        <input type="hidden" name="code" value="{{code}}" />
 
         <div class="form-group">
             <button type="submit" name="authorize" class="btn green">Authorize</button>
             <button type="submit" name="deny"      class="btn btn-default">Deny</button>
         </div>
 
-        <a>Forgot password?</a>
-
-        </div>
       </form>
   </div>
-  <div class="col-md-4"></div>
+  <div class="col-md-3"></div>
 </div>

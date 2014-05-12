@@ -32,6 +32,7 @@ principalSchema.add({
 
     api_key:         { type: Schema.Types.ObjectId, ref: 'ApiKey' },
     parent:          { type: Schema.Types.ObjectId, ref: 'Principal' },
+    private_key:     { type: String }, // base64
 
 // user fields
 

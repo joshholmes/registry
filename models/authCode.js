@@ -12,7 +12,7 @@ authCodeSchema.add({
     api_key:        { type: Schema.Types.ObjectId, ref: 'ApiKey' },
     app:            { type: Schema.Types.ObjectId, ref: 'Principal' },
     name:           { type: String },
-    scope:          [{ type: Object }],
+    scope:          { type: String }, // stringified version of the scope
     user:           { type: Schema.Types.ObjectId, ref: 'Principal' },
     redirect_uri:   { type: String }
 });

@@ -35,7 +35,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new BearerStrategy({}, services.accessTokens.verify));
-//passport.use(new LocalStrategy({ usernameField: 'email' }, services.principals.authenticateUser));
 passport.use(new PublicKeyStrategy({}, services.principals.verifySignature));
 
 app.use(middleware.crossOrigin);
@@ -85,13 +84,13 @@ mongoose.connection.once('open', function () {
 
         app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
 
-        // TODO: need this for command line auth for now.
-        app.post(config.principals_path + '/user/auth',                               controllers.principals.authenticateUser);
-
         app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
         app.get(config.principals_path,            middleware.accessTokenAuth,        controllers.principals.index);
 
+        // TODO: CLI needs auth user and create user endpoints for now.
+        app.post(config.principals_path + '/user/auth',                               controllers.principals.authenticateUser);
         app.post(config.principals_path,                                              controllers.principals.create);
+
         app.post(config.principals_path + '/impersonate', middleware.accessTokenAuth, controllers.principals.impersonate);
         app.put(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.update);
         app.delete(config.principals_path + '/:id', middleware.accessTokenAuth,       controllers.principals.remove);

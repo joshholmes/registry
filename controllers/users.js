@@ -17,11 +17,9 @@ var authorize = function(req, res) {
         if (!app_id) return redirectWithError(res, redirect_uri, "app_id required for authorize");
         if (!scope) return redirectWithError(res, redirect_uri, "scope required for authorize");
 
-        services.principals.find(services.principals.servicePrincipal, { id: app_id }, {}, function(err, apps) {
+        services.principals.findById(services.principals.servicePrincipal, app_id, function(err, app) {
             if (err) return redirectWithError(res, redirect_uri, err);
-
-            if (!app_id && apps.length > 0) return redirectWithSession(res, apps[0], redirect_uri);
-            if (app_id && apps.length !== 1) return redirectWithError(res, redirect_uri, "app_id referenced unknown application.");
+            if (!app) return redirectWithError(res, redirect_uri, "app_id referenced unknown application.");
 
             var authCode = models.AuthCode({
                 api_key: apiKey.id,
@@ -35,12 +33,13 @@ var authorize = function(req, res) {
             services.authCodes.create(authCode, function(err, authCode) {
                 if (err) return redirectWithError(res, redirect_uri, err);
 
-                populateClauses(authCode.scope, function(err) {
+                populateClauses(req, authCode.scope, function(err, scope) {
                     if (err) return redirectWithError(res, redirect_uri, err);
 
                     res.render('user/authorize', {
                         apiKey:             apiKey,
-                        authCode:           authCode,
+                        code:               authCode.code,
+                        scope:              scope,
                         user_decision_path: config.user_decision_path
                     });
                 });
@@ -49,13 +48,21 @@ var authorize = function(req, res) {
     });
 };
 
-var populateClauses = function(scope, callback) {
-    async.each(scope, function(clause, clauseCallback) {
+var populateClauses = function(req, scope, callback) {
+    if (typeof scope === 'string') {
+        try {
+            scope = JSON.parse(scope);
+        } catch(e) {
+            callback('scope did not parse as JSON.');
+        }
+    }
+
+    async.concat(scope, function(clause, clauseCallback) {
         services.principals.find(req.user, clause.filter, {}, function(err, clausePrincipals) {
             if (err) return callback(err);
 
             clause.principals = clausePrincipals;
-            return clauseCallback();
+            return clauseCallback(null, [clause]);
         });
     }, callback);
 };
@@ -160,13 +167,14 @@ var decision = function(req, res) {
         if (err) return utils.handleError(res, err);
         if (!authorized) return redirectWithError(res, authCode.redirect_uri, "Authorization request not approved by user.");
 
-        services.principals.findById(services.principals.servicePrincipal, authCode.app_id, function(err, app) {
+        services.principals.findById(services.principals.servicePrincipal, authCode.app, function(err, app) {
             if (err) return redirectWithError(res, authCode.redirect_uri, err);
             if (!app) return redirectWithError(res, authCode.redirect_uri, "Application not found");
 
-            populateClauses(authCode.scope, function(err) {
+            populateClauses(req, authCode.scope, function(err, scope) {
+                if (err) return redirectWithError(res, authCode.redirect_uri, err);
 
-                async.each(authCode.scope, function(clause, clauseCallback) {
+                async.each(scope, function(clause, clauseCallback) {
                     async.each(clause.actions, function(action, actionCallback) {
                         async.each(clause.principals, function(principal, principalCallback) {
 
@@ -183,11 +191,8 @@ var decision = function(req, res) {
                         }, actionCallback);
                     }, clauseCallback);
                 }, function(err) {
-                    if (err) redirectWithError(res, err);
-
-                    return redirectWithSuccess(res);
+                    redirectWithError(res, authCode.redirect_uri, err);
                 });
-
             });
         });
     });
@@ -242,15 +247,19 @@ var loginForm = function(req, res) {
 };
 
 var redirectWithError = function(res, redirectUri, error) {
-    res.redirect(redirectUri + "?error=" + encodeURI(error));
+    var finalRedirectUri = redirectUri;
+    if (error)
+        finalRedirectUri += "?error=" + encodeURIComponent(error);
+
+    res.redirect(finalRedirectUri);
 };
 
 var redirectWithSession = function(res, user, redirectUri) {
     services.accessTokens.findOrCreateToken(user, function (err, accessToken) {
-        if (err) return res.redirect(redirectUri);
+        if (err) return redirectWithError(res, redirectUri, err);
 
         res.redirect(redirectUri + "?principal=" + encodeURIComponent(JSON.stringify(user.toObject())) +
-                                   "&accessToken=" + encodeURIComponent(JSON.stringify(accessToken.toObject())));
+            "&accessToken=" + encodeURIComponent(JSON.stringify(accessToken.toObject())));
     });
 };
 

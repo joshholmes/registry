@@ -6,6 +6,8 @@ var config = require('../config')
   , utils = require('../utils');
 
 var check = function(key, redirectUri, callback) {
+    if (!redirectUri) return callback(utils.badRequestError("redirect_uri " + key + " not provided."));
+
     find({ key: key }, {}, function(err, apiKeys) {
         if (err) return callback(err);
 
