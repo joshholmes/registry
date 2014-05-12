@@ -63,12 +63,6 @@ exports.create = function(req, res) {
 
             var principalJSON = principal.toObject();
 
-            // TODO: Legacy secret authentication - remove.
-            if (!principal.is('user')) {
-                // for create (and create only) we want to pass back the secret to the device.
-                principalJSON.secret = principal.secret;
-            }
-
             // since the authenticateRequest middleware was not run on this request run it manually.
             services.principals.updateLastConnection(principal, utils.ipFromRequest(req));
 
