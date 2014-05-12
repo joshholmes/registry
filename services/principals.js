@@ -149,7 +149,12 @@ var createCredentials = function(principal, callback) {
     if (principal.is('user')) {
         createUserCredentials(principal, callback);
     } else {
-        return callback(null, principal);
+        issueClaimCode(principal, function(err, code) {
+            if (err) return callback(err);
+            principal.claim_code = code;
+
+            return callback(null, principal);
+        });
     }
 };
 

@@ -21,6 +21,7 @@ describe('principals endpoint', function() {
               assert.ifError(post_err);
               assert.equal(post_resp.statusCode, 200);
 
+              assert(post_body.principal.claim_code);
               assert.equal(post_body.principal.name, "createTest");
               assert.ok(Date.now() < Date.parse(post_body.accessToken.expires_at));
 
