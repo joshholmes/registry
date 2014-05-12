@@ -30,7 +30,9 @@ var create = function(apiKey, callback) {
     crypto.randomBytes(config.api_key_bytes, function(err, apiKeyBuf) {
         if (err) return callback(err);
 
-        apiKey.key = apiKeyBuf.toString('base64');
+        if (!apiKey.key)
+            apiKey.key = apiKeyBuf.toString('base64');
+
         apiKey.save(function(err) {
             return callback(err, apiKey);
         });

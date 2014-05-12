@@ -184,7 +184,8 @@ var processDirectoryItem = function(itemPath, item) {
 var loadSchemaAndClients = function(path) {
     var items = fs.readdirSync(path);
     items.forEach(function(item) {
-        processDirectoryItem(path, item);
+        if (item !== 'newrelic')
+            processDirectoryItem(path, item);
     });
 };
 
