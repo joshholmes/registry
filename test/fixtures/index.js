@@ -65,6 +65,42 @@ var createApiKeyFixtures = function(callback) {
     });
 };
 
+var createAppFixtures = function(callback) {
+    log.debug("creating app fixture");
+
+    var app = new models.Principal({
+        type: 'app',
+        api_key: fixtures.apiKeys.regularApp
+    });
+
+    services.principals.create(app, function(err, app) {
+        if (err) throw err;
+
+        fixtures.principals.app = app;
+
+        return callback();
+    });
+};
+
+var createAuthCodeFixtures = function(callback) {
+    log.debug("creating authCode fixture");
+
+    var authCode = models.AuthCode({
+        api_key: fixtures.apiKeys.regularApp,
+        app: fixtures.principals.app.id,
+        name: fixtures.apiKeys.regularApp.name,
+        user: fixtures.principals.user.id,
+        scope: '[]',
+        redirect_uri: fixtures.apiKeys.regularApp.redirect_uri
+    });
+
+    services.authCodes.create(authCode, function(err, authCode) {
+        fixtures.authCodes.regularApp = authCode;
+
+        return callback();
+    });
+};
+
 var createDeviceFixtures = function(callback) {
     log.debug("creating device fixtures");
 
@@ -231,6 +267,8 @@ exports.reset = function(callback) {
             createDeviceIpMessageFixture,
             createServiceUserFixtures,
             createApiKeyFixtures,
+            createAppFixtures,
+            createAuthCodeFixtures,
 
             // TODO: legacy device credential support - remove once migration complete.
             createLegacyDeviceFixture
@@ -247,6 +285,7 @@ exports.reset = function(callback) {
 var fixtures = {
     accessTokens: {},
     apiKeys: {},
+    authCodes: {},
     blobs: {},
     messages: {},
     principals: {}

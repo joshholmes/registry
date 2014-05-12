@@ -67,27 +67,6 @@ var populateClauses = function(req, scope, callback) {
     }, callback);
 };
 
-/*
-var translate = function(scope, userId) {
-    var idx = 0;
-    for (idx = 0; idx < scope.length; idx++) {
-        scope[idx].filter = translateObject(scope[idx].filter, userId);
-    }
-};
-
-var translateObject = function(obj, userId) {
-    Object.keys(scope).forEach(function(key) {
-        if (typeof scope[key] === 'object') {
-            scope[key] = translateScope(scope[key]);
-        } else if (scope[key] === 'user') {
-            scope[key] = userId;
-        }
-    });
-
-    return scope;
-};
-*/
-
 var changePassword = function(req, res) {
     var currentPassword = req.param('currentPassword');
     var newPassword = req.param('newPassword');
@@ -161,7 +140,7 @@ var createForm = function(req, res) {
 
 var decision = function(req, res) {
     var code = req.param('code');
-    var authorized = (req.param('authorize') !== undefined);
+    var authorized = (req.param('authorize') !== undefined && req.param('authorize'));
 
     services.authCodes.check(code, req.user, function(err, authCode) {
         if (err) return utils.handleError(res, err);

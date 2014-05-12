@@ -37,6 +37,64 @@ describe('users endpoint', function() {
         });
     });
 
+    // because of the wierdness of cookie handling of the request module, this should follow login of the 'user' fixture above.
+    it('should handle authorization decisions', function(done) {
+        var j = request.jar();
+
+        request.post(config.users_endpoint + '/login', {
+            form: {
+                email: fixtures.models.principals.user.email,
+                password: 'sEcReT44'
+            },
+            jar: j
+        }, function(err, resp, body) {
+            assert(!err);
+
+            request.post(config.users_endpoint + '/decision', {
+                form: {
+                    code: fixtures.models.authCodes.regularApp.code,
+                    reject: true
+                },
+                jar: true,
+                followRedirect: false
+            }, function(err, resp, body) {
+                assert(!err);
+
+                assert.equal(resp.statusCode, 302);
+                assert(body.indexOf('error') !== -1);
+
+                request.post(config.users_endpoint + '/decision', {
+                    form: {
+                        code: 'HAXXER',
+                        authorize: true
+                    },
+                    jar: true,
+                    followRedirect: false
+                }, function(err, resp, body) {
+                    assert(!err);
+
+                    assert.equal(resp.statusCode, 400);
+
+                    request.post(config.users_endpoint + '/decision', {
+                        form: {
+                            code: fixtures.models.authCodes.regularApp.code,
+                            authorize: true
+                        },
+                        jar: true,
+                        followRedirect: false
+                    }, function(err, resp, body) {
+                        assert(!err);
+
+                        assert.equal(resp.statusCode, 302);
+                        assert(body.indexOf('error') === -1);
+
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
     it('should be able to reset password', function(done) {
         request.post(config.users_endpoint + '/resetpassword', {
             form: { email: 'user@server.org' }
@@ -129,8 +187,6 @@ describe('users endpoint', function() {
         }, function(err, resp, body) {
             assert(!err);
 
-            console.log(fixtures.models.apiKeys.admin.key);
-
             request.get(config.users_endpoint + '/impersonate' +
                 '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.admin.key) +
                 '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.admin.redirect_uri), {
@@ -157,7 +213,7 @@ describe('users endpoint', function() {
             jar: true
         }, function(err, resp, body) {
             assert(!err);
-            assert(resp.statusCode, 200);
+            assert.equal(resp.statusCode, 200);
 
             request.get(config.users_endpoint + '/impersonate' +
                 '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.key) +
@@ -189,10 +245,13 @@ describe('users endpoint', function() {
     it('can render authorize form', function(done) {
         request.get(config.users_endpoint + '/authorize' +
             '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.key) +
+            '&app_id=' + encodeURIComponent(fixtures.models.principals.app.id) +
             '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.redirect_uri) +
-            '&scope=' + encodeURIComponent(JSON.stringify(config.device_scope)), function(err, resp, body) {
+            '&scope=' + encodeURIComponent(JSON.stringify(device_scope)), function(err, resp, body) {
             assert(!err);
-            assert(resp.statusCode, 200);
+            assert.equal(resp.statusCode, 200);
+
+            assert(body.indexOf(fixtures.models.apiKeys.regularApp.name) !== -1);
 
             done();
         });
