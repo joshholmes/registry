@@ -79,6 +79,8 @@ We've really only scratched the surface of what's possible with Nitrogen and how
 
 The best way to get started with Nitrogen is to build something. We have a [getting started guide](http://nitrogen.io/guides/start/setup.html) and a [free hosted version of the Nitrogen service](https://admin.nitrogen.io) running in the cloud.
 
+See "Running on Windows" below for instructions on running the server on Windows.
+
 If at any time you run into issues, please file an issue with this project. It is very helpful to know what is hard for beginners to understand so please don't hesitate to reach out.
 
 ## Running the Nitrogen service locally:
@@ -92,6 +94,23 @@ If at any time you run into issues, please file an issue with this project. It i
 ## Running tests
 
 1. `npm test`
+
+## Running on Windows
+
+On Windows, you'll need to install some dependencies first:
+ - [node-gyp](https://github.com/TooTallNate/node-gyp/) (`npm install -g node-gyp`)
+   - [Python 2.7](http://www.python.org/download/releases/2.7.3#download) (not 3.3)
+   - Visual Studio 2010 or higher (including Express editions)
+     - Windows XP/Vista/7:
+       - Microsoft Visual Studio C++ 2010 ([Express](http://go.microsoft.com/?linkid=9709949) version works well)
+       - For 64-bit builds of node and native modules you will _**also**_ need the [Windows 7 64-bit SDK](http://www.microsoft.com/en-us/download/details.aspx?id=8279)
+       - If you get errors that the 64-bit compilers are not installed you may also need the [compiler update for the Windows SDK 7.1](http://www.microsoft.com/en-us/download/details.aspx?id=4422)
+     - Windows 8:
+       - Microsoft Visual Studio C++ 2012 for Windows Desktop ([Express](http://go.microsoft.com/?linkid=9816758) version works well)
+ - [OpenSSL](http://slproweb.com/products/Win32OpenSSL.html) (normal, not light)
+   in the same bitness as your Node.js installation.
+   - The build script looks for OpenSSL in the default install directory  (`C:\OpenSSL-Win32` or `C:\OpenSSL-Win64`)
+   - If you get `Error: The specified module could not be found.`, copy `libeay32.dll` from the OpenSSL bin directory to this module's bin directory, or to Windows\System3.
 
 ## How to contribute
 
