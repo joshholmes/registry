@@ -140,11 +140,11 @@ var createForm = function(req, res) {
 
 var decision = function(req, res) {
     var code = req.param('code');
-    var authorized = (req.param('authorize') !== undefined && req.param('authorize'));
+    var authorized = req.param('authorize') !== undefined;
 
     services.authCodes.check(code, req.user, function(err, authCode) {
         if (err) return utils.handleError(res, err);
-        if (!authorized) return redirectWithError(res, authCode.redirect_uri, "Authorization request not approved by user.");
+        if (!authorized) return redirectWithError(res, authCode.redirect_uri, "Request not approved by user.");
 
         services.principals.findById(services.principals.servicePrincipal, authCode.app, function(err, app) {
             if (err) return redirectWithError(res, authCode.redirect_uri, err);
@@ -164,6 +164,8 @@ var decision = function(req, res) {
                                 principal_for: principal.id,
                                 priority: models.Permission.DEFAULT_PRIORITY_BASE
                             });
+
+                            log.info('oauth2 adding permission with action: ' + action + ' issued_to: ' + app.id + ' principal for: ' + principal.id);
 
                             services.permissions.create(req.user, permission, principalCallback);
 

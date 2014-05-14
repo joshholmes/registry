@@ -15,7 +15,7 @@ var config = null;
 if (process.env.NODE_ENV === "production") {
     config = {
         internal_port: process.env.PORT,
-        web_admin_uri: "https://admin.nitrogen.io/"
+        web_admin_uri: "https://admin.nitrogen.io"
     };
 } else if (process.env.NODE_ENV === "test") {
     config = {
@@ -23,14 +23,14 @@ if (process.env.NODE_ENV === "production") {
         internal_port: 3050,
         protocol: 'http',
         mongodb_connection_string: "mongodb://localhost/nitrogen_test",
-        web_admin_uri: "https://localhost:9000/"
+        web_admin_uri: "http://localhost:9000"
     };
 } else {
     config = {
         external_port: 3030,
         protocol: 'http',
         mongodb_connection_string: "mongodb://localhost/nitrogen_dev",
-        web_admin_uri: "https://localhost:9000/"
+        web_admin_uri: "http://localhost:9000"
     };
 }
 

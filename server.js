@@ -128,7 +128,7 @@ mongoose.connection.once('open', function () {
             services.principals.findById(services.principals.servicePrincipal, id, done);
         });
 
-        // OAuth2 endpoints
+        // oauth2 endpoints
         app.get(config.users_path + '/impersonate', ensureLoggedIn, controllers.users.impersonate);
         app.get(config.users_path + '/authorize', ensureLoggedIn, controllers.users.authorize);
         app.post(config.users_path + '/decision', ensureLoggedIn, controllers.users.decision);
