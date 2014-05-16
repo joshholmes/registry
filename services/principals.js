@@ -169,13 +169,22 @@ var createUserCredentials = function(principal, callback) {
     crypto.randomBytes(config.salt_length_bytes, function(err, saltBuf) {
         if (err) return callback(err);
 
-        hashPassword(principal.password, saltBuf, function(err, hashedPasswordBuf) {
+        // every user gets an API key that they should use for their devices.
+        var apiKey = new models.ApiKey({
+            owner: principal
+        });
+
+        services.apiKeys.create(apiKey, function(err, apiKey) {
             if (err) return callback(err);
 
-            principal.salt = saltBuf.toString('base64');
-            principal.password_hash = hashedPasswordBuf.toString('base64');
+            hashPassword(principal.password, saltBuf, function(err, hashedPasswordBuf) {
+                if (err) return callback(err);
 
-            callback(null, principal);
+                principal.salt = saltBuf.toString('base64');
+                principal.password_hash = hashedPasswordBuf.toString('base64');
+
+                callback(null, principal);
+            });
         });
     });
 };

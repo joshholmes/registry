@@ -63,6 +63,8 @@ mongoose.connection.once('open', function () {
         // headwaiter endpoint
         app.get(config.headwaiter_path,                                               controllers.headwaiter.index);
 
+        app.get(config.api_keys_path,              ensureLoggedIn,                    controllers.apiKeys.index);
+
         // blob endpoints
         if (config.blob_provider) {
             app.get(config.blobs_path + '/:id',    middleware.accessTokenAuth,        controllers.blobs.show);

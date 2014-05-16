@@ -5,6 +5,7 @@ var config = require('../config')
 exports.index = function(req, res) {
     var response = {
         endpoints: {
+            api_keys: config.api_keys_endpoint,
             messages: config.messages_endpoint,
             permissions: config.permissions_endpoint,
             principals: config.principals_endpoint,

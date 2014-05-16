@@ -24,8 +24,6 @@ var check = function(key, redirectUri, callback) {
 
 var create = function(apiKey, callback) {
     if (!apiKey.owner) return callback('owner required to create api_key');
-    if (!apiKey.redirect_uri) return callback('redirect_uri required to create api_key');
-    if (!apiKey.name) return callback('name required to create api_key');
 
     crypto.randomBytes(config.api_key_bytes, function(err, apiKeyBuf) {
         if (err) return callback(err);

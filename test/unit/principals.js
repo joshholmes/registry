@@ -16,7 +16,7 @@ describe('principals service', function() {
                                           password: passwordFixture });
 
         services.principals.create(user, function(err, user) {
-            assert.ifError(err);
+            assert(!err);
             assert.notEqual(user.id, undefined);
             assert.notEqual(user.visible_to, undefined);
             assert.notEqual(user.visible_to.length, 0);
@@ -29,11 +29,19 @@ describe('principals service', function() {
             assert.equal(principalJson.salt, undefined);
 
             services.principals.verifyPassword(passwordFixture, user, function(err) {
-                assert.ifError(err);
+                assert(!err);
 
                 services.principals.verifyPassword("NOTCORRECT", user, function(err) {
-                     assert.notEqual(err, null);
-                     done();
+                     assert(err);
+
+                     services.apiKeys.find({ owner: user.id }, {}, function(err, apiKeys) {
+                        assert(!err);
+
+                        assert(apiKeys.length === 1);
+                        assert.equal(apiKeys[0].owner, user.id);
+
+                        done();
+                     });
                 });
             });
         });
