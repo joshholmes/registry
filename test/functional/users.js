@@ -19,14 +19,7 @@ describe('users endpoint', function() {
             assert(!err);
             assert.equal(resp.statusCode, 302);
 
-            request({ url: config.api_keys_endpoint, json: true }, function(err, resp, body) {
-                assert.equal(resp.statusCode, 200);
-
-                assert(body.api_keys);
-                assert.equal(body.api_keys.length, 1);
-
-                done();
-            });
+            done();
         });
     });
 

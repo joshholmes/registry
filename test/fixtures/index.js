@@ -17,7 +17,7 @@ var createApiKeyFixtures = function(callback) {
         name: 'Admin',
         capabilities: ['impersonate'],
         redirect_uri: 'http://localhost:9000/',
-        owner: fixtures.principals.user.id
+        owner: services.principals.servicePrincipal.id
     });
 
     services.apiKeys.create(adminKey, function(err, adminKey) {
