@@ -29,7 +29,13 @@ app.use(express.logger(config.request_log_format));
 app.use(express.compress());
 app.use(express.bodyParser());
 app.use(express.cookieParser());
-app.use(express.session({ secret: config.user_session_secret, cookie: { maxAge: config.user_session_timeout_seconds } }));
+app.use(express.session({
+    secret: config.user_session_secret,
+    cookie: {
+        expires: new Date(Date.now() + config.user_session_timeout_seconds * 1000),
+        maxAge: new Date(Date.now() + config.user_session_timeout_seconds * 1000),
+    }
+}));
 
 app.use(passport.initialize());
 app.use(passport.session());
