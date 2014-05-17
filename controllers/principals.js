@@ -53,22 +53,29 @@ exports.authenticate = function(req, res) {
 exports.create = function(req, res) {
     delete req.body.created_at;
 
-	var principal = new models.Principal(req.body);
+    // translate api_key (if any) from a hash value to an actual row.
+    services.apiKeys.findByKey(req.body.api_key, function(err, apiKey) {
+        if (err) return utils.handleError(res, err);
 
-	services.principals.create(principal, function(err, principal) {
-		if (err) return utils.handleError(res, err);
+        req.body.api_key = apiKey ? apiKey.id : undefined;
 
-        services.accessTokens.create(principal, function(err, accessToken) {
+        var principal = new models.Principal(req.body);
+
+        services.principals.create(principal, function(err, principal) {
             if (err) return utils.handleError(res, err);
 
-            var principalJSON = principal.toObject();
+            services.accessTokens.create(principal, function(err, accessToken) {
+                if (err) return utils.handleError(res, err);
 
-            // since the authenticateRequest middleware was not run on this request run it manually.
-            services.principals.updateLastConnection(principal, utils.ipFromRequest(req));
+                var principalJSON = principal.toObject();
 
-            sendAuthResponse(res, principalJSON, accessToken);
+                // since the authenticateRequest middleware was not run on this request run it manually.
+                services.principals.updateLastConnection(principal, utils.ipFromRequest(req));
+
+                sendAuthResponse(res, principalJSON, accessToken);
+            });
         });
-	});
+    });
 };
 
 exports.impersonate = function(req, res) {
