@@ -57,7 +57,7 @@ exports.create = function(req, res) {
     services.apiKeys.findByKey(req.body.api_key, function(err, apiKey) {
         if (err) return utils.handleError(res, err);
 
-        req.body.api_key = apiKey ? apiKey.id : undefined;
+        req.body.api_key = apiKey;
 
         var principal = new models.Principal(req.body);
 
