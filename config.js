@@ -121,9 +121,15 @@ config.refresh_token_threshold = 0.1;
 // You can use Azure's Blob storage as a blob provider by uncommenting this configuration.
 //
 if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
-    console.log('blob_provider: using Azure blob storage.');
+    console.log('archive_provider: using Azure Table storage.');
+    config.archive_provider = new providers.azure.AzureArchiveProvider(config);
+
+    console.log('blob_provider: using Azure Blob storage.');
     config.blob_provider = new providers.azure.AzureBlobProvider(config);
 } else {
+    console.log('archive_provider: using local storage.');
+    config.archive_provider = new providers.local.NullArchiveProvider(config);
+
     console.log('blob_provider: using local storage.');
     config.blob_storage_path = './storage';
     config.blob_provider = new providers.local.LocalBlobProvider(config);

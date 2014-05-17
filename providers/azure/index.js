@@ -1,4 +1,5 @@
 module.exports = {
-    AzureBlobProvider: require('./blob'),
-    AzurePubSubProvider: require('./pubSub')
+    AzureArchiveProvider:   require('./archive'),
+    AzureBlobProvider:      require('./blob'),
+    AzurePubSubProvider:    require('./pubSub')
 };

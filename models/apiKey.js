@@ -21,6 +21,9 @@ apiKeySchema.add({
 apiKeySchema.index({ key: 1 });
 apiKeySchema.index({ owner: 1 });
 
+apiKeySchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
+apiKeySchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
+
 var ApiKey = mongoose.model('ApiKey', apiKeySchema);
 
 ApiKey.prototype.can = function(capability) {

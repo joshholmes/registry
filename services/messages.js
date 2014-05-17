@@ -73,13 +73,15 @@ var create = function(principal, message, callback) {
                 message.body_length = JSON.stringify(message.body).length;
 
                 message.save(function(err, message) {
-                    if (err) return callback(err);
 
+                    // TODO: fix perm subscriptions test so we can immediately callback after commit to DB.
                     services.subscriptions.publish('message', message, function(err) {
                         callback(err, [message]);
                     });
 
-                    // TODO: add write of message to archive provider (if any) in parallel.
+                    if (config.archive_provider) config.archive_provider.archive(message, function(err) {
+                        if (err) return log.error('messages create: archive_provider reported error: ' + err);
+                    });
                 });
             });
         });
