@@ -600,9 +600,9 @@ var validate = function(principal, callback) {
     if (principal.is('user')) {
         if (!principal.email) return callback(utils.badRequestError("User principal must have email"));
         if (!principal.password) return callback(utils.badRequestError("User principal must have password"));
-    } else {
-        // TODO: need to comment to support legacy secret credential support tests - remove once migration complete.
-        // if (!principal.public_key) return callback(utils.badRequestError("Non-user principal must have public_key"));
+    } else if (!principal.is('service')) {
+        if (!principal.api_key) return callback(utils.badRequestError("Non-user principals must have api_key"));
+        if (!principal.public_key) return callback(utils.badRequestError("Non-user principal must have public_key"));
     }
 
     callback(null);

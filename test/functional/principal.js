@@ -17,6 +17,7 @@ describe('principals endpoint', function() {
         request.post(config.principals_endpoint,
             { json: { type: 'device',
                       tags: ['executes:cameraCommand', 'sends:image'],
+                      api_key: fixtures.models.apiKeys.user.key,
                       public_key: keys.toPublicPem().toString('base64'),
                       name: "createTest" } }, function(post_err, post_resp, post_body) {
               assert.ifError(post_err);

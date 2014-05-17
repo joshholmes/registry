@@ -45,9 +45,12 @@ var createApiKeyFixtures = function(callback) {
 var createAppFixtures = function(callback) {
     log.debug("creating app fixture");
 
+    var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
+
     var app = new models.Principal({
         type: 'app',
-        api_key: fixtures.apiKeys.regularApp
+        api_key: fixtures.apiKeys.regularApp,
+        public_key: keys.toPublicPem().toString('base64')
     });
 
     services.principals.create(app, function(err, app) {
@@ -81,14 +84,14 @@ var createAuthCodeFixtures = function(callback) {
 var createDeviceFixtures = function(callback) {
     log.debug("creating device fixtures");
 
-    var device = new models.Principal({
-        type: 'device',
-        name: 'existing_device'
-    });
-
     var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
 
-    device.public_key = keys.toPublicPem().toString('base64');
+    var device = new models.Principal({
+        api_key: fixtures.apiKeys.user,
+        type: 'device',
+        name: 'existing device',
+        public_key: keys.toPublicPem().toString('base64')
+    });
 
     services.principals.create(device, function(err, device) {
         if (err) throw err;
@@ -148,10 +151,16 @@ var createUserFixtures = function(callback) {
 
         fixtures.principals.user = user;
 
+        services.apiKeys.find({ owner: user.id }, {}, function(err, apiKeys) {
+            if (err) throw err;
+            fixtures.apiKeys.user = apiKeys[0];
+        });
+
         services.accessTokens.create(user, function(err, accessToken) {
             if (err) throw err;
 
             fixtures.accessTokens.user = accessToken;
+
 
             var anotherUser = new models.Principal({
                 type: 'user',
@@ -163,6 +172,11 @@ var createUserFixtures = function(callback) {
                 if (err) throw err;
 
                 fixtures.principals.anotherUser = anotherUser;
+
+                services.apiKeys.find({ owner: anotherUser.id }, {}, function(err, apiKeys) {
+                    if (err) throw err;
+                    fixtures.apiKeys.anotherUser = apiKeys[0];
+                });
 
                 var userCanImpersonateAnotherUser = new models.Permission({
                     authorized: true,

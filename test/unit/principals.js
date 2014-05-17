@@ -52,7 +52,8 @@ describe('principals service', function() {
 
         var device = new models.Principal({
             type: "app",
-            public_key: keys.toPublicPem().toString('base64')
+            public_key: keys.toPublicPem().toString('base64'),
+            api_key: fixtures.models.apiKeys.user
         });
 
         services.principals.create(device, function(err, device) {
@@ -68,6 +69,7 @@ describe('principals service', function() {
 
         var device = new models.Principal({
             type: "device",
+            api_key: fixtures.models.apiKeys.user,
             public_key: keys.toPublicPem().toString('base64')
         });
 
