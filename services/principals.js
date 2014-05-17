@@ -340,7 +340,7 @@ var buildReactorCommands = function(reactor) {
             from: services.principals.servicePrincipal.id,
             to: reactor.id,
             type: 'reactorCommand',
-            expires: new Date(2050,1,1),
+            index_until: models.Message.INDEX_FOREVER,
             tags: [ nitrogen.CommandManager.commandTag(reactor.id) ],
             body: {
                 command: 'install',
@@ -354,7 +354,7 @@ var buildReactorCommands = function(reactor) {
             from: services.principals.servicePrincipal.id,
             to: reactor.id,
             type: 'reactorCommand',
-            expires: new Date(2050,1,1),
+            index_until: models.Message.INDEX_FOREVER,
             tags: [ nitrogen.CommandManager.commandTag(reactor.id) ],
             body: {
                 command: 'start',
@@ -537,7 +537,6 @@ var updateLastConnection = function(principal, ip) {
         var ipMessage = new models.Message({
             type: 'ip',
             from: principal,
-            expires: utils.dateDaysFromNow(1),
             body: {
                 ip_address: ip
             }

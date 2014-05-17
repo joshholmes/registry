@@ -236,11 +236,15 @@ var removeOne = function(principal, message, callback) {
 };
 
 var translate = function(message) {
-    if (!message.expires) {
-        message.expires = utils.dateDaysFromNow(config.default_message_lifetime);
+    if (!message.index_until) {
+        message.index_until = utils.dateDaysFromNow(config.default_message_indexed_lifetime);
     }
 
-    if (message.expires === 'never') {
+    if (message.index_until === 'forever') {
+        message.index_until = models.Message.INDEX_FOREVER;
+    }
+
+    if (!message.expires || message.expires === 'never') {
         message.expires = models.Message.NEVER_EXPIRE;
     }
 

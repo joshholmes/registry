@@ -7,16 +7,16 @@ var async = require('async')
 
 var serviceStartTime = new Date();
 
-// TODO: when scaled out do we just let all the nodes do this and use the 
+// TODO: when scaled out do we just let all the nodes do this and use the
 // entropy in the offset timing of that automatically scale these deletes?
 var janitor = function(callback) {
     services.accessTokens.remove({ expires_at: { $lt: new Date() } }, function(err, removed) {
         if (err) callback("janitor message removal failed: " + err);
         log.info("janitor removed " + removed + " expired access tokens.");
 
-        services.messages.remove(services.principals.servicePrincipal, { expires: { $lt: new Date() } }, function(err, removed) {
+        services.messages.remove(services.principals.servicePrincipal, { index_until: { $lt: new Date() } }, function(err, removed) {
             if (err) callback("janitor message removal failed: " + err);
-            log.info("janitor removed " + removed + " expired messages.");
+            log.info("janitor removed " + removed + " messages.");
 
             services.subscriptions.janitor(callback);
           });
@@ -50,8 +50,8 @@ var migrate = function(callback) {
                     return cb();
                 }
             }, callback);
-        });            
-    });    
+        });
+    });
 };
 
 var startJanitor = function(callback) {

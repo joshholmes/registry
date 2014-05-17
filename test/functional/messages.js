@@ -121,6 +121,7 @@ describe('messages endpoint', function() {
                 json: [{
                     from: fixtures.models.principals.device.id,
                     type: "_messageSubscriptionTest",
+                    index_until: 'forever',
                     expires: 'never',
                     body: { reading: 5.1 }
                 }],
@@ -145,6 +146,7 @@ describe('messages endpoint', function() {
 
                             assert.equal(get_body.message.body.reading, 5.1);
                             assert.equal(Date.parse(get_body.message.expires), models.Message.NEVER_EXPIRE.getTime());
+                            assert.equal(Date.parse(get_body.message.index_until), models.Message.INDEX_FOREVER.getTime());
                             assert.notEqual(get_body.message.created_at, 5.1);
 
                             var query = encodeURIComponent(JSON.stringify({ "_id" : message_id }));
@@ -163,7 +165,8 @@ describe('messages endpoint', function() {
                                     }
                                 }
                             );
-                        });
+                        }
+                    );
                 });
         }, config.pubsub_provider.MAX_LATENCY || 200);
     });

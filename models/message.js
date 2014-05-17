@@ -13,7 +13,8 @@ messageSchema.add({
     ver:            { type: Number, default: 0.1 },                    // schema version
 
     link:           { type: Schema.Types.ObjectId },                   // link to other resources (eg. blob)
-    expires:        { type: Date },                                    // expires
+    expires:        { type: Date },                                    // when content in message becomes invalid
+    index_until:    { type: Date },                                    // date after which this message will be only available in the archive
     ts:             { type: Date, default: Date.now },                 // timestamp
 
     from:           { type: Schema.Types.ObjectId, ref: 'Principal' }, // principal who sent message
@@ -31,6 +32,7 @@ messageSchema.add({
 
 messageSchema.index({ expires: 1 });
 messageSchema.index({ from: 1 });
+messageSchema.index({ index_until: 1 });
 messageSchema.index({ type: 1 });
 messageSchema.index({ to: 1 });
 messageSchema.index({ visible_to: 1 });
@@ -45,7 +47,7 @@ messageSchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
 var Message = mongoose.model('Message', messageSchema);
 
 Message.fieldTranslationSpec = {
-    dateFields: ['created_at', 'expires', 'ts'],
+    dateFields: ['created_at', 'expires', 'index_until', 'ts'],
     objectIdFields: ['from', 'to', 'link', 'response_to']
 };
 
@@ -61,6 +63,7 @@ Message.prototype.is = function(type) {
     return this.type === type;
 };
 
-Message.NEVER_EXPIRE = new Date(Date.UTC(2500, 0, 1));
+Message.NEVER_EXPIRE  = new Date(Date.UTC(2500, 0, 1));
+Message.INDEX_FOREVER = new Date(Date.UTC(2500, 0, 1));
 
 module.exports = Message;

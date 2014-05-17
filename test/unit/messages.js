@@ -30,8 +30,8 @@ describe('messages service', function() {
 
           assert(foundServicePrincipal);
 
-          assert(savedMessages[0].expires > utils.dateDaysFromNow(config.default_message_lifetime-1) && 
-                 savedMessages[0].expires < utils.dateDaysFromNow(config.default_message_lifetime));
+          assert(savedMessages[0].index_until > utils.dateDaysFromNow(config.default_message_indexed_lifetime-1) &&
+                 savedMessages[0].index_until < utils.dateDaysFromNow(config.default_message_indexed_lifetime));
 
           services.messages.removeOne(services.principals.servicePrincipal, savedMessages[0], function(err) {
             assert.equal(err, null);
@@ -163,7 +163,7 @@ describe('messages service', function() {
 
                 var message = new models.Message({
                     from: fixtures.models.principals.device.id,
-                    expires: new Date(2013,1,1),
+                    index_until: new Date(2013,1,1),
                     type: 'image',
                     link: blob.link,
                     body: {
@@ -176,7 +176,7 @@ describe('messages service', function() {
                     assert.equal(messages.length, 1);
 
                     // We now have a message with a linked blob.  Running remove with the current time should remove them both.
-                    services.messages.remove(services.principals.servicePrincipal, { expires: { $lt: new Date() } }, function(err, removed) {
+                    services.messages.remove(services.principals.servicePrincipal, { index_until: { $lt: new Date() } }, function(err, removed) {
                         assert.ifError(err);
                         assert.notEqual(removed, 0);
 
@@ -217,7 +217,7 @@ describe('messages service', function() {
 
                 var message = new models.Message({
                     from: fixtures.models.principals.device.id,
-                    expires: models.Message.NEVER_EXPIRE,
+                    index_until: models.Message.INDEX_FOREVER,
                     type: 'image',
                     link: blob.link,
                     body: {
@@ -230,7 +230,7 @@ describe('messages service', function() {
                     assert.equal(messages.length, 1);
 
                     // We now have a message with a linked blob.  Running remove with the current time should remove them both.
-                    services.messages.remove(services.principals.servicePrincipal, { expires: { $lt: new Date() } }, function(err, removed) {
+                    services.messages.remove(services.principals.servicePrincipal, { index_until: { $lt: new Date() } }, function(err, removed) {
                         assert.ifError(err);
                         assert.equal(removed, 0);
 
