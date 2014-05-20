@@ -29,7 +29,7 @@ app.use(express.logger(config.request_log_format));
 app.use(express.compress());
 app.use(express.bodyParser());
 app.use(express.cookieParser());
-app.use(express.session({
+app.use(express.cookieSession({
     secret: config.user_session_secret,
     cookie: {
         expires: new Date(Date.now() + config.user_session_timeout_seconds * 1000),
