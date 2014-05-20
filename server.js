@@ -1,4 +1,4 @@
-if (process.env.new_relic_app_name && process.env.new_relic_license_key) {
+if (process.env.NEW_RELIC_LICENSE_KEY && process.env.NEW_RELIC_APP_NAME) {
     require('newrelic');
 }
 
