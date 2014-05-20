@@ -56,6 +56,7 @@ var principalObjectTransform = function(doc, ret, options) {
 
     delete ret.salt;
     delete ret.password_hash;
+    delete ret.private_key;
     delete ret.visible_to;
 };
 
