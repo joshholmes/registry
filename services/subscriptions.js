@@ -3,6 +3,8 @@ var async = require('async')
   , log = require('../log')
   , models = require('../models')
   , mongoose = require('mongoose')
+  , RedisStore = require('socket.io/lib/stores/redis')
+  , redis  = require('socket.io/node_modules/redis')
   , services = require('../services')
   , utils = require('../utils');
 
@@ -12,6 +14,16 @@ var attach = function(server) {
     if (!config.pubsub_provider) return log.warn('pubsub provider not configured: subscription endpoint not started.');
 
     io = require('socket.io').listen(server);
+
+    this.pub = redis.createClient(config.subscriptions_redis_server.port, config.subscriptions_redis_server.host);
+    this.sub = redis.createClient(config.subscriptions_redis_server.port, config.subscriptions_redis_server.host);
+    this.client = redis.createClient(config.subscriptions_redis_server.port, config.subscriptions_redis_server.host);
+
+    io.set('store', new RedisStore({
+        redisPub: this.pub,
+        redisSub: this.sub,
+        redisClient: this.client
+    }));
 
     io.set('log level', 1);
 

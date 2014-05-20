@@ -137,6 +137,11 @@ if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
 
 config.cache_provider = new providers.local.NullCacheProvider(config);
 
+config.subscriptions_redis_server = {
+    host: process.env.SUBSCRIPTION_REDIS_HOST || 'localhost',
+    port: process.env.SUBSCRIPTION_REDIS_PORT || 6379
+};
+
 if (process.env.REDIS_SERVERS) {
 
     // To use Redis as a realtime backend, the env variable REDIS_SERVERS
