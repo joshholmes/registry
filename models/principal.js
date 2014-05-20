@@ -19,7 +19,11 @@ principalSchema.add({
 
 // non-user fields
 
-    public_key:     { type: String },  // base64
+    public_key:      { type: String },  // base64
+
+// service fields
+
+    private_key:     { type: String },
 
 // application fields
 
