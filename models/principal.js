@@ -17,6 +17,10 @@ principalSchema.add({
 
     tags:            [{ type: String }],
 
+// for users, this is their api_key. for others, this is the api_key that authorized their creation.
+
+    api_key:         { type: Schema.Types.ObjectId, ref: 'ApiKey' },
+
 // non-user fields
 
     public_key:      { type: String },  // base64
@@ -25,9 +29,6 @@ principalSchema.add({
 
     private_key:     { type: String },
 
-// application fields
-
-    api_key:         { type: Schema.Types.ObjectId, ref: 'ApiKey' },
 
 // user fields
 

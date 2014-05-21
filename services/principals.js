@@ -196,6 +196,8 @@ var createUserCredentials = function(principal, callback) {
         services.apiKeys.create(apiKey, function(err, apiKey) {
             if (err) return callback(err);
 
+            principal.api_key = apiKey;
+
             hashPassword(principal.password, saltBuf, function(err, hashedPasswordBuf) {
                 if (err) return callback(err);
 
