@@ -136,8 +136,8 @@ if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
 }
 
 config.redis_server = {
-    host: process.env.SUBSCRIPTION_REDIS_HOST || 'localhost',
-    port: process.env.SUBSCRIPTION_REDIS_PORT || 6379
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379
 };
 
 config.cache_provider = new providers.redis.RedisCacheProvider(config);
