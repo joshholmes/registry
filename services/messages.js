@@ -93,21 +93,17 @@ var create = function(principal, message, callback) {
 };
 
 var createMany = function(principal, messages, callback) {
-    validateAll(messages, function(err) {
-        if (err) return callback(err);
+    var ts = new Date();
 
-        var ts = new Date();
+    async.concat(messages, function(message, cb) {
+        if (!message.ts) {
+            message.ts = ts;
+            // increment the timestamp of the next message (if any) by 1ms to preserve ordering.
+            ts = new Date(ts.getTime() + 1);
+        }
 
-        async.concat(messages, function(message, cb) {
-            if (!message.ts) {
-                message.ts = ts;
-                // increment the timestamp of the next message (if any) by 1ms to preserve ordering.
-                ts = new Date(ts.getTime() + 1);
-            }
-
-            create(principal, message, cb);
-        }, callback);
-    });
+        create(principal, message, cb);
+    }, callback);
 };
 
 var find = function(principal, filter, options, callback) {
