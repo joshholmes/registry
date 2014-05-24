@@ -3,6 +3,7 @@ var async = require('async')
   , fs = require('fs')
   , log = require('../log')
   , models = require('../models')
+  , mongoose = require('mongoose')
   , path = require('path')
   , revalidator = require('revalidator')
   , services = require('../services')
@@ -70,18 +71,21 @@ var create = function(principal, message, callback) {
             buildVisibility(message, function(err, message) {
                 if (err) return callback(err);
 
+                message.id = new mongoose.Types.ObjectId();
                 message.body_length = JSON.stringify(message.body).length;
 
                 message.save(function(err, message) {
+                    if (err) log.error('message service create: save error: ' + err);
+                });
 
-                    // TODO: fix perm subscriptions test so we can immediately callback after commit to DB.
-                    services.subscriptions.publish('message', message, function(err) {
-                        callback(err, [message]);
-                    });
+                services.subscriptions.publish('message', message, function(err) {
+                    if (err) log.error('message service create: publish error: ' + err);
+                    log.info('published: ' + JSON.stringify(message));
+                    return callback(null, [message]);
+                });
 
-                    if (config.archive_provider) config.archive_provider.archive(message, function(err) {
-                        if (err) return log.error('messages create: archive_provider reported error: ' + err);
-                    });
+                if (config.archive_provider) config.archive_provider.archive(message, function(err) {
+                    if (err) log.error('messages service create: archive_provider error: ' + err);
                 });
             });
         });
