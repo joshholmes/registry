@@ -2,6 +2,7 @@ var async = require('async')
   , config = require('../config')
   , log = require('../log')
   , models = require('../models')
+  , mongoose = require('mongoose')
   , services = require('../services')
   , utils = require('../utils');
 
@@ -114,10 +115,21 @@ var initialize = function(callback) {
 };
 
 var permissionsFor = function(principalId, callback) {
-    config.cache_provider.get('permissions', principalId, function(err, permissions) {
+    config.cache_provider.get('permissions', principalId, function(err, permissionObjs) {
         if (err) return callback(err);
 
-        if (permissions) return callback(null, permissions);
+        if (permissionObjs) {
+            var permissions = permissionObjs.map(function(obj) { 
+                var permission = new models.Permission(obj); 
+
+                // Mongoose by default will override the passed id with a new unique one.  Set it back.
+
+                permission._id = mongoose.Types.ObjectId(obj.id);
+
+                return permission; 
+            });
+            return callback(null, permissions);
+        }
 
         // TODO: this is a super broad query so we'll have to evaluate many many permissions.  
         // need to think about how to pull a more tightly bounded set of possible permissions for evaluation.

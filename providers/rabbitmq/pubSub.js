@@ -57,10 +57,10 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
     async.each(item.visible_to, function(visibleToId, visibleToCallback) {
 
         // query the subscriptions that principal has
-        self.services.subscriptions.find(self.services.principals.servicePrincipal, { principal: visibleToId }, {}, function(err, subscriptions) {
+        self.services.subscriptions.findByPrincipal(self.services.principals.servicePrincipal, visibleToId, {}, function(err, subscriptions) {
             if (err) return visibleToCallback(err);
 
-            //log.debug('subscriptions: ' + JSON.stringify(subscriptions));
+            log.debug('publish subscriptions: ' + JSON.stringify(subscriptions));
 
             async.each(subscriptions, function(subscription, subscriptionCallback) {
                 log.debug("RabbitMQPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
@@ -75,6 +75,7 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
                 log.debug("RabbitMQPubSubProvider: MATCHED message: " + JSON.stringify(item));
 
                 var queueName = RabbitMQPubSubProvider.buildQueueName(subscription.type, subscription.id);
+                log.debug("RabbitMQPubSubProvider: publishing to queuename: " + queueName);
                 self.exchange.publish(queueName, JSON.stringify(item), { deliveryMode: 2 });
 
                 return subscriptionCallback();
@@ -97,7 +98,7 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
         queue.subscribe({ ack: true, prefetchCount: 1 }, function (message) {
             var itemJson = unescape(message.data);
 
-            log.debug("RabbitMQPubSubProvider: RECEIVED ON subscription: id: " + subscription.id + " :" + itemJson);
+            log.info("RabbitMQPubSubProvider: RECEIVED ON subscription: id: " + subscription.id + " :" + itemJson);
             var item = JSON.parse(itemJson);
 
             queue.unsubscribe(ctag);

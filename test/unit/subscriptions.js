@@ -33,6 +33,39 @@ describe('subscriptions service', function() {
         });
     });
 
+    it('can correctly create and then find by principal with cache', function(done) {
+        var subscription = new models.Subscription({
+            clientId: "fakeclientid",
+            filter: { type: 'ip' },
+            principal: services.principals.servicePrincipal.id,
+            type: 'message',
+            permanent: false,
+            name: utils.uuid()
+        });
+
+        // cache no subscriptions
+        services.subscriptions.findByPrincipal(services.principals.servicePrincipal, services.principals.servicePrincipal.id, {}, function(err, subscriptions) {
+            assert(!err);
+
+            // add a subscription, which should invalidate cache entry
+            services.subscriptions.findOrCreate(subscription, function(err, createdSubscription) {
+                assert(!err);
+
+                services.subscriptions.findByPrincipal(services.principals.servicePrincipal, services.principals.servicePrincipal.id, {}, function(err, subscriptions) {
+                    assert(!err);
+
+                    subscriptions.forEach(function(subscription) {
+                        console.log('subscription: ' + subscription.id);
+                        console.log('createdSubscription: ' + createdSubscription.id);
+
+                        if (subscription.id === createdSubscription.id)
+                            done();
+                    });
+                });
+            });
+        });
+    });
+
     it('can create a session subscription and receive messages from it', function(done) {
         var subscription = new models.Subscription({
             clientId: "fakeclientid",
@@ -44,11 +77,12 @@ describe('subscriptions service', function() {
         });
 
         services.subscriptions.findOrCreate(subscription, function(err, subscription) {
-            assert.ifError(err);
+            assert(!err);
 
             var publishFinished;
             config.pubsub_provider.receive(subscription, function(err, message) {
-                assert.ifError(err);
+
+                assert(!err);
                 assert.notEqual(message, undefined);
                 assert.equal(message.type, 'ip');
 
@@ -56,14 +90,14 @@ describe('subscriptions service', function() {
                 //assert(totalTime < 200);
 
                 config.pubsub_provider.subscriptionsForServer(subscription.assignment, function(err, subscriptions) {
-                    assert.ifError(err);
+                    assert(!err);
                     var startingSubscriptions = subscriptions.length;
 
                     config.pubsub_provider.removeSubscription(subscription, function(err) {
-                        assert.ifError(err);
+                        assert(!err);
 
                         config.pubsub_provider.subscriptionsForServer(subscription.assignment, function(err, subscriptions) {
-                            assert.ifError(err);
+                            assert(!err);
 
                             assert.equal(1, startingSubscriptions - subscriptions.length);
                             done();
@@ -81,7 +115,7 @@ describe('subscriptions service', function() {
             var startPublish = new Date();
 
             services.messages.create(services.principals.servicePrincipal, message, function(err) {
-                assert.ifError(err);
+                assert(!err);
                 publishFinished = new Date();
 
                 //var totalTime = publishFinished.getTime() - startPublish.getTime();
@@ -95,7 +129,7 @@ describe('subscriptions service', function() {
 
                 services.messages.create(services.principals.servicePrincipal, message, function(err) {
                     publishFinished = new Date();
-                    assert.ifError(err);
+                    assert(!err);
                 });
             });
         });

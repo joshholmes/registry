@@ -135,12 +135,12 @@ if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
     config.blob_provider = new providers.local.LocalBlobProvider(config);
 }
 
-config.cache_provider = new providers.local.NullCacheProvider(config);
-
-config.subscriptions_redis_server = {
+config.redis_server = {
     host: process.env.SUBSCRIPTION_REDIS_HOST || 'localhost',
     port: process.env.SUBSCRIPTION_REDIS_PORT || 6379
 };
+
+config.cache_provider = new providers.redis.RedisCacheProvider(config);
 
 if (process.env.REDIS_SERVERS) {
 

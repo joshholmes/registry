@@ -10,7 +10,7 @@ MemoryCacheProvider.buildCompositeKey = function(namespace, key) {
 
 MemoryCacheProvider.prototype.del = function(namespace, key, callback) {
     delete this.cache[MemoryCacheProvider.buildCompositeKey(namespace, key)];
-    return callback();
+    if (callback) return callback();
 };
 
 MemoryCacheProvider.prototype.get = function(namespace, key, callback) {
@@ -26,7 +26,7 @@ MemoryCacheProvider.prototype.get = function(namespace, key, callback) {
 MemoryCacheProvider.prototype.set = function(namespace, key, value, expiration, callback) {
     this.cache[MemoryCacheProvider.buildCompositeKey(namespace, key)] = { value: value, expires: expiration };
 
-    return callback();
+    if (callback) return callback();
 };
 
 module.exports = MemoryCacheProvider;

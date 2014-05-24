@@ -15,9 +15,9 @@ var attach = function(server) {
 
     io = require('socket.io').listen(server);
 
-    this.pub = redis.createClient(config.subscriptions_redis_server.port, config.subscriptions_redis_server.host);
-    this.sub = redis.createClient(config.subscriptions_redis_server.port, config.subscriptions_redis_server.host);
-    this.client = redis.createClient(config.subscriptions_redis_server.port, config.subscriptions_redis_server.host);
+    this.pub = redis.createClient(config.redis_server.port, config.redis_server.host);
+    this.sub = redis.createClient(config.redis_server.port, config.redis_server.host);
+    this.client = redis.createClient(config.redis_server.port, config.redis_server.host);
 
     io.set('store', new RedisStore({
         redisPub: this.pub,
@@ -84,6 +84,10 @@ var attachSubscriptionsEndpoint = function() {
     });
 };
 
+var cacheKeySubscriptionsForPrincipal = function(principalId) {
+    var key = "subscriptions.principal." + principalId.toString();
+};
+
 var count = function(callback) {
     models.Subscription.count(callback);
 };
@@ -92,12 +96,44 @@ var create = function(subscription, callback) {
     config.pubsub_provider.createSubscription(subscription, function(err) {
         if (err) callback(err);
 
-        save(subscription, callback);
+        config.cache_provider.del('subscriptions', cacheKeySubscriptionsForPrincipal(subscription.principal), function(err) {
+            if (err) return callback(err);
+
+            save(subscription, callback);
+        });
     });
 };
 
 var find = function(authPrincipal, filter, options, callback) {
     models.Subscription.find(filter, null, options, callback);
+};
+
+var findByPrincipal = function(authPrincipal, principalId, options, callback) {
+    var cacheKey = cacheKeySubscriptionsForPrincipal(principalId);
+
+    config.cache_provider.get('subscriptions', cacheKey, function(err, subscriptionObjs) {
+        if (err) return callback(err);
+        if (subscriptionObjs) {
+            var subscriptions = subscriptionObjs.map(function(obj) {
+                var subscription = new models.Subscription(obj);
+
+                // Mongoose by default will override the passed id with a new unique one.  Set it back.
+                subscription._id = mongoose.Types.ObjectId(obj.id);
+
+                return subscription;
+            });
+
+            return callback(null, subscriptions);
+        }
+
+        models.Subscription.find({ principal: principalId }, null, options, function(err, subscriptions) {
+            if (err) return callback(err);
+
+            config.cache_provider.set('subscriptions', cacheKey, subscriptions, utils.dateDaysFromNow(1), function(err) {
+                return callback(err, subscriptions);
+            });
+        });
+    });
 };
 
 var findOne = function(subscription, callback) {
@@ -167,6 +203,8 @@ var remove = function(subscription, callback) {
         if (err) {
             log.error('subscriptions: remove failed in provider with error: ' + err);
         }
+
+        config.cache_provider.del('subscriptions', cacheKeySubscriptionsForPrincipal(subscription.principal));
 
         if (subscription.socket)
             delete subscription.socket.subscriptions[subscription.clientId];
@@ -264,6 +302,8 @@ var stream = function(socket, subscription) {
 };
 
 var update = function(subscription, updates, callback) {
+    config.cache_provider.del('subscriptions', cacheKeySubscriptionsForPrincipal(subscription.principal));
+
     models.Subscription.update({ _id: subscription.id }, { $set: updates }, callback);
 };
 
@@ -272,6 +312,7 @@ module.exports = {
     count: count,
     create: create,
     find: find,
+    findByPrincipal: findByPrincipal,
     findOne: findOne,
     findOrCreate: findOrCreate,
     initialize: initialize,
