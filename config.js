@@ -73,13 +73,16 @@ config.principals_path = config.v1_api_path + "/principals";
 config.principals_endpoint = config.base_endpoint + config.principals_path;
 
 config.users_path = "/user";
+config.users_endpoint = config.base_endpoint + config.users_path;
+
 config.user_authorize_path = config.users_path + "/authorize";
 config.user_change_password_path = config.users_path + "/changepassword";
 config.user_create_path = config.users_path + "/create";
 config.user_decision_path = config.users_path + "/decision";
 config.user_login_path = config.users_path + "/login";
+config.user_logout_path = config.users_path + "/logout";
 config.user_reset_password_path = config.users_path + "/resetpassword";
-config.users_endpoint = config.base_endpoint + config.users_path;
+
 config.default_user_redirect = "http://admin.nitrogen.io";
 
 config.user_session_secret = process.env.USER_SESSION_SECRET || "development";

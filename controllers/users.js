@@ -227,6 +227,12 @@ var loginForm = function(req, res) {
     return renderLoginForm(res);
 };
 
+var logout = function(req, res) {
+    req.logout();
+
+    return renderLoginForm(res, 'You have been signed out. Please login with your email and password.');
+};
+
 var redirectWithError = function(res, redirectUri, error) {
     var finalRedirectUri = redirectUri;
     if (error)
@@ -284,6 +290,7 @@ module.exports = {
     impersonate:            impersonate,
     login:                  login,
     loginForm:              loginForm,
+    logout:                 logout,
     resetPassword:          resetPassword,
     resetPasswordForm:      resetPasswordForm
 };

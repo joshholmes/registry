@@ -120,12 +120,15 @@ mongoose.connection.once('open', function () {
         app.post(config.user_login_path,                                              controllers.users.login);
 
         // change password
-        app.get(config.user_change_password_path,                                     controllers.users.changePasswordForm);
+        app.get(config.user_change_password_path,  ensureLoggedIn,                    controllers.users.changePasswordForm);
         app.post(config.user_change_password_path, ensureLoggedIn,                    controllers.users.changePassword);
 
         // reset password
         app.get(config.user_reset_password_path,                                      controllers.users.resetPasswordForm);
         app.post(config.user_reset_password_path,                                     controllers.users.resetPassword);
+
+        // logout
+        app.get(config.user_logout_path,           ensureLoggedIn,                    controllers.users.logout);
 
         // user serialization and deserialization
         passport.serializeUser(function(user, done) {
