@@ -74,13 +74,12 @@ var create = function(principal, message, callback) {
                 message.id = new mongoose.Types.ObjectId();
                 message.body_length = JSON.stringify(message.body).length;
 
-                message.save(function(err, message) {
+                if (message.index_until) message.save(function(err, message) {
                     if (err) log.error('message service create: save error: ' + err);
                 });
 
                 services.subscriptions.publish('message', message, function(err) {
                     if (err) log.error('message service create: publish error: ' + err);
-                    log.info('published: ' + JSON.stringify(message));
                     return callback(null, [message]);
                 });
 
@@ -236,9 +235,9 @@ var removeOne = function(principal, message, callback) {
 };
 
 var translate = function(message) {
-    if (!message.index_until) {
-        message.index_until = utils.dateDaysFromNow(config.default_message_indexed_lifetime);
-    }
+    //if (!message.index_until) {
+    //    message.index_until = utils.dateDaysFromNow(config.default_message_indexed_lifetime);
+    //}
 
     if (message.index_until === 'forever') {
         message.index_until = models.Message.INDEX_FOREVER;

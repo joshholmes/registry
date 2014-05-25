@@ -234,6 +234,7 @@ var createDeviceIpMessageFixture = function(callback) {
 
     var message = new models.Message({ from: fixtures.principals.device.id,
                                        type: "ip",
+                                       index_until: new Date(new Date().getTime() + 24 * 60 * 60 + 1000),
                                        body: { ip_address: "127.0.0.1" } });
 
     services.messages.create(services.principals.servicePrincipal, message, function (err, messages) {
