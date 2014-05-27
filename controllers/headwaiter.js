@@ -10,13 +10,7 @@ exports.index = function(req, res) {
             permissions: config.permissions_endpoint,
             principals: config.principals_endpoint,
             subscriptions: config.subscriptions_endpoint,
-            users: config.users_endpoint,
-
-            // TODO: DEPRECATED LONG NAMES, REMOVE ONCE CLIENTS MIGRATED.
-            messages_endpoint: config.messages_endpoint,
-            permissions_endpoint: config.permissions_endpoint,
-            principals_endpoint: config.principals_endpoint,
-            subscriptions_endpoint: config.subscriptions_endpoint
+            users: config.users_endpoint
         }
     };
 
