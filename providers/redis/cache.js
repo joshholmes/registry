@@ -42,9 +42,7 @@ RedisCacheProvider.prototype.set = function(namespace, key, value, expiration, c
 //    log.warn('caching');
 //    console.dir(entry.value);
 
-    this.client.set(RedisCacheProvider.buildCompositeKey(namespace, key), JSON.stringify(entry), function() {
-        return callback();
-    });
+    this.client.set(RedisCacheProvider.buildCompositeKey(namespace, key), JSON.stringify(entry), callback);
 };
 
 module.exports = RedisCacheProvider;
