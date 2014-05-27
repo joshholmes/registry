@@ -169,6 +169,8 @@ var createPermissions = function(principal, callback) {
                         priority: nitrogen.Permission.NORMAL_PRIORITY
                     });
 
+                    update(services.principals.servicePrincipal, principal.id, { claim_code: null });
+
                     services.permissions.create(services.principals.servicePrincipal, permission, callback);
                 });
             });
@@ -525,7 +527,7 @@ var update = function(authorizingPrincipal, id, updates, callback) {
                     // TODO: principals_realtime:  Disabled until rate limited to prevent update storms.
 
                     //notifySubscriptions(updatedPrincipal, function(err) {
-                        return callback(err, updatedPrincipal);
+                        if (callback) return callback(err, updatedPrincipal);
                     //});
                 });
             });

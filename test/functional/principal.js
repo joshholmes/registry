@@ -23,7 +23,8 @@ describe('principals endpoint', function() {
               assert.ifError(post_err);
               assert.equal(post_resp.statusCode, 200);
 
-              assert(post_body.principal.claim_code);
+              // this principal will be autoclaimed to the user because it is using their claim code.
+              assert(!post_body.principal.claim_code);
 
               assert(post_body.principal.tags.length === 2);
               assert(post_body.principal.tags.indexOf('sends:image') !== -1);

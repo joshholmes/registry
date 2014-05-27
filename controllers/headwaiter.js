@@ -16,9 +16,6 @@ exports.index = function(req, res) {
 
     if (config.blob_provider) {
         response.endpoints.blobs = config.blobs_endpoint;
-
-        // TODO: DEPRECATED LONG NAME, REMOVE ONCE CLIENTS MIGRATED.
-        response.endpoints.blobs_endpoint = config.blobs_endpoint;
     }
 
     var nonceFunc = req.query.principal_id ? services.nonce.create : utils.nop;
