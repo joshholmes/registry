@@ -41,15 +41,16 @@ var find = function(query, options, callback) {
     models.ApiKey.find(query, null, options, callback);
 };
 
+var findById = function(id, callback) {
+    if (!id) return callback(null, undefined);
+
+    return models.ApiKey.findOne({ _id: id }, callback);
+};
+
 var findByKey = function(key, callback) {
     if (!key) return callback(null, undefined);
 
-    return find({ key: key }, {}, function(err, apiKeys) {
-        if (err) return callback(err);
-        if (apiKeys.length === 0) return callback(null, undefined);
-
-        return callback(null, apiKeys[0]);
-    });
+    return models.ApiKey.findOne({ key: key }, callback);
 };
 
 var remove = function(query, callback) {
@@ -60,6 +61,7 @@ module.exports = {
     check:           check,
     create:          create,
     find:            find,
+    findById:        findById,
     findByKey:       findByKey,
     remove:          remove
 };

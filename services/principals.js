@@ -154,19 +154,23 @@ var createPermissions = function(principal, callback) {
             if (err) return callback(err);
             if (principal.is('user')) return callback();
 
-            services.principals.findById(services.principals.servicePrincipal, principal.api_key.owner, function(err, ownerPrincipal) {
+            services.apiKeys.findById(principal.api_key, function(err, apiKey) {
                 if (err) return callback(err);
-                if (!ownerPrincipal || !ownerPrincipal.is('user')) return callback();
 
-                // if api_key owner is user, give them all permissions
-                var permission = new nitrogen.Permission({
-                    authorized: true,
-                    issued_to: ownerPrincipal.id,
-                    principal_for: principal.id,
-                    priority: nitrogen.Permission.NORMAL_PRIORITY
+                services.principals.findById(services.principals.servicePrincipal, apiKey.owner, function(err, ownerPrincipal) {
+                    if (err) return callback(err);
+                    if (!ownerPrincipal || !ownerPrincipal.is('user')) return callback();
+
+                    // if api_key owner is user, give them all permissions
+                    var permission = new models.Permission({
+                        authorized: true,
+                        issued_to: ownerPrincipal.id,
+                        principal_for: principal.id,
+                        priority: nitrogen.Permission.NORMAL_PRIORITY
+                    });
+
+                    services.permissions.create(services.principals.servicePrincipal, permission, callback);
                 });
-
-                services.permissions.create(services.principals.servicePrincipal, permission, callback);
             });
         });
     } else {

@@ -2,12 +2,11 @@ var assert = require('assert')
   , config = require('../../config')
   , fixtures = require('../fixtures')
   , models = require('../../models')
-  , nitrogen = require('nitrogen')
   , services = require('../../services');
 
 describe('permissions service', function() {
     it('checks default permissions', function(done) {
-        var message = new nitrogen.Message({
+        var message = new models.Message({
             type: 'ip'
         });
 
