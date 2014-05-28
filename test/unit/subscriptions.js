@@ -8,28 +8,41 @@ var assert = require('assert')
 
 describe('subscriptions service', function() {
     it('creating a subscription should create row', function(done) {
-        models.Subscription.count({}, function(err, startingCount) {
-            assert.ifError(err);
+        services.subscriptions.findByPrincipalCached(fixtures.models.principals.device, fixtures.models.principals.device.id, {}, function(err, subscriptions) {
+            assert(!err);
 
-            var subscription = new models.Subscription({
-                filter: {},
-                name: 'named',
-                principal: fixtures.models.principals.device.id,
-                type: 'message',
-                permanent: false,
-                name: utils.uuid()
-            });
+            var cachedCount = subscriptions.length;
 
-            services.subscriptions.findOrCreate(subscription, function(err, subscription) {
-                assert.ifError(err);
+            models.Subscription.count({}, function(err, startingCount) {
+                assert(!err);
 
-                models.Subscription.count({}, function(err, endingCount) {
-                    assert.ifError(err);
+                var subscription = new models.Subscription({
+                    filter: {},
+                    name: 'named',
+                    principal: fixtures.models.principals.device.id,
+                    type: 'message',
+                    permanent: false,
+                    name: utils.uuid()
+                });
 
-                    assert.equal(startingCount + 1, endingCount);
-                    done();
+                services.subscriptions.findOrCreate(subscription, function(err, subscription) {
+                    assert(!err);
+
+                    models.Subscription.count({}, function(err, endingCount) {
+                        assert(!err);
+
+                        assert.equal(startingCount + 1, endingCount);
+
+                        services.subscriptions.findByPrincipalCached(fixtures.models.principals.device, fixtures.models.principals.device.id, {}, function(err, subscriptions) {
+                            assert(!err);
+
+                            assert.equal(cachedCount + 1, subscriptions.length);
+                            done();
+                        });
+                    });
                 });
             });
+
         });
     });
 

@@ -143,6 +143,7 @@ config.redis_server = {
     port: process.env.REDIS_PORT || 6379
 };
 
+console.log('cache_provider: Using Redis cache provider.');
 config.cache_provider = new providers.redis.RedisCacheProvider(config);
 
 if (process.env.REDIS_SERVERS) {

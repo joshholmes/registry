@@ -108,7 +108,7 @@ var find = function(authPrincipal, filter, options, callback) {
     models.Subscription.find(filter, null, options, callback);
 };
 
-var findByPrincipal = function(authPrincipal, principalId, options, callback) {
+var findByPrincipalCached = function(authPrincipal, principalId, options, callback) {
     var cacheKey = cacheKeySubscriptionsForPrincipal(principalId);
 
     config.cache_provider.get('subscriptions', cacheKey, function(err, subscriptionObjs) {
@@ -126,12 +126,19 @@ var findByPrincipal = function(authPrincipal, principalId, options, callback) {
             return callback(null, subscriptions);
         }
 
-        models.Subscription.find({ principal: principalId }, null, options, function(err, subscriptions) {
-            if (err) return callback(err);
+        // find and cache result
+        return findByPrincipal(authPrincipal, principalId, options, callback);
+    });
+};
 
-            config.cache_provider.set('subscriptions', cacheKey, subscriptions, utils.dateDaysFromNow(1), function(err) {
-                return callback(err, subscriptions);
-            });
+var findByPrincipal = function(authPrincipal, principalId, options, callback) {
+    var cacheKey = cacheKeySubscriptionsForPrincipal(principalId);
+
+    models.Subscription.find({ principal: principalId }, null, options, function(err, subscriptions) {
+        if (err) return callback(err);
+
+        config.cache_provider.set('subscriptions', cacheKey, subscriptions, utils.dateDaysFromNow(1), function(err) {
+            return callback(err, subscriptions);
         });
     });
 };
@@ -313,6 +320,7 @@ module.exports = {
     create: create,
     find: find,
     findByPrincipal: findByPrincipal,
+    findByPrincipalCached: findByPrincipalCached,
     findOne: findOne,
     findOrCreate: findOrCreate,
     initialize: initialize,
