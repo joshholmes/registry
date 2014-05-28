@@ -346,7 +346,6 @@ var buildReactorCommands = function(reactor) {
             from: services.principals.servicePrincipal.id,
             to: reactor.id,
             type: 'reactorCommand',
-            index_until: models.Message.INDEX_FOREVER,
             tags: [ nitrogen.CommandManager.commandTag(reactor.id) ],
             body: {
                 command: 'install',
@@ -360,7 +359,6 @@ var buildReactorCommands = function(reactor) {
             from: services.principals.servicePrincipal.id,
             to: reactor.id,
             type: 'reactorCommand',
-            index_until: models.Message.INDEX_FOREVER,
             tags: [ nitrogen.CommandManager.commandTag(reactor.id) ],
             body: {
                 command: 'start',
