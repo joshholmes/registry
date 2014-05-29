@@ -161,9 +161,11 @@ describe('messages service', function() {
             services.blobs.create(fixtures.models.principals.device, blob, stream, function(err, blob) {
                 assert.ifError(err);
 
+                var oneMinuteFromNow = utils.dateMinutesFromNow(1);
+
                 var message = new models.Message({
                     from: fixtures.models.principals.device.id,
-                    index_until: new Date(2013,1,1),
+                    index_until: oneMinuteFromNow,
                     type: 'image',
                     link: blob.link,
                     body: {
@@ -176,7 +178,7 @@ describe('messages service', function() {
                     assert.equal(messages.length, 1);
 
                     // We now have a message with a linked blob.  Running remove with the current time should remove them both.
-                    services.messages.remove(services.principals.servicePrincipal, { index_until: { $lt: new Date() } }, function(err, removed) {
+                    services.messages.remove(services.principals.servicePrincipal, { index_until: oneMinuteFromNow }, function(err, removed) {
                         assert.ifError(err);
                         assert.notEqual(removed, 0);
 
