@@ -36,7 +36,7 @@ RabbitMQPubSubProvider.buildQueueName = function(type, id) {
 
 RabbitMQPubSubProvider.prototype.createSubscription = function(subscription, callback) {
     var self = this;
-    log.debug('RabbitMQPubSubProvider:creating subscription for type: ' + subscription.type + ' with id: ' + subscription.id + ' with filter: ' + JSON.stringify(subscription.filter));
+    log.info('RabbitMQPubSubProvider: creating subscription for type: ' + subscription.type + ' with id: ' + subscription.id + ' with filter: ' + JSON.stringify(subscription.filter));
 
     var queueName = RabbitMQPubSubProvider.buildQueueName(subscription.type, subscription.id);
 
@@ -51,7 +51,7 @@ RabbitMQPubSubProvider.prototype.createSubscription = function(subscription, cal
 
 RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
     var self = this;
-    log.debug("RabbitMQPubSubProvider: publishing " + type + ": " + item.id + ": " + JSON.stringify(item));
+    log.info("RabbitMQPubSubProvider: message " + item.id.toString() + ": starting publish of " + type + ": " + item.type + ": " + JSON.stringify(item));
 
     // for each principal this message is visible_to
     async.each(item.visible_to, function(visibleToId, visibleToCallback) {
@@ -60,10 +60,10 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
         self.services.subscriptions.findByPrincipal(self.services.principals.servicePrincipal, visibleToId, {}, function(err, subscriptions) {
             if (err) return visibleToCallback(err);
 
-            log.debug('publish subscriptions: ' + JSON.stringify(subscriptions));
+            log.info("RabbitMQPubSubProvider: message " + item.id + ": relevant subscriptions: " + JSON.stringify(subscriptions));
 
             async.each(subscriptions, function(subscription, subscriptionCallback) {
-                log.debug("RabbitMQPubSubProvider: CHECKING subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.info("RabbitMQPubSubProvider: message " + item.id + ": checking subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 if (subscription.type !== type) return subscriptionCallback();
 
@@ -71,11 +71,11 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
 
                 if (unfilteredItems.length === 0) return subscriptionCallback();
 
-                log.debug("RabbitMQPubSubProvider: MATCHED subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
-                log.debug("RabbitMQPubSubProvider: MATCHED message: " + JSON.stringify(item));
+                log.info("RabbitMQPubSubProvider: message " + item.id + ": matched subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 var queueName = RabbitMQPubSubProvider.buildQueueName(subscription.type, subscription.id);
-                log.debug("RabbitMQPubSubProvider: publishing to queuename: " + queueName);
+                log.info("RabbitMQPubSubProvider: message " + item.id + ": publishing to queuename: " + queueName);
+
                 self.exchange.publish(queueName, JSON.stringify(item), { deliveryMode: 2 });
 
                 return subscriptionCallback();
@@ -98,8 +98,8 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
         queue.subscribe({ ack: true, prefetchCount: 1 }, function (message) {
             var itemJson = unescape(message.data);
 
-            log.info("RabbitMQPubSubProvider: RECEIVED ON subscription: id: " + subscription.id + " :" + itemJson);
             var item = JSON.parse(itemJson);
+            log.info("RabbitMQPubSubProvider: message " + item.id + " received on subscription id: " + subscription.id + " :" + itemJson);
 
             queue.unsubscribe(ctag);
 
@@ -112,10 +112,10 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
 
 RabbitMQPubSubProvider.prototype.ackReceive = function(queue, sent) {
     if (sent) {
-        log.debug("RabbitMQPubSubProvider: ACKING message.");
+        log.debug("RabbitMQPubSubProvider: acking message.");
         queue.shift();
     } else {
-        log.debug("RabbitMQPubSubProvider: REJECTING AND REQUEUING message.");
+        log.info("RabbitMQPubSubProvider: rejecting and requeuing message.");
         queue.shift(true, true);
     }
 };
