@@ -146,9 +146,9 @@ config.redis_server = {
 console.log('cache_provider: Using Redis cache provider.');
 config.cache_provider = new providers.redis.RedisCacheProvider(config);
 
-if (process.env.REDIS_SERVERS) {
+if (process.env.SUBSCRIPTION_REDIS_SERVERS) {
 
-    // To use Redis as a realtime backend, the env variable REDIS_SERVERS
+    // To use Redis as a realtime backend, the env variable SUBSCRIPTION_REDIS_SERVERS
     // should be set to a JSON specification like this with the set of
     // redis servers used for pubsub:
     //
@@ -156,7 +156,7 @@ if (process.env.REDIS_SERVERS) {
 
     console.log('pubsub_provider: using Redis pubsub.');
 
-    config.redis_servers = JSON.parse(process.env.REDIS_SERVERS);
+    config.redis_servers = JSON.parse(process.env.SUBSCRIPTION_REDIS_SERVERS);
     config.pubsub_provider = new providers.redis.RedisPubSubProvider(config);
 } else if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
     console.log('pubsub_provider: using Service Bus pubsub.');
