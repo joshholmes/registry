@@ -51,7 +51,7 @@ RabbitMQPubSubProvider.prototype.createSubscription = function(subscription, cal
 
 RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
     var self = this;
-    log.info("RabbitMQPubSubProvider: message " + item.id.toString() + ": starting publish of " + type + ": " + item.type + ": " + JSON.stringify(item));
+    log.debug("RabbitMQPubSubProvider: message " + item.id.toString() + ": starting publish of " + type + ": " + item.type + ": " + JSON.stringify(item));
 
     // for each principal this message is visible_to
     async.each(item.visible_to, function(visibleToId, visibleToCallback) {
@@ -60,10 +60,10 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
         self.services.subscriptions.findByPrincipal(self.services.principals.servicePrincipal, visibleToId, {}, function(err, subscriptions) {
             if (err) return visibleToCallback(err);
 
-            log.info("RabbitMQPubSubProvider: message " + item.id + ": relevant subscriptions: " + JSON.stringify(subscriptions));
+            log.debug("RabbitMQPubSubProvider: message " + item.id + ": relevant subscriptions: " + JSON.stringify(subscriptions));
 
             async.each(subscriptions, function(subscription, subscriptionCallback) {
-                log.info("RabbitMQPubSubProvider: message " + item.id + ": checking subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("RabbitMQPubSubProvider: message " + item.id + ": checking subscription: name: " + subscription.name + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 if (subscription.type !== type) return subscriptionCallback();
 
@@ -71,10 +71,10 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
 
                 if (unfilteredItems.length === 0) return subscriptionCallback();
 
-                log.info("RabbitMQPubSubProvider: message " + item.id + ": matched subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
+                log.debug("RabbitMQPubSubProvider: message " + item.id + ": matched subscription: id: " + subscription.id + " type: " + subscription.type + " filter: " + JSON.stringify(subscription.filter));
 
                 var queueName = RabbitMQPubSubProvider.buildQueueName(subscription.type, subscription.id);
-                log.info("RabbitMQPubSubProvider: message " + item.id + ": publishing to queuename: " + queueName);
+                log.debug("RabbitMQPubSubProvider: message " + item.id + ": publishing to queuename: " + queueName);
 
                 self.exchange.publish(queueName, JSON.stringify(item), { deliveryMode: 2 });
 
@@ -99,7 +99,7 @@ RabbitMQPubSubProvider.prototype.receive = function(subscription, callback) {
             var itemJson = unescape(message.data);
 
             var item = JSON.parse(itemJson);
-            log.info("RabbitMQPubSubProvider: message " + item.id + " received on subscription id: " + subscription.id + " :" + itemJson);
+            log.debug("RabbitMQPubSubProvider: message " + item.id + " received on subscription id: " + subscription.id + " :" + itemJson);
 
             queue.unsubscribe(ctag);
 
