@@ -200,7 +200,8 @@ var createUserCredentials = function(principal, callback) {
 
         // every user gets an API key that they should use for their devices.
         var apiKey = new models.ApiKey({
-            owner: principal
+            owner: principal,
+            name: 'User'
         });
 
         services.apiKeys.create(apiKey, function(err, apiKey) {
