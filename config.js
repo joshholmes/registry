@@ -98,6 +98,7 @@ config.reset_password_length = 10;
 
 config.auth_code_bytes = 16;
 config.api_key_bytes = 16;
+config.unassigned_apikey_pool_size = 10;
 
 config.nonce_bytes = 32;
 config.nonce_lifetime_seconds = 5 * 60;

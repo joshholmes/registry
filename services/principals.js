@@ -2,13 +2,6 @@ var async = require('async')
   , config = require('../config')
   , crypto = require('crypto')
   , log = require('../log')
-  , kue = require('kue')
-  , jobs = kue.createQueue({
-        redis: {
-            host: config.redis_server.host,
-            port: config.redis_server.port
-        }
-  })
   , models = require('../models')
   , mongoose = require('mongoose')
   , nitrogen = require('nitrogen')
@@ -137,7 +130,13 @@ var checkForExistingPrincipal = function(principal, callback) {
 var createCredentials = function(principal, callback) {
     // only user credentials need to be hashed. non-users have public key.
     if (principal.is('user')) {
-        createUserCredentials(principal, callback);
+        services.apiKeys.assign(principal, function(err, apiKey) {
+            if (err) return callback(err);
+
+            principal.api_key = apiKey;
+
+            createUserCredentials(principal, callback);
+        });
     } else {
         issueClaimCode(principal, function(err, code) {
             if (err) return callback(err);
@@ -198,28 +197,13 @@ var createUserCredentials = function(principal, callback) {
     crypto.randomBytes(config.salt_length_bytes, function(err, saltBuf) {
         if (err) return callback(err);
 
-        // every user gets an API key that they should use for their devices.
-        var apiKey = new models.ApiKey({
-            owner: principal,
-            name: 'User'
-        });
-
-        services.apiKeys.create(apiKey, function(err, apiKey) {
+        hashPassword(principal.password, saltBuf, function(err, hashedPasswordBuf) {
             if (err) return callback(err);
 
-            principal.api_key = apiKey;
+            principal.salt = saltBuf.toString('base64');
+            principal.password_hash = hashedPasswordBuf.toString('base64');
 
-            // kick off creating a personalized image for this key.
-            jobs.create('build_image', { key: apiKey.key }).attempts(10).save();
-
-            hashPassword(principal.password, saltBuf, function(err, hashedPasswordBuf) {
-                if (err) return callback(err);
-
-                principal.salt = saltBuf.toString('base64');
-                principal.password_hash = hashedPasswordBuf.toString('base64');
-
-                callback(null, principal);
-            });
+            callback(null, principal);
         });
     });
 };

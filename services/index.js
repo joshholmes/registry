@@ -22,6 +22,7 @@ exports.initialize = function(callback) {
         exports.blobs.initialize,
         exports.permissions.initialize,
         exports.subscriptions.initialize,
+        exports.apiKeys.initialize,
 
         exports.global.startJanitor
     ], callback);

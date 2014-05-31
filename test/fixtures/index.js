@@ -1,4 +1,5 @@
 var async = require('async')
+  , assert = require('assert')
   , config = require('../../config')
   , fs = require('fs')
   , log = require('../../log')
@@ -153,6 +154,8 @@ var createUserFixtures = function(callback) {
 
         services.apiKeys.find({ owner: user.id }, {}, function(err, apiKeys) {
             if (err) throw err;
+            assert(apiKeys.length > 0);
+
             fixtures.apiKeys.user = apiKeys[0];
         });
 

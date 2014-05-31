@@ -11,6 +11,7 @@ apiKeySchema.add({
     enabled:            { type: Boolean, default: true },
     key:                { type: String },
     name:               { type: String },
+    type:               { type: String },
     owner:              { type: Schema.Types.ObjectId, ref: 'Principal' },
 
     capabilities:       [{ type: String }],

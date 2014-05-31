@@ -1,9 +1,29 @@
-var config = require('../config')
+var async = require('async')
+  , config = require('../config')
   , crypto = require('crypto')
+  , kue = require('kue')
+  , jobs = kue.createQueue({
+        redis: {
+            host: config.redis_server.host,
+            port: config.redis_server.port
+        }
+    })
   , log = require('../log')
   , models = require('../models')
   , services = require('../services')
   , utils = require('../utils');
+
+var assign = function(principal, callback) {
+    models.ApiKey.findOneAndUpdate({ owner: { $exists: false }, type: 'user' }, { $set: { owner: principal.id } }, function(err, apiKey) {
+        if (err || apiKey) return callback(err, apiKey);
+
+        // no unassigned keys available, so create an assigned one directly.
+        create(new models.ApiKey({ 
+            type: 'user', 
+            owner: principal 
+        }), callback);
+    });
+};
 
 var check = function(key, redirectUri, callback) {
     if (!redirectUri) return callback(utils.badRequestError("redirect_uri " + key + " not provided."));
@@ -23,8 +43,6 @@ var check = function(key, redirectUri, callback) {
 };
 
 var create = function(apiKey, callback) {
-    if (!apiKey.owner) return callback('owner required to create api_key');
-
     crypto.randomBytes(config.api_key_bytes, function(err, apiKeyBuf) {
         if (err) return callback(err);
 
@@ -32,9 +50,17 @@ var create = function(apiKey, callback) {
             apiKey.key = apiKeyBuf.toString('base64');
 
         apiKey.save(function(err) {
-            return callback(err, apiKey);
+            // kick off creating a personalized image for this key.
+            jobs.create('build_image', { key: apiKey.key }).attempts(10).save();
+
+            if (callback) return callback(err, apiKey);
         });
     });
+};
+
+var createUnassigned = function(callback) {
+    log.info('apikeys service: creating unassigned key.');
+    services.apiKeys.create(new models.ApiKey({ type: 'user' }), callback);
 };
 
 var find = function(query, options, callback) {
@@ -53,15 +79,33 @@ var findByKey = function(key, callback) {
     return models.ApiKey.findOne({ key: key }, callback);
 };
 
+var initialize = function(callback) {
+    models.ApiKey.find({ owner: { $exists: false }, type: 'user' }, {}, function(err, apiKeys) {
+        if (err) return callback(err);
+
+        var required = config.unassigned_apikey_pool_size - apiKeys.length;
+
+        if (required > 0) {
+            async.times(required, function(n, next) {
+                createUnassigned(next);
+            }, callback);
+        } else {
+            return callback();
+        }
+    });
+};
+
 var remove = function(query, callback) {
     models.ApiKey.remove(query, callback);
 };
 
 module.exports = {
+    assign:          assign,
     check:           check,
     create:          create,
     find:            find,
     findById:        findById,
     findByKey:       findByKey,
-    remove:          remove
+    initialize:      initialize,
+    remove:          remove,
 };
