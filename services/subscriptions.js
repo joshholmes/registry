@@ -327,6 +327,7 @@ module.exports = {
     janitor: janitor,
     publish: publish,
     receive: receive,
+    remove: remove,
     start: start,
     stop: stop
 };

@@ -133,7 +133,7 @@ RabbitMQPubSubProvider.prototype.removeSubscription = function(subscription, cal
 };
 
 RabbitMQPubSubProvider.prototype.staleSubscriptionCutoff = function() {
-    return new Date(new Date().getTime() + -4 * 1000 * RabbitMQPubSubProvider.RECEIVE_TIMEOUT_SECONDS);
+    return new Date(new Date().getTime() + -1.25 * 1000 * RabbitMQPubSubProvider.RECEIVE_TIMEOUT_SECONDS);
 };
 
 // TEST ONLY METHODS BELOW

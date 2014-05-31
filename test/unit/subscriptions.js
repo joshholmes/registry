@@ -37,7 +37,13 @@ describe('subscriptions service', function() {
                             assert(!err);
 
                             assert.equal(cachedCount + 1, subscriptions.length);
-                            done();
+
+                            log.info('removing subscription: ' + subscription.id);
+                            services.subscriptions.remove(subscription, function(err) {
+                                assert(!err);
+
+                                done();
+                            })
                         });
                     });
                 });
