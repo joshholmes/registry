@@ -6,16 +6,16 @@ var config = require('../config')
 var apiKeySchema = new BaseSchema();
 apiKeySchema.add({
 //  From BaseSchema:
-//  created_at:     { type: Date, default: Date.now },
+//  created_at:         { type: Date, default: Date.now },
 
-    enabled:         { type: Boolean, default: true },
-    key:             { type: String },
-    name:            { type: String },
-    owner:           { type: Schema.Types.ObjectId, ref: 'Principal' },
+    enabled:            { type: Boolean, default: true },
+    key:                { type: String },
+    name:               { type: String },
+    owner:              { type: Schema.Types.ObjectId, ref: 'Principal' },
 
-    capabilities:    [{ type: String }],
+    capabilities:       [{ type: String }],
 
-    redirect_uri:    { type: String }
+    redirect_uri:       { type: String }
 });
 
 apiKeySchema.index({ key: 1 });

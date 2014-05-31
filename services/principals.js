@@ -2,6 +2,13 @@ var async = require('async')
   , config = require('../config')
   , crypto = require('crypto')
   , log = require('../log')
+  , kue = require('kue')
+  , jobs = kue.createQueue({
+        redis: {
+            host: config.redis_server.host,
+            port: config.redis_server.port
+        }
+  })
   , models = require('../models')
   , mongoose = require('mongoose')
   , nitrogen = require('nitrogen')
@@ -200,6 +207,9 @@ var createUserCredentials = function(principal, callback) {
             if (err) return callback(err);
 
             principal.api_key = apiKey;
+
+            // kick off creating a personalized image for this key.
+            jobs.create('build_image', { key: apiKey.key }).attempts(10).save();
 
             hashPassword(principal.password, saltBuf, function(err, hashedPasswordBuf) {
                 if (err) return callback(err);
