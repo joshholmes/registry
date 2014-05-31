@@ -114,7 +114,7 @@ var initialize = function(callback) {
     return callback();
 };
 
-var permissionsFor = function(principalId, callback) {
+var permissionsForCached = function(principalId, callback) {
     config.cache_provider.get('permissions', principalId, function(err, permissionObjs) {
         if (err) return callback(err);
 
@@ -129,25 +129,31 @@ var permissionsFor = function(principalId, callback) {
                 return permission; 
             });
             return callback(null, permissions);
+        } else {
+            // cache miss
+
+            return permissionsFor(principalId, callback);
         }
+    });
+};
 
-        // TODO: this is a super broad query so we'll have to evaluate many many permissions.  
-        // need to think about how to pull a more tightly bounded set of possible permissions for evaluation.
-        var query = { 
-            $or : [
-                { issued_to: principalId }, 
-                { principal_for: principalId },
-                { issued_to: { $exists: false } },
-                { principal_for: { $exists: false } } 
-            ] 
-        };
+var permissionsFor = function(principalId, callback) {
+    // TODO: this is a super broad query so we'll have to evaluate many many permissions.  
+    // need to think about how to pull a more tightly bounded set of possible permissions for evaluation.
+    var query = { 
+        $or : [
+            { issued_to: principalId }, 
+            { principal_for: principalId },
+            { issued_to: { $exists: false } },
+            { principal_for: { $exists: false } } 
+        ] 
+    };
 
-        find(services.principals.servicePrincipal, query, { sort: { priority: 1 } }, function(err, permissions) {
-            if (err) return callback(err);
+    find(services.principals.servicePrincipal, query, { sort: { priority: 1 } }, function(err, permissions) {
+        if (err) return callback(err);
 
-            config.cache_provider.set('permissions', principalId, permissions, utils.dateDaysFromNow(1), function(err) {
-                return callback(err, permissions);
-            });
+        config.cache_provider.set('permissions', principalId, permissions, utils.dateDaysFromNow(1), function(err) {
+            return callback(err, permissions);
         });
     });
 };
