@@ -47,7 +47,7 @@ var create = function(apiKey, callback) {
         if (err) return callback(err);
 
         if (!apiKey.key)
-            apiKey.key = apiKeyBuf.toString('base64');
+            apiKey.key = apiKeyBuf.toString('hex');
 
         apiKey.save(function(err) {
             // kick off creating a personalized image for this key.
