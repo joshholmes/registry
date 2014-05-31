@@ -129,6 +129,8 @@ if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
 
     console.log('blob_provider: using Azure Blob storage.');
     config.blob_provider = new providers.azure.AzureBlobProvider(config);
+
+    config.images_endpoint = config.blob_provider.base_endpoint + "/images";
 } else {
     console.log('archive_provider: using local storage.');
     config.archive_provider = new providers.local.NullArchiveProvider(config);

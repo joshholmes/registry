@@ -18,6 +18,10 @@ exports.index = function(req, res) {
         response.endpoints.blobs = config.blobs_endpoint;
     }
 
+    if (config.images_endpoint) {
+        response.endpoints.images = config.images_endpoint;
+    }
+
     var nonceFunc = req.query.principal_id ? services.nonce.create : utils.nop;
 
     nonceFunc(req.query.principal_id, function(err, nonce) {
