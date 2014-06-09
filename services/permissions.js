@@ -173,7 +173,7 @@ var removeById = function(authzPrincipal, permissionId, callback) {
                 return callback(utils.authorizationError('You are not authorized to remove this permission.'));
             }
 
-            permission.remove(callback);
+            removePermission(permission, callback);
         });
     });
 };
@@ -186,11 +186,19 @@ var remove = function(authPrincipal, filter, callback) {
         if (err) return callback(err);
 
         // invalidate cache entries
-        async.eachLimit(permissions, 50, function(permission, cb) {
-            permission.remove(function(err) {
-                config.cache_provider.del('permissions', permission.issued_to, cb);
-            });
-        }, callback);
+        async.eachLimit(permissions, 50, removePermission, callback);
+    });
+};
+
+var removePermission = function(permission, callback) {
+    permission.remove(function(err) {
+        if (err) return callback(err);
+
+        services.principals.updateVisibleTo(permission.principal_for, function(err) {
+            if (err) return callback(err);
+
+            config.cache_provider.del('permissions', permission.issued_to, callback);
+        });
     });
 };
 
