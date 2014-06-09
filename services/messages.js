@@ -193,12 +193,16 @@ var loadSchemaAndClients = function(path) {
 var remove = function(principal, filter, callback) {
     if (!principal || !principal.is('service')) return callback(utils.authorizationError());
 
+    var totalRemoved = 0;
+
     // remove all of the messages without links first
     filter.link = { $exists: false };
-    models.Message.remove(filter, function(err) {
+    models.Message.remove(filter, function(err, removed) {
         if (err) return callback(err);
 
         delete filter.link;
+
+        totalRemoved += removed;
 
         // now requery for the messages with links and do the slower cascading deletes for them.
         find(principal, filter, {}, function (err, messages) {
@@ -209,7 +213,8 @@ var remove = function(principal, filter, callback) {
             }, function(err) {
                 if (err) return callback(err);
 
-                return callback(null, messages.length);
+                totalRemoved += messages.length;
+                return callback(null, totalRemoved);
             });
         });
 
