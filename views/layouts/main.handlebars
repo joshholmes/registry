@@ -10,22 +10,56 @@
     </head>
     <body class="page-header-fixed page-full-width">
 
+        <!-- BEGIN NAVBAR -->
+        <div class="header navbar navbar-inverse navbar-fixed-top">
+
+          <!-- BEGIN TOP NAVIGATION BAR -->
+          <div class="header-inner">
+
+            <!-- BEGIN HORIZONTAL MENU -->
+            <div class="hor-menu">
+              <ul class="nav navbar-nav">
+                  <li id='logo'>
+                    <a href="#" style="font-size:140%; color:#236AB4">nitrogen</a>
+                  </li>
+                  <li><a href="/user/privacy">Privacy Policy</a></li>
+                  <li><a href="/user/terms">Terms of Service</a></li>
+              </ul>
+            </div>
+            <!-- END HORIZONTAL MENU -->
+
+            <!-- BEGIN TOP NAVIGATION MENU -->
+            <div class="hor-menu pull-right">
+              <ul class="nav navbar-nav pull-right">
+             </ul>
+            </div>
+            <!-- END TOP NAVIGATION MENU -->
+
+          </div>
+          <!-- END TOP NAVIGATION BAR -->
+
+        </div>
+        <!-- END HEADER -->
+
+        <div class="clearfix">
+        </div>
+
         <div class="page-container">
           <div class="page-content-wrapper">
             <div class="page-content">
 
 {{#if error}}
-    <div class='container'>
-        <div class='row'>
-            <div class='col-md-2'></div>
-            <div class='col-md-8'>
-                <div class="alert alert-danger">
-                    <center>{{error}}</center>
+                <div class='container'>
+                    <div class='row'>
+                        <div class='col-md-2'></div>
+                        <div class='col-md-8'>
+                            <div class="alert alert-danger">
+                                <center>{{error}}</center>
+                            </div>
+                        </div>
+                        <div class='col-md-2'></div>
+                    </div>
                 </div>
-            </div>
-            <div class='col-md-2'></div>
-        </div>
-    </div>
 {{/if}}
                 {{{body}}}
             </div>

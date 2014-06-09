@@ -134,6 +134,10 @@ mongoose.connection.once('open', function () {
         // logout
         app.get(config.user_logout_path,           ensureLoggedIn,                    controllers.users.logout);
 
+        // privacy policy and terms of service
+        app.get(config.users_path + "/privacy",                                        controllers.users.privacy);
+        app.get(config.users_path + "/terms",                                         controllers.users.terms);
+
         // user serialization and deserialization
         passport.serializeUser(function(user, done) {
             done(null, user.id);

@@ -248,6 +248,10 @@ var logout = function(req, res) {
     return renderLoginForm(res, 'You have been signed out. Please login with your email and password.');
 };
 
+var privacy = function(req, res) {
+    return res.render('user/privacy');
+}
+
 var redirectWithError = function(res, redirectUri, error) {
     var finalRedirectUri = redirectUri;
     if (error)
@@ -295,6 +299,10 @@ var resetPasswordForm = function(req, res) {
     renderResetPasswordForm(res);
 };
 
+var terms = function(req, res) {
+    return res.render('user/terms');
+}
+
 module.exports = {
     authorize:              authorize,
     changePassword:         changePassword,
@@ -308,6 +316,8 @@ module.exports = {
     login:                  login,
     loginForm:              loginForm,
     logout:                 logout,
+    privacy:                privacy,
     resetPassword:          resetPassword,
-    resetPasswordForm:      resetPasswordForm
+    resetPasswordForm:      resetPasswordForm,
+    terms:                  terms
 };
