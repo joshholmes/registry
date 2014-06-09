@@ -14,13 +14,14 @@ var async = require('async')
   , utils = require('../utils');
 
 var assign = function(principal, callback) {
-    models.ApiKey.findOneAndUpdate({ owner: { $exists: false }, type: 'user' }, { $set: { owner: principal.id } }, function(err, apiKey) {
+    models.ApiKey.findOneAndUpdate({ owner: { $exists: false }, type: 'user' }, { $set: { owner: principal.id, name: 'User' } }, function(err, apiKey) {
         if (err || apiKey) return callback(err, apiKey);
 
         // no unassigned keys available, so create an assigned one directly.
         create(new models.ApiKey({ 
+            name: 'User',
             type: 'user', 
-            owner: principal 
+            owner: principal.id 
         }), callback);
     });
 };
@@ -60,7 +61,7 @@ var create = function(apiKey, callback) {
 
 var createUnassigned = function(callback) {
     log.info('apikeys service: creating unassigned key.');
-    services.apiKeys.create(new models.ApiKey({ type: 'user' }), callback);
+    services.apiKeys.create(new models.ApiKey({ type: 'user', name: 'User' }), callback);
 };
 
 var find = function(query, options, callback) {
