@@ -123,6 +123,10 @@ mongoose.connection.once('open', function () {
         app.get(config.user_change_password_path,  ensureLoggedIn,                    controllers.users.changePasswordForm);
         app.post(config.user_change_password_path, ensureLoggedIn,                    controllers.users.changePassword);
 
+        // delete account
+        app.get(config.user_delete_account_path,  ensureLoggedIn,                     controllers.users.deleteAccountForm);
+        app.post(config.user_delete_account_path, ensureLoggedIn,                     controllers.users.deleteAccount);
+
         // reset password
         app.get(config.user_reset_password_path,                                      controllers.users.resetPasswordForm);
         app.post(config.user_reset_password_path,                                     controllers.users.resetPassword);

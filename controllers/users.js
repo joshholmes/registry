@@ -138,6 +138,21 @@ var createForm = function(req, res) {
     return renderCreateForm(res);
 };
 
+var deleteAccount = function(req, res) {
+    services.principals.removeById(req.user, req.user.id, function(err) {
+        if (err) return utils.handleError(res, err);
+
+        return renderLoginForm(res, "Your account has been deleted. We'd love to hear your feedback about the service: please email us at feedback@nitrogen.io");
+    });
+};
+
+var deleteAccountForm = function(req, res) {
+    res.render('user/delete', {
+        user_delete_account_path: config.user_delete_account_path,
+        default_user_redirect: config.default_user_redirect 
+    });
+};
+
 var decision = function(req, res) {
     var code = req.param('code');
     var authorized = req.param('authorize') !== undefined;
@@ -286,6 +301,8 @@ module.exports = {
     changePasswordForm:     changePasswordForm,
     create:                 create,
     createForm:             createForm,
+    deleteAccount:          deleteAccount,
+    deleteAccountForm:      deleteAccountForm, 
     decision:               decision,
     impersonate:            impersonate,
     login:                  login,

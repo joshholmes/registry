@@ -79,6 +79,7 @@ config.user_authorize_path = config.users_path + "/authorize";
 config.user_change_password_path = config.users_path + "/changepassword";
 config.user_create_path = config.users_path + "/create";
 config.user_decision_path = config.users_path + "/decision";
+config.user_delete_account_path = config.users_path + "/delete";
 config.user_login_path = config.users_path + "/login";
 config.user_logout_path = config.users_path + "/logout";
 config.user_reset_password_path = config.users_path + "/resetpassword";

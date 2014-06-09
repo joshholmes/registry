@@ -444,11 +444,26 @@ var removeById = function(authzPrincipal, principalId, callback) {
                 return callback(authError);
             }
 
-            services.messages.remove(services.principals.servicePrincipal, { from: principalId }, function(err, removed) {
-                if (err) return callback(err);
+            if (principal.is('user')) {
+                // for user del  for other principals, we just delete the permissions.
+                services.permissions.remove(services.principals.servicePrincipal, { 
+                    $or: [
+                        { issued_to: principalId },
+                        { principal_for: principalId }
+                    ]
+                }, function(err) {
+                    if (err) return callback(err);
 
-                models.Principal.remove({ _id: principalId }, callback);
-            });
+                    models.Principal.remove({ _id: principalId }, callback);
+                });
+
+            } else {
+                // only delete the permissions the authorizing principal has for non-user principals.
+                services.permissions.remove(services.principals.servicePrincipal, { 
+                    issued_to: authzPrincipal.id,
+                    principal_for: principalId
+                }, callback);
+            }
         });
     });
 };

@@ -8,7 +8,7 @@ var app = require('../../server')
 
 describe('users endpoint', function() {
 
-    it('should create user', function(done) {
+    it('should be able to create user', function(done) {
         request.post(config.users_endpoint + '/create', {
             form: {
                 email: 'newuser@server.org',
@@ -252,6 +252,27 @@ describe('users endpoint', function() {
             assert.equal(resp.statusCode, 200);
 
             assert(body.indexOf(fixtures.models.apiKeys.regularApp.name) !== -1);
+
+            done();
+        });
+    });
+
+    it('can render delete account form', function(done) {
+        var url = config.users_endpoint + '/delete';
+        console.log(url);
+
+        request.get(config.users_endpoint + '/delete', function(err, resp, body) {
+            assert(!err);
+            assert.equal(resp.statusCode, 200);
+
+            done();
+        });
+    });
+
+    it('can delete account', function(done) {
+        request.post(config.users_endpoint + '/delete', function(err, resp, body) {
+            assert(!err);
+            assert.equal(resp.statusCode, 200);
 
             done();
         });
