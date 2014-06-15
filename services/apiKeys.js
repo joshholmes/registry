@@ -15,9 +15,15 @@ var async = require('async')
 
 var assign = function(principal, callback) {
     models.ApiKey.findOneAndUpdate({ owner: { $exists: false }, type: 'user' }, { $set: { owner: principal.id, name: 'User' } }, function(err, apiKey) {
-        if (err || apiKey) return callback(err, apiKey);
+        if (err) return callback(err);
 
-        // no unassigned keys available, so create an assigned one directly.
+        // regardless, create a new unassigned key.
+        createUnassigned();
+
+        // if we assigned a key, return that.
+        if (apiKey) return callback(null, apiKey);
+
+        // otherwise, no unassigned keys available, so create an assigned one directly.
         create(new models.ApiKey({ 
             name: 'User',
             type: 'user', 
