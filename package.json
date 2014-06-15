@@ -23,10 +23,9 @@
     "express": "~3.5.3",
     "express3-handlebars": "~0.5.0",
     "hiredis": "~0.1.16",
-    "kue": "~0.7.8",
     "mongodb": "~1.4.3",
     "mongoose": "~3.8.11",
-    "newrelic": "~1.5.5",
+    "newrelic": "~1.7.4",
     "nitrogen": "~0.1.317",
     "nitrogen-camera": "~0.1.18",
     "nitrogen-light": "~0.1.13",
@@ -37,7 +36,7 @@
     "passport-http-bearer": "~1.0",
     "passport-local": "~1.0",
     "passport-publickey": "*",
-    "request": "~2.34.0",
+    "request": "~2.36.0",
     "revalidator": "~0.1.6",
     "sift": "~0.0.16",
     "streamifier": "~0.1.0",
@@ -45,13 +44,11 @@
     "winston": "~0.7.3",
     "azure": "~0.9.7",
     "redis": "~0.10.3",
-    "sendgrid": "~1.0",
-    "winston-loggly": "~1.0",
-    "mocha": "~1.17.1",
-    "socket.io-client": "~0.9.17"
+    "sendgrid": "~1.1.0",
+    "winston-loggly": "~1.0"
   },
   "devDependencies": {
-    "mocha": "~1.17.0",
+    "mocha": "~1.20.1",
     "socket.io-client": "~0.9.16",
     "ursa": "*"
   },
