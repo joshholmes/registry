@@ -103,6 +103,7 @@ On Windows, you'll need to install some dependencies first:
    - Visual Studio 2010 or higher (including Express editions)
      - Windows XP/Vista/7:
        - Microsoft Visual Studio C++ 2010 ([Express](http://go.microsoft.com/?linkid=9709949) version works well)
+       - Also install [Microsoft Visual Studio 2010 Service Pack 1](http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=23691)
        - For 64-bit builds of node and native modules you will _**also**_ need the [Windows 7 64-bit SDK](http://www.microsoft.com/en-us/download/details.aspx?id=8279)
        - If you get errors that the 64-bit compilers are not installed you may also need the [compiler update for the Windows SDK 7.1](http://www.microsoft.com/en-us/download/details.aspx?id=4422)
      - Windows 8:
