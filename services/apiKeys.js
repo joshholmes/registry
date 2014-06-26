@@ -1,13 +1,8 @@
 var async = require('async')
   , config = require('../config')
   , crypto = require('crypto')
-  , kue = require('kue')
-  , jobs = kue.createQueue({
-        redis: {
-            host: config.redis_server.host,
-            port: config.redis_server.port
-        }
-    })
+  , redis = require('redis')
+  , redisClient = redis.createClient(config.redis_server.port, config.redis_server.host)
   , log = require('../log')
   , models = require('../models')
   , services = require('../services')
@@ -74,9 +69,9 @@ var create = function(authzPrincipal, apiKey, callback) {
 
         apiKey.save(function(err) {
             // kick off creating a personalized image for this key.
-            jobs.create('build_image', { key: apiKey.key }).attempts(10).save();
-
-            if (callback) return callback(err, apiKey);
+            redisClient.rpush('images.build', JSON.stringify({ key: apiKey.key }), function(err) {
+                if (callback) return callback(err, apiKey);
+            });
         });
     });
 };
