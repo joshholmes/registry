@@ -45,7 +45,6 @@ var check = function(key, redirectUri, callback) {
 };
 
 var create = function(authzPrincipal, apiKey, callback) {
-
     var validType = false;
 
     models.ApiKey.APIKEY_TYPES.forEach(function(type) {
@@ -57,7 +56,13 @@ var create = function(authzPrincipal, apiKey, callback) {
         log.error(err);
         return callback(utils.badRequestError(err));
     }
-    
+
+    if (!apiKey.redirect_uri && apiKey.type === 'app') {
+        var err = 'Redirect URI not provided and is required.';
+        log.error(err);
+        return callback(utils.badRequestError(err));
+    }
+
     if (authzPrincipal !== services.principals.servicePrincipal)
         apiKey.owner = authzPrincipal;
 
