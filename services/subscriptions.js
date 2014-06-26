@@ -55,6 +55,7 @@ var attachSubscriptionsEndpoint = function() {
 
         socket.subscriptions = {};
         socket.on('start', function(spec) {
+            log.error('subscriptions: starting subscription with spec: ' + JSON.stringify(spec));
             start(socket, spec);
         });
 
@@ -72,6 +73,7 @@ var attachSubscriptionsEndpoint = function() {
         });
 
         socket.on('stop', function(spec) {
+            log.error('subscriptions: stopping subscription with spec: ' + JSON.stringify(spec));
             stop(socket.subscriptions[spec.id], function(err) {
                 if (err) log.error(err);
 

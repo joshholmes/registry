@@ -24,7 +24,7 @@ var assign = function(principal, callback) {
         if (apiKey) return callback(null, apiKey);
 
         // otherwise, no unassigned keys available, so create an assigned one directly.
-        create(new models.ApiKey({ 
+        create(services.principals.servicePrincipal, new models.ApiKey({ 
             name: 'User',
             type: 'user', 
             owner: principal.id 
@@ -49,7 +49,23 @@ var check = function(key, redirectUri, callback) {
     });
 };
 
-var create = function(apiKey, callback) {
+var create = function(authzPrincipal, apiKey, callback) {
+
+    var validType = false;
+
+    models.ApiKey.APIKEY_TYPES.forEach(function(type) {
+        validType = validType || apiKey.type === type;
+    });
+
+    if (!validType) {
+        var err = 'API key type invalid. found: ' + apiKey.type;
+        log.error(err);
+        return callback(utils.badRequestError(err));
+    }
+    
+    if (authzPrincipal !== services.principals.servicePrincipal)
+        apiKey.owner = authzPrincipal;
+
     crypto.randomBytes(config.api_key_bytes, function(err, apiKeyBuf) {
         if (err) return callback(err);
 
@@ -67,7 +83,7 @@ var create = function(apiKey, callback) {
 
 var createUnassigned = function(callback) {
     log.info('apikeys service: creating unassigned key.');
-    services.apiKeys.create(new models.ApiKey({ type: 'user', name: 'User' }), callback);
+    services.apiKeys.create(services.principals.servicePrincipal, new models.ApiKey({ type: 'user', name: 'User' }), callback);
 };
 
 var find = function(query, options, callback) {

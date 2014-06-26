@@ -16,24 +16,26 @@ var removeAll = function (modelType, callback) {
 var createApiKeyFixtures = function(callback) {
     var adminKey = new models.ApiKey({
         name: 'Admin',
+        type: 'app',
         capabilities: ['impersonate'],
         redirect_uri: 'http://localhost:9000/',
         owner: services.principals.servicePrincipal.id
     });
 
-    services.apiKeys.create(adminKey, function(err, adminKey) {
+    services.apiKeys.create(services.principals.servicePrincipal, adminKey, function(err, adminKey) {
         if (err) throw err;
 
         fixtures.apiKeys.admin = adminKey;
 
         var regularAppKey = new models.ApiKey({
             name: 'Regular App',
+            type: 'app',    
             capabilities: [],
             redirect_uri: 'http://localhost:9000/',
             owner: fixtures.principals.anotherUser.id
         });
 
-        services.apiKeys.create(regularAppKey, function(err, regularAppKey) {
+        services.apiKeys.create(services.principals.servicePrincipal, regularAppKey, function(err, regularAppKey) {
             if (err) throw err;
 
             fixtures.apiKeys.regularApp = regularAppKey;

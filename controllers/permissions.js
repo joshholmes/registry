@@ -21,7 +21,7 @@ exports.index = function(req, res) {
     services.permissions.find(req.user, query, options, function(err, permissions) {
         if (err) return utils.handleError(res, err);
 
-        res.send({"permissions": permissions});
+        res.send({ "permissions": permissions });
     });
 };
 

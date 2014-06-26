@@ -10,10 +10,11 @@ exports.up = function(callback) {
         key: "admin",
         name : "Web Admin",
         redirect_uri: config.web_admin_uri,
+        type: "app",
         owner : services.principals.servicePrincipal
     });
 
-    services.apiKeys.create(adminApiKey, callback);
+    services.apiKeys.create(services.principals.servicePrincipal, adminApiKey, callback);
 };
 
 // exports.down = function(callback) {

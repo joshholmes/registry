@@ -70,6 +70,7 @@ mongoose.connection.once('open', function () {
         app.get(config.headwaiter_path,                                               controllers.headwaiter.index);
 
         app.get(config.api_keys_path,              middleware.accessTokenAuth,        controllers.apiKeys.index);
+        app.post(config.api_keys_path,             middleware.accessTokenAuth,        controllers.apiKeys.create);
 
         // blob endpoints
         if (config.blob_provider) {

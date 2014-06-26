@@ -31,4 +31,6 @@ ApiKey.prototype.can = function(capability) {
     return this.capabilities && this.capabilities.indexOf(capability) !== -1;
 };
 
+ApiKey.APIKEY_TYPES = ['app', 'user'];
+
 module.exports = ApiKey;

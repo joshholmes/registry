@@ -9,10 +9,11 @@ describe('apiKeys service', function() {
         var apiKey = new models.ApiKey({
             owner: fixtures.models.principals.anotherUser,
             name: 'my app',
+            type: 'app',
             redirect_uri: "http://localhost:9000/"
         });
 
-        services.apiKeys.create(apiKey, function(err, apiKey) {
+        services.apiKeys.create(services.principals.servicePrincipal, apiKey, function(err, apiKey) {
             assert(!err);
 
             assert(apiKey.key);
