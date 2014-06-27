@@ -42,15 +42,17 @@ describe('permissions service', function() {
                         assert.ifError(err);
                         assert.equal(permission.authorized, false);
                         done();
-                    });                    
+                    });
                 });
             });
         });
     });
 
-    it('creating a permission updates visible_to', function(done) {
+    it('creating a permission updates visible_to and clears caches', function(done) {
         services.principals.findById(services.principals.servicePrincipal, fixtures.models.principals.anotherUser.id, function(err, anotherUser) {
-            services.permissions.create(services.principals.servicePrincipal,        
+            assert(!err);
+
+            services.permissions.create(services.principals.servicePrincipal,
                 new models.Permission({
                     authorized: true,
                     issued_to: fixtures.models.principals.user.id,
@@ -58,10 +60,20 @@ describe('permissions service', function() {
                     priority: 50000000
                 }),
                 function(err, permission) {
-                    assert.ifError(err);
+                    assert(!err);
+
+                    config.cache_provider.get('permissions', fixtures.models.principals.user.id, function(err, permissionObjs) {
+                        assert(!err);
+                        assert(!permissionObjs);
+                    });
+
+                    config.cache_provider.get('permissions', fixtures.models.principals.anotherUser.id, function(err, permissionObjs) {
+                        assert(!err);
+                        assert(!permissionObjs);
+                    });
 
                     services.principals.findById(services.principals.servicePrincipal, fixtures.models.principals.anotherUser.id, function(err, anotherUser) {
-                        assert.ifError(err);
+                        assert(!err);
 
                         var foundUser = false;
                         anotherUser.visible_to.forEach(function(visiblePrincipalId) {
@@ -71,10 +83,44 @@ describe('permissions service', function() {
 
                         assert(foundUser);
 
-                        services.permissions.removeById(services.principals.servicePrincipal, permission.id, function(err) {
-                            assert.ifError(err);
+                        services.permissions.permissionsForCached(fixtures.models.principals.user.id, function(err, permissions) {
+                            assert(!err);
+                            assert(permissions.length);
 
-                            done();
+                            config.cache_provider.get('permissions', fixtures.models.principals.user.id, function(err, permissionObjs) {
+                                assert(!err);
+                                assert(permissionObjs.length);
+
+                                var found = false;
+                                permissionObjs.forEach(function(permissionObj) {
+                                    found = found || permissionObj.priority === 50000000
+                                })
+
+                                assert(found);
+                            });
+                        });
+
+                        services.permissions.removeById(services.principals.servicePrincipal, permission.id, function(err) {
+                            assert(!err);
+
+                            config.cache_provider.get('permissions', fixtures.models.principals.user.id, function(err, permissionObjs) {
+                                assert(!err);
+                                assert(!permissionObjs);
+
+                                services.permissions.permissionsForCached(fixtures.models.principals.user.id, function(err, permissions) {
+                                    assert(!err);
+                                    assert(permissions.length);
+
+                                    var found = false;
+                                    permissions.forEach(function(permission) {
+                                        found = found || permission.priority === 50000000
+                                    })
+
+                                    assert(!found);
+
+                                    done();
+                                });
+                            });
                         });
                     });
                 }

@@ -18,11 +18,12 @@
   },
   "dependencies": {
     "amqp": "~0.2.0",
-    "async": "~0.2.9",
+    "async": "~0.2.10",
     "connect-ensure-login": "~0.1.1",
     "express": "~3.5.3",
     "express3-handlebars": "~0.5.0",
     "hiredis": "~0.1.16",
+    "moment": "~2.7.0",
     "mongodb": "~1.4.3",
     "mongoose": "~3.8.11",
     "newrelic": "~1.7.4",
@@ -49,8 +50,8 @@
   },
   "devDependencies": {
     "mocha": "~1.20.1",
-    "socket.io-client": "~0.9.16",
-    "ursa": "*"
+    "socket.io-client": "~0.9.17",
+    "ursa": "~0.8"
   },
   "scripts": {
     "test": "NODE_ENV=test mocha"

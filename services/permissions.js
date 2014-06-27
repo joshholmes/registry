@@ -1,7 +1,8 @@
-var async = require('async') 
+var async = require('async')
   , config = require('../config')
   , log = require('../log')
   , models = require('../models')
+  , moment = require('moment')
   , mongoose = require('mongoose')
   , services = require('../services')
   , utils = require('../utils');
@@ -27,14 +28,14 @@ var authorize = function(req, obj, callback) {
             // unauthorized permission.
 
             if (!permission) {
-                permission = { 
+                permission = {
                     authorized: false
                 };
             }
-            
+
             if (!permission.authorized) {
-                log.warn('principal ' + req.principal + ' not authorized for action: ' + req.action + 
-                         ' for principal: ' + req.principal_for + ' on object: ' + JSON.stringify(obj) + 
+                log.warn('principal ' + req.principal + ' not authorized for action: ' + req.action +
+                         ' for principal: ' + req.principal_for + ' on object: ' + JSON.stringify(obj) +
                          ' because of permission: ' + JSON.stringify(permission));
             }
 
@@ -48,7 +49,7 @@ var create = function(authzPrincipal, permission, callback) {
 
     authorize({
         principal: authzPrincipal.id,
-        principal_for: permission.principal_for, 
+        principal_for: permission.principal_for,
         action: 'admin'
     }, permission, function(err, matchingPermission) {
          if (err) return callback(err);
@@ -57,6 +58,15 @@ var create = function(authzPrincipal, permission, callback) {
          }
 
         return createInternal(permission, callback);
+    });
+};
+
+var clearCachedPermissions = function(permission, callback) {
+    config.cache_provider.del('permissions', permission.issued_to, function(err) {
+        if (err) return callback(err);
+        if (!permission.principal_for) return callback();
+
+        config.cache_provider.del('permissions', permission.principal_for, callback);
     });
 };
 
@@ -82,9 +92,7 @@ var createInternal = function(permission, callback) {
         permission.save(function(err, permission) {
             if (err) return callback(err);
 
-            config.cache_provider.del('permissions', permission.issued_to, function(err) {
-                if (err) return callback(err);
-
+            clearCachedPermissions(permission, function(err) {
                 if (permission.principal_for && (!permission.action || permission.action === 'view')) {
                     services.principals.updateVisibleTo(permission.principal_for, function(err) {
                         return callback(err, permission);
@@ -119,14 +127,14 @@ var permissionsForCached = function(principalId, callback) {
         if (err) return callback(err);
 
         if (permissionObjs) {
-            var permissions = permissionObjs.map(function(obj) { 
-                var permission = new models.Permission(obj); 
+            var permissions = permissionObjs.map(function(obj) {
+                var permission = new models.Permission(obj);
 
                 // Mongoose by default will override the passed id with a new unique one.  Set it back.
 
                 permission._id = mongoose.Types.ObjectId(obj.id);
 
-                return permission; 
+                return permission;
             });
             return callback(null, permissions);
         } else {
@@ -138,21 +146,21 @@ var permissionsForCached = function(principalId, callback) {
 };
 
 var permissionsFor = function(principalId, callback) {
-    // TODO: this is a super broad query so we'll have to evaluate many many permissions.  
+    // TODO: this is a super broad query so we'll have to evaluate many many permissions.
     // need to think about how to pull a more tightly bounded set of possible permissions for evaluation.
-    var query = { 
+    var query = {
         $or : [
-            { issued_to: principalId }, 
+            { issued_to: principalId },
             { principal_for: principalId },
             { issued_to: { $exists: false } },
-            { principal_for: { $exists: false } } 
-        ] 
+            { principal_for: { $exists: false } }
+        ]
     };
 
     find(services.principals.servicePrincipal, query, { sort: { priority: 1 } }, function(err, permissions) {
         if (err) return callback(err);
 
-        config.cache_provider.set('permissions', principalId, permissions, utils.dateDaysFromNow(1), function(err) {
+        config.cache_provider.set('permissions', principalId, permissions, moment().add('minutes', 1).toDate(), function(err) {
             return callback(err, permissions);
         });
     });
@@ -197,7 +205,7 @@ var removePermission = function(permission, callback) {
         services.principals.updateVisibleTo(permission.principal_for, function(err) {
             if (err) return callback(err);
 
-            config.cache_provider.del('permissions', permission.issued_to, callback);
+            clearCachedPermissions(permission, callback);
         });
     });
 };
@@ -218,6 +226,7 @@ module.exports = {
     createInternal: createInternal,
     find: find,
     initialize: initialize,
+    permissionsForCached: permissionsForCached,
     permissionsFor: permissionsFor,
     remove: remove,
     removeById: removeById,

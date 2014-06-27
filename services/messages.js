@@ -14,7 +14,7 @@ var buildVisibility = function(message, callback) {
     // if (message.public) return callback(null, message);
 
     // find all permissions for from: principal
-    services.permissions.permissionsFor(message.from, function(err, permissions) {
+    services.permissions.permissionsForCached(message.from, function(err, permissions) {
         if (err) return callback(err);
 
         //message.public = false;
