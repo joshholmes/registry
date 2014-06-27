@@ -9,7 +9,7 @@ var async = require('async')
 
 var authorize = function(req, obj, callback) {
     log.debug('authorizing ' + req.principal + ' for action: ' + req.action + ' for principal: ' + req.principal_for + ' on object: ' + JSON.stringify(obj));
-    permissionsFor(req.principal, function(err, permissions) {
+    permissionsForCached(req.principal, function(err, permissions) {
         if (err) return callback(err);
 
         //permissions.forEach(function(permission) {
