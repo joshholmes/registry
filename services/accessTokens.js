@@ -127,9 +127,6 @@ var removeByPrincipal = function(principal, callback) {
 
 var verify = function(token, done) {
     findByTokenCached(token, function(err, accessToken) {
-        console.log(err);
-        console.dir(accessToken);
-
         if (err) return done(err);
 
         if (!accessToken) {
