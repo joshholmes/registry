@@ -127,6 +127,7 @@ var permissionsForCached = function(principalId, callback) {
         if (err) return callback(err);
 
         if (permissionObjs) {
+            log.debug('permissions: cache hit for principal: ' + principalId);
             var permissions = permissionObjs.map(function(obj) {
                 var permission = new models.Permission(obj);
 
@@ -139,7 +140,7 @@ var permissionsForCached = function(principalId, callback) {
             return callback(null, permissions);
         } else {
             // cache miss
-
+            log.debug('permissions: cache miss for principal: ' + principalId);
             return permissionsFor(principalId, callback);
         }
     });
