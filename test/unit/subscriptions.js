@@ -28,6 +28,11 @@ describe('subscriptions service', function() {
                 services.subscriptions.findOrCreate(subscription, function(err, subscription) {
                     assert(!err);
 
+                    config.cache_provider.get('subscriptions', "subscriptions.principal." + fixtures.models.principals.device.id.toString(), function(err, subscriptionObjs) {
+                        assert(!err);
+                        assert(!subscriptionObjs);
+                    });
+
                     models.Subscription.count({}, function(err, endingCount) {
                         assert(!err);
 
@@ -38,12 +43,27 @@ describe('subscriptions service', function() {
 
                             assert.equal(cachedCount + 1, subscriptions.length);
 
-                            log.info('removing subscription: ' + subscription.id);
-                            services.subscriptions.remove(subscription, function(err) {
+                            config.cache_provider.get('subscriptions', "subscriptions.principal." + fixtures.models.principals.device.id.toString(), function(err, subscriptionObjs) {
                                 assert(!err);
+                                assert(subscriptionObjs.length);
 
-                                done();
-                            })
+                                log.info('removing subscription: ' + subscription.id);
+                                services.subscriptions.remove(subscription, function(err) {
+                                    assert(!err);
+
+                                    config.cache_provider.get('subscriptions', "subscriptions.principal." + fixtures.models.principals.device.id.toString(), function(err, subscriptionObjs) {
+                                        assert(!err);
+                                        assert(!subscriptionObjs);
+
+                                        services.subscriptions.findByPrincipalCached(fixtures.models.principals.device, fixtures.models.principals.device.id, {}, function(err, subscriptions) {
+                                            assert(!err);
+                                            assert.equal(cachedCount, subscriptions.length);
+
+                                            done();
+                                        });
+                                    });
+                                })
+                            });
                         });
                     });
                 });

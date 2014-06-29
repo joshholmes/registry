@@ -2,6 +2,7 @@ var async = require('async')
   , config = require('../config')
   , log = require('../log')
   , models = require('../models')
+  , moment = require('moment')
   , mongoose = require('mongoose')
   , RedisStore = require('socket.io/lib/stores/redis')
   , redis  = require('socket.io/node_modules/redis')
@@ -55,7 +56,7 @@ var attachSubscriptionsEndpoint = function() {
 
         socket.subscriptions = {};
         socket.on('start', function(spec) {
-            log.error('subscriptions: starting subscription with spec: ' + JSON.stringify(spec));
+            log.info('subscriptions: starting subscription with spec: ' + JSON.stringify(spec));
             start(socket, spec);
         });
 
@@ -73,7 +74,7 @@ var attachSubscriptionsEndpoint = function() {
         });
 
         socket.on('stop', function(spec) {
-            log.error('subscriptions: stopping subscription with spec: ' + JSON.stringify(spec));
+            log.info('subscriptions: stopping subscription with spec: ' + JSON.stringify(spec));
             stop(socket.subscriptions[spec.id], function(err) {
                 if (err) log.error(err);
 
@@ -87,7 +88,14 @@ var attachSubscriptionsEndpoint = function() {
 };
 
 var cacheKeySubscriptionsForPrincipal = function(principalId) {
-    var key = "subscriptions.principal." + principalId.toString();
+    return "subscriptions.principal." + principalId.toString();
+};
+
+var clearPrincipalSubscriptionsCacheEntry = function(principalId, callback) {
+    var cacheKey = cacheKeySubscriptionsForPrincipal(principalId);
+    log.error('subscriptions: clearing cache entry ' + cacheKey);
+
+    config.cache_provider.del('subscriptions', cacheKey, callback);
 };
 
 var count = function(callback) {
@@ -98,11 +106,7 @@ var create = function(subscription, callback) {
     config.pubsub_provider.createSubscription(subscription, function(err) {
         if (err) callback(err);
 
-        config.cache_provider.del('subscriptions', cacheKeySubscriptionsForPrincipal(subscription.principal), function(err) {
-            if (err) return callback(err);
-
-            save(subscription, callback);
-        });
+        save(subscription, callback);
     });
 };
 
@@ -111,11 +115,11 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findByPrincipalCached = function(authPrincipal, principalId, options, callback) {
-    var cacheKey = cacheKeySubscriptionsForPrincipal(principalId);
-
+    var cacheKey = cacheKeySubscriptionsForPrincipal(principalId)
     config.cache_provider.get('subscriptions', cacheKey, function(err, subscriptionObjs) {
         if (err) return callback(err);
         if (subscriptionObjs) {
+            log.error("subscriptions: " + cacheKey + ": cache hit: " + subscriptionObjs.length);
             var subscriptions = subscriptionObjs.map(function(obj) {
                 var subscription = new models.Subscription(obj);
 
@@ -128,6 +132,8 @@ var findByPrincipalCached = function(authPrincipal, principalId, options, callba
             return callback(null, subscriptions);
         }
 
+        log.error("subscriptions: " + cacheKey + ": cache miss.");
+
         // find and cache result
         return findByPrincipal(authPrincipal, principalId, options, callback);
     });
@@ -139,6 +145,7 @@ var findByPrincipal = function(authPrincipal, principalId, options, callback) {
     models.Subscription.find({ principal: principalId }, null, options, function(err, subscriptions) {
         if (err) return callback(err);
 
+        log.error("subscriptions: setting cache entry for " + cacheKey + ": " + subscriptions.length);
         config.cache_provider.set('subscriptions', cacheKey, subscriptions, utils.dateDaysFromNow(1), function(err) {
             return callback(err, subscriptions);
         });
@@ -209,21 +216,29 @@ var remove = function(subscription, callback) {
     log.debug('subscriptions: removing subscription: ' + subscription.id + ': ' + subscription.name + ': filter: ' + JSON.stringify(subscription.filter) + ' last_receive: ' + subscription.last_receive);
 
     config.pubsub_provider.removeSubscription(subscription, function(err) {
-        if (err) {
-            log.error('subscriptions: remove failed in provider with error: ' + err);
-        }
+        if (err) log.error('subscriptions: remove failed in provider with error: ' + err);
 
-        config.cache_provider.del('subscriptions', cacheKeySubscriptionsForPrincipal(subscription.principal));
+        subscription.remove(function(err, removedCount) {
+            if (err) return callback(err);
 
-        if (subscription.socket)
-            delete subscription.socket.subscriptions[subscription.clientId];
+            if (subscription.socket)
+                delete subscription.socket.subscriptions[subscription.clientId];
 
-        subscription.remove(callback);
+            clearPrincipalSubscriptionsCacheEntry(subscription.principal, function(err) {
+                return callback(err, removedCount);
+            });
+        });
     });
 };
 
 var save = function(subscription, callback) {
-    subscription.save(callback);
+    subscription.save(function(err, subscription) {
+        if (err) return callback(err);
+
+        clearPrincipalSubscriptionsCacheEntry(subscription.principal, function(err) {
+            return callback(err, subscription);
+        });
+    });
 };
 
 var start = function(socket, spec, callback) {
@@ -266,7 +281,7 @@ var start = function(socket, spec, callback) {
 // for session subscriptions this removes them.
 var stop = function(subscription, callback) {
     if (!subscription) {
-        log.error('subscriptions:  stop passed null subscription');
+        log.warn('subscriptions: stop: passed null subscription.');
     }
 
     if (subscription && !subscription.permanent) {
@@ -311,9 +326,13 @@ var stream = function(socket, subscription) {
 };
 
 var update = function(subscription, updates, callback) {
-    config.cache_provider.del('subscriptions', cacheKeySubscriptionsForPrincipal(subscription.principal));
+    models.Subscription.update({ _id: subscription.id }, { $set: updates }, function(err, updateCount) {
+        if (err) return callback(err);
 
-    models.Subscription.update({ _id: subscription.id }, { $set: updates }, callback);
+        clearPrincipalSubscriptionsCacheEntry(subscription.principal, function(err) {
+            return callback(err, updateCount);
+        });
+    });
 };
 
 module.exports = {

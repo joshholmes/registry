@@ -57,7 +57,7 @@ RabbitMQPubSubProvider.prototype.publish = function(type, item, callback) {
     async.each(item.visible_to, function(visibleToId, visibleToCallback) {
 
         // query the subscriptions that principal has
-        self.services.subscriptions.findByPrincipal(self.services.principals.servicePrincipal, visibleToId, {}, function(err, subscriptions) {
+        self.services.subscriptions.findByPrincipalCached(self.services.principals.servicePrincipal, visibleToId, {}, function(err, subscriptions) {
             if (err) return visibleToCallback(err);
 
             log.debug("RabbitMQPubSubProvider: message " + item.id + ": relevant subscriptions: " + JSON.stringify(subscriptions));
