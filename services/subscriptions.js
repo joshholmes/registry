@@ -115,7 +115,7 @@ var find = function(authPrincipal, filter, options, callback) {
 };
 
 var findByPrincipalCached = function(authPrincipal, principalId, options, callback) {
-    var cacheKey = cacheKeySubscriptionsForPrincipal(principalId)
+    var cacheKey = cacheKeySubscriptionsForPrincipal(principalId);
     config.cache_provider.get('subscriptions', cacheKey, function(err, subscriptionObjs) {
         if (err) return callback(err);
         if (subscriptionObjs) {
