@@ -119,6 +119,8 @@ config.blob_cache_lifetime = 2592000; // seconds
 // # of days a message should be remain in indexed storage by default
 config.default_message_indexed_lifetime = 365; // days
 
+config.permissions_for_cache_lifetime_minutes = 5; // minutes
+
 // when the token gets within 10% (default) of config.access_token_lifetime,
 // refresh it with a new token via the response header.
 config.refresh_token_threshold = 0.1;

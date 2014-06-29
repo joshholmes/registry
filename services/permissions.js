@@ -160,7 +160,7 @@ var permissionsFor = function(principalId, callback) {
     find(services.principals.servicePrincipal, query, { sort: { priority: 1 } }, function(err, permissions) {
         if (err) return callback(err);
 
-        config.cache_provider.set('permissions', principalId, permissions, moment().add('minutes', 1).toDate(), function(err) {
+        config.cache_provider.set('permissions', principalId, permissions, moment().add('minutes', config.permissions_for_cache_lifetime_minutes).toDate(), function(err) {
             return callback(err, permissions);
         });
     });
