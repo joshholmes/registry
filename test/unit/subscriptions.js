@@ -3,6 +3,7 @@ var assert = require('assert')
   , fixtures = require('../fixtures')
   , log = require('../../log')
   , models = require('../../models')
+  , moment = require('moment')
   , services = require('../../services')
   , utils = require('../../utils');
 
@@ -247,7 +248,7 @@ describe('subscriptions service', function() {
             permanent: true,
             principal: services.principals.servicePrincipal,
             type: "message",
-            last_receive: utils.dateDaysFromNow(-5)
+            last_receive: moment().add('days', -5).toDate()
         });
 
         services.subscriptions.findOrCreate(permSub, function(err, permSub) {
@@ -260,7 +261,7 @@ describe('subscriptions service', function() {
                 type: "message",
                 permanent: false,
                 name: utils.uuid(),
-                last_receive: utils.dateDaysFromNow(-5)
+                last_receive: moment().add('days', -5).toDate()
             });
 
             services.subscriptions.findOrCreate(sessionSub, function(err, sessionSub) {

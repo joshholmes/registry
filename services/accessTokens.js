@@ -3,6 +3,7 @@ var async = require('async')
   , crypto = require('crypto')
   , log = require('../log')
   , models = require('../models')
+  , moment = require('moment')
   , mongoose = require('mongoose')
   , services = require('../services')
   , utils = require('../utils');
@@ -22,7 +23,7 @@ var create = function(principal, callback) {
     log.debug('accesstokens: creating accesstoken for principal: ' + principal.id);
 
     var accessToken = new models.AccessToken({
-        expires_at: utils.dateDaysFromNow(config.access_token_lifetime),
+        expires_at: moment().add('days', config.access_token_lifetime).toDate(),
         principal: principal
     });
 

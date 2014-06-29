@@ -3,6 +3,7 @@ var async = require('async')
   , fs = require('fs')
   , log = require('../log')
   , models = require('../models')
+  , moment = require('moment')
   , mongoose = require('mongoose')
   , path = require('path')
   , revalidator = require('revalidator')
@@ -241,7 +242,7 @@ var removeOne = function(principal, message, callback) {
 
 var translate = function(message) {
     if (!message.index_until) {
-        message.index_until = utils.dateDaysFromNow(config.default_message_indexed_lifetime);
+        message.index_until = moment().add('days', config.default_message_indexed_lifetime).toDate();
     }
 
     if (message.index_until === 'forever') {

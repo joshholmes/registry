@@ -4,6 +4,7 @@ var app = require('../../server')
   , fixtures = require('../fixtures')
   , fs = require('fs')
   , models = require('../../models')
+  , moment = require('moment')
   , mongoose = require('mongoose')
   , services = require('../../services')
   , utils = require('../../utils');
@@ -29,9 +30,6 @@ describe('messages service', function() {
           });
 
           assert(foundServicePrincipal);
-
-//          assert(savedMessages[0].index_until > utils.dateDaysFromNow(config.default_message_indexed_lifetime-1) &&
-//                 savedMessages[0].index_until < utils.dateDaysFromNow(config.default_message_indexed_lifetime));
 
           services.messages.removeOne(services.principals.servicePrincipal, savedMessages[0], function(err) {
             assert.equal(err, null);
@@ -161,7 +159,7 @@ describe('messages service', function() {
             services.blobs.create(fixtures.models.principals.device, blob, stream, function(err, blob) {
                 assert.ifError(err);
 
-                var oneMinuteFromNow = utils.dateMinutesFromNow(1);
+                var oneMinuteFromNow = moment().add('minutes', 1).toDate();
 
                 var message = new models.Message({
                     from: fixtures.models.principals.device.id,

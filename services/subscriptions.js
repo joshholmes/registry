@@ -146,7 +146,7 @@ var findByPrincipal = function(authPrincipal, principalId, options, callback) {
         if (err) return callback(err);
 
         log.error("subscriptions: setting cache entry for " + cacheKey + ": " + subscriptions.length);
-        config.cache_provider.set('subscriptions', cacheKey, subscriptions, utils.dateDaysFromNow(1), function(err) {
+        config.cache_provider.set('subscriptions', cacheKey, subscriptions,  moment().add('days', 1).toDate(), function(err) {
             return callback(err, subscriptions);
         });
     });

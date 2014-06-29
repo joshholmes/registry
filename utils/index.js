@@ -26,17 +26,6 @@ var badRequestError = function(msg) {
     });
 };
 
-var dateDaysFromNow = function(days) {
-    var date = new Date();
-    date.setDate(new Date().getDate() + days);
-
-    return date;
-};
-
-var dateMinutesFromNow = function(minutes) {
-    return new Date(new Date().getTime() + minutes * 60000);
-};
-
 var handleError = function(res, err) {
     if (err instanceof ServiceError) {
         var statusCode = err.statusCode || 400;
@@ -173,8 +162,6 @@ module.exports = {
     authenticationError: authenticationError,
     authorizationError: authorizationError,
     badRequestError: badRequestError,
-    dateDaysFromNow: dateDaysFromNow,
-    dateMinutesFromNow: dateMinutesFromNow,
     ipFromRequest: ipFromRequest,
     internalError: internalError,
     handleError: handleError,

@@ -1,5 +1,6 @@
 var async = require('async')
   , log = require('../../log')
+  , moment = require('moment')
   , sift = require('sift')
   , utils = require('../../utils');
 
@@ -46,7 +47,7 @@ MemoryPubSubProvider.prototype.removeSubscription = function(subscription, callb
 };
 
 MemoryPubSubProvider.prototype.staleSubscriptionCutoff = function() {
-    return utils.dateDaysFromNow(-1);
+    return moment().add('days', -1).toDate();
 };
 
 // TEST ONLY FUNCTIONS
