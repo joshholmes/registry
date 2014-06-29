@@ -446,7 +446,7 @@ var removeById = function(authzPrincipal, principalId, callback) {
 
             if (principal.is('user')) {
                 // for user del  for other principals, we just delete the permissions.
-                services.permissions.remove(services.principals.servicePrincipal, { 
+                services.permissions.remove(services.principals.servicePrincipal, {
                     $or: [
                         { issued_to: principalId },
                         { principal_for: principalId }
@@ -459,7 +459,7 @@ var removeById = function(authzPrincipal, principalId, callback) {
 
             } else {
                 // only delete the permissions the authorizing principal has for non-user principals.
-                services.permissions.remove(services.principals.servicePrincipal, { 
+                services.permissions.remove(services.principals.servicePrincipal, {
                     issued_to: authzPrincipal.id,
                     principal_for: principalId
                 }, callback);
@@ -565,11 +565,16 @@ var updateLastConnection = function(principal, ip) {
         });
     }
 
-    principal.last_connection = updates.last_connection = new Date();
+    // only update the last_connection at most once a minute.
+    if (new Date() - principal.last_connection > 60 * 1000) {
+        principal.last_connection = updates.last_connection = new Date();
+    }
 
-    update(services.principals.servicePrincipal, principal.id, updates, function(err, principal) {
-        if (err) return log.error("principal service: updating last connection failed: " + err);
-    });
+    if (Object.keys(updates).length > 0) {
+        update(services.principals.servicePrincipal, principal.id, updates, function(err, principal) {
+            if (err) return log.error("principal service: updating last connection failed: " + err);
+        });
+    }
 };
 
 var updateVisibleTo = function(principalId, callback) {

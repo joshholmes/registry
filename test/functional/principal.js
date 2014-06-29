@@ -145,7 +145,7 @@ describe('principals endpoint', function() {
                 assert.equal(resp.statusCode, 200);
                 assert.notEqual(body.accessToken.token, undefined);
 
-                assert.equal(Date.parse(body.principal.last_connection) > fixtures.models.principals.device.last_connection.getTime(), true);
+                assert(new Date() - Date.parse(body.principal.last_connection) < 61 * 1000);
                 assert.notEqual(body.principal.last_ip, undefined);
                 done();
             });
@@ -160,7 +160,7 @@ describe('principals endpoint', function() {
                 assert.equal(resp.statusCode, 200);
                 assert.notEqual(body.accessToken.token, undefined);
 
-                assert.equal(Date.parse(body.principal.last_connection) > fixtures.models.principals.user.last_connection.getTime(), true);
+                assert(new Date() - Date.parse(body.principal.last_connection) < 61 * 1000);
                 assert.notEqual(body.principal.last_ip, undefined);
                 assert.equal(body.principal.password, undefined);
 
