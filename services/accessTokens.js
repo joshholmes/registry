@@ -14,7 +14,7 @@ var cacheKeyToken = function(token) {
 
 var clearTokenCacheEntry = function(token, callback) {
     var cacheKey = cacheKeyToken(token);
-    log.error('accessTokens: clearing cache entry ' + cacheKey);
+    log.debug('accessTokens: clearing cache entry ' + cacheKey);
 
     config.cache_provider.del('accessTokens', cacheKey, callback);
 };
@@ -49,7 +49,7 @@ var findByTokenCached = function(token, callback) {
     config.cache_provider.get('accessTokens', cacheKey, function(err, accessTokenObj) {
         if (err) return callback(err);
         if (accessTokenObj) {
-            log.error("accessTokens: " + cacheKey + ": cache hit");
+            log.debug("accessTokens: " + cacheKey + ": cache hit");
             var accessToken = new models.AccessToken(accessTokenObj);
 
             // Mongoose by default will override the passed id with a new unique one.  Set it back.
@@ -58,7 +58,7 @@ var findByTokenCached = function(token, callback) {
             return callback(null, accessToken);
         }
 
-        log.error("accessTokens: " + cacheKey + ": cache miss.");
+        log.debug("accessTokens: " + cacheKey + ": cache miss.");
 
         // find and cache result
         return findByToken(token, callback);
@@ -74,7 +74,7 @@ var findByToken = function(token, callback) {
 
         var cacheKey = cacheKeyToken(token);
 
-        log.error("accessTokens: setting cache entry for " + cacheKey);
+        log.debug("accessTokens: setting cache entry for " + cacheKey);
         config.cache_provider.set('accessTokens', cacheKey, accessToken, accessToken.expires_at, function(err) {
             return callback(err, accessToken);
         });

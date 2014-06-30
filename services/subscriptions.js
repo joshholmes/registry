@@ -93,7 +93,7 @@ var cacheKeySubscriptionsForPrincipal = function(principalId) {
 
 var clearPrincipalSubscriptionsCacheEntry = function(principalId, callback) {
     var cacheKey = cacheKeySubscriptionsForPrincipal(principalId);
-    log.error('subscriptions: clearing cache entry ' + cacheKey);
+    log.debug('subscriptions: clearing cache entry ' + cacheKey);
 
     config.cache_provider.del('subscriptions', cacheKey, callback);
 };
@@ -119,7 +119,7 @@ var findByPrincipalCached = function(authPrincipal, principalId, options, callba
     config.cache_provider.get('subscriptions', cacheKey, function(err, subscriptionObjs) {
         if (err) return callback(err);
         if (subscriptionObjs) {
-            log.error("subscriptions: " + cacheKey + ": cache hit: " + subscriptionObjs.length);
+            log.debug("subscriptions: " + cacheKey + ": cache hit: " + subscriptionObjs.length);
             var subscriptions = subscriptionObjs.map(function(obj) {
                 var subscription = new models.Subscription(obj);
 
@@ -132,7 +132,7 @@ var findByPrincipalCached = function(authPrincipal, principalId, options, callba
             return callback(null, subscriptions);
         }
 
-        log.error("subscriptions: " + cacheKey + ": cache miss.");
+        log.debug("subscriptions: " + cacheKey + ": cache miss.");
 
         // find and cache result
         return findByPrincipal(authPrincipal, principalId, options, callback);
@@ -145,7 +145,7 @@ var findByPrincipal = function(authPrincipal, principalId, options, callback) {
     models.Subscription.find({ principal: principalId }, null, options, function(err, subscriptions) {
         if (err) return callback(err);
 
-        log.error("subscriptions: setting cache entry for " + cacheKey + ": " + subscriptions.length);
+        log.debug("subscriptions: setting cache entry for " + cacheKey + ": " + subscriptions.length);
         config.cache_provider.set('subscriptions', cacheKey, subscriptions,  moment().add('days', 1).toDate(), function(err) {
             return callback(err, subscriptions);
         });
