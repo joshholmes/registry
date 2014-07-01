@@ -29,7 +29,7 @@ exports.create = function(req, res) {
         checkFrom(req, message, function(err, permission) {
             if (err) return callback(err);
             if (!permission.authorized) {
-                log.warn('principal: ' + principal.id + ' attempted to send message with from: of another principal: ' + JSON.stringify(message));
+                log.warn('principal: ' + req.user.id + ' attempted to send message with from: of another principal: ' + JSON.stringify(message));
                 return callback(utils.authorizationError());
             }
 

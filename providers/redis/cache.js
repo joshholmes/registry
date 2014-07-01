@@ -17,17 +17,22 @@ RedisCacheProvider.prototype.get = function(namespace, key, callback) {
     var compositeKey = RedisCacheProvider.buildCompositeKey(namespace, key);
 
     this.client.get(compositeKey, function(err, entryJson) {
-        if (err) return callback(err);
-        if (!entryJson) return callback();
+        if (err) {
+            log.error('error fetching cache entry: ' + compositeKey + ' :' + err);
+            return callback(err);
+        }
+
+        if (!entryJson) {
+            log.debug('cache entry not found: ' + compositeKey);
+            return callback();
+        }
 
         var entry = JSON.parse(entryJson);
 
         if (entry.expiration < new Date()) {
+            log.debug('cache entry expired: ' + compositeKey);
             return this.del(namespace, key, callback);
         }
-
-//        log.warn('returning');
-//        console.dir(entry.value);
 
         return callback(null, entry.value);
     });
@@ -38,9 +43,6 @@ RedisCacheProvider.prototype.set = function(namespace, key, value, expiration, c
         expiration: expiration,
         value: value
     };
-
-//    log.warn('caching');
-//    console.dir(entry.value);
 
     this.client.set(RedisCacheProvider.buildCompositeKey(namespace, key), JSON.stringify(entry), callback);
 };

@@ -67,7 +67,7 @@ exports.create = function(req, res) {
             services.accessTokens.create(principal, function(err, accessToken) {
                 if (err) return utils.handleError(res, err);
 
-                var principalJSON = principal.toObject();
+                var principalJSON = principal.toJSON();
 
                 // since the authenticateRequest middleware was not run on this request run it manually.
                 services.principals.updateLastConnection(principal, utils.ipFromRequest(req));

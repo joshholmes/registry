@@ -25,6 +25,7 @@ describe('principals endpoint', function() {
 
               // this principal will be autoclaimed to the user because it is using their claim code.
               assert(!post_body.principal.claim_code);
+              assert.equal(post_body.principal.visible_to, undefined);
 
               assert(post_body.principal.tags.length === 2);
               assert(post_body.principal.tags.indexOf('sends:image') !== -1);

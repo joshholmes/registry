@@ -253,7 +253,7 @@ var findByEmail = function(principal, email, callback) {
 var findByIdCached = function(authzPrincipal, id, callback) {
     var cacheKey = cacheKeyPrincipalId(id);
 
-    log.error('looking for principalId: ' + id + ' with cache key: ' + cacheKey);
+    log.debug('looking for principalId: ' + id + ' with cache key: ' + cacheKey);
 
     config.cache_provider.get('principals', cacheKey, function(err, principalObj) {
         if (err) return callback(err);
@@ -261,7 +261,7 @@ var findByIdCached = function(authzPrincipal, id, callback) {
 
             // check to make sure it is visible to authz principal
             if (principalObj.visible_to.indexOf(authzPrincipal.id.toString()) !== -1) {
-                log.error("principals: " + cacheKey + ": cache hit");
+                log.debug("principals: " + cacheKey + ": cache hit");
 
                 var principal = new models.Principal(principalObj);
 
@@ -272,7 +272,7 @@ var findByIdCached = function(authzPrincipal, id, callback) {
             }
         }
 
-        log.error("principals: " + cacheKey + ": cache miss.");
+        log.debug("principals: " + cacheKey + ": cache miss.");
 
         // find and cache result
         return findById(authzPrincipal, id, callback);
@@ -286,7 +286,7 @@ var findById = function(authzPrincipal, id, callback) {
 
         var cacheKey = cacheKeyPrincipalId(id);
 
-        log.error("principals: setting cache entry for " + cacheKey);
+        log.debug("principals: setting cache entry for " + cacheKey);
 
         config.cache_provider.set('principals', cacheKey, principal.toObject(), moment().add('minutes', config.principals_cache_lifetime_minutes).toDate(), function(err) {
             return callback(err, principal);
@@ -594,18 +594,11 @@ var update = function(authorizingPrincipal, id, updates, callback) {
 
                     findByIdCached(authorizingPrincipal, id, function(err, updatedPrincipal) {
                         if (err) return callback(err);
-
-                        // TODO: principals_realtime:  Disabled until rate limited to prevent update storms.
-
-                        //notifySubscriptions(updatedPrincipal, function(err) {
-                            if (callback) return callback(err, updatedPrincipal);
-                        //});
+                        if (callback) return callback(err, updatedPrincipal);
                     });
                 });
             });
-
         });
-
     });
 };
 
@@ -680,7 +673,7 @@ var updateVisibleTo = function(principalId, callback) {
                     if (visibilityMap[key]) principal.visible_to.push(key);
                 });
 
-                log.error("principal service: final visible_to: " + JSON.stringify(principal.visible_to));
+                log.debug("principal service: final visible_to: " + JSON.stringify(principal.visible_to));
 
                 services.principals.update(services.principals.servicePrincipal, principalId, { visible_to: principal.visible_to }, callback);
             }
