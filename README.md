@@ -111,7 +111,7 @@ On Windows, you'll need to install some dependencies first:
  - [OpenSSL](http://slproweb.com/products/Win32OpenSSL.html) (normal, not light)
    in the same bitness as your Node.js installation.
    - The build script looks for OpenSSL in the default install directory  (`C:\OpenSSL-Win32` or `C:\OpenSSL-Win64`)
-   - If you get `Error: The specified module could not be found.`, copy `libeay32.dll` from the OpenSSL bin directory to this module's bin directory, or to Windows\System3.
+   - If you get `Error: The specified module could not be found.`, copy `libeay32.dll` from the OpenSSL bin directory to this module's bin directory, or to Windows\System32.
 
 ## How to contribute
 
