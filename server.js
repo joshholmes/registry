@@ -145,7 +145,7 @@ mongoose.connection.once('open', function () {
         });
 
         passport.deserializeUser(function(id, done) {
-            services.principals.findById(services.principals.servicePrincipal, id, done);
+            services.principals.findByIdCached(services.principals.servicePrincipal, id, done);
         });
 
         // oauth2 endpoints
