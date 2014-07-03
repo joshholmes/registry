@@ -17,7 +17,7 @@ var authorize = function(req, res) {
         if (!app_id) return redirectWithError(res, redirect_uri, "app_id required for authorize");
         if (!scope) return redirectWithError(res, redirect_uri, "scope required for authorize");
 
-        services.principals.findById(services.principals.servicePrincipal, app_id, function(err, app) {
+        services.principals.findByIdCached(services.principals.servicePrincipal, app_id, function(err, app) {
             if (err) return redirectWithError(res, redirect_uri, err);
             if (!app) return redirectWithError(res, redirect_uri, "app_id referenced unknown application.");
 
@@ -149,7 +149,7 @@ var deleteAccount = function(req, res) {
 var deleteAccountForm = function(req, res) {
     res.render('user/delete', {
         user_delete_account_path: config.user_delete_account_path,
-        default_user_redirect: config.default_user_redirect 
+        default_user_redirect: config.default_user_redirect
     });
 };
 
@@ -161,7 +161,7 @@ var decision = function(req, res) {
         if (err) return utils.handleError(res, err);
         if (!authorized) return redirectWithError(res, authCode.redirect_uri, "Request not approved by user.");
 
-        services.principals.findById(services.principals.servicePrincipal, authCode.app, function(err, app) {
+        services.principals.findByIdCached(services.principals.servicePrincipal, authCode.app, function(err, app) {
             if (err) return redirectWithError(res, authCode.redirect_uri, err);
             if (!app) return redirectWithError(res, authCode.redirect_uri, "Application not found");
 
@@ -310,7 +310,7 @@ module.exports = {
     create:                 create,
     createForm:             createForm,
     deleteAccount:          deleteAccount,
-    deleteAccountForm:      deleteAccountForm, 
+    deleteAccountForm:      deleteAccountForm,
     decision:               decision,
     impersonate:            impersonate,
     login:                  login,

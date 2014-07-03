@@ -3,6 +3,7 @@ var async = require('async')
   , crypto = require('crypto')
   , log = require('../log')
   , models = require('../models')
+  , moment = require('moment')
   , mongoose = require('mongoose')
   , nitrogen = require('nitrogen')
   , services = require('../services')
@@ -49,6 +50,17 @@ var authenticateUser = function(email, password, callback) {
     });
 };
 
+var cacheKeyPrincipalId = function(principalId) {
+    return "id." + principalId;
+};
+
+var clearCacheEntry = function(principalId, callback) {
+    var cacheKey = cacheKeyPrincipalId(principalId);
+    log.debug('principals: clearing cache entry ' + cacheKey);
+
+    config.cache_provider.del('principals', cacheKey, callback);
+};
+
 var changePassword = function(principal, newPassword, callback) {
     principal.password = newPassword;
     createUserCredentials(principal, function(err, principal) {
@@ -91,7 +103,9 @@ var create = function(principal, callback) {
 
                         log.info("created " + principal.type + " principal: " + principal.id);
 
-                        findById(services.principals.servicePrincipal, principal.id, function(err, updatedPrincipal) {
+                        findByIdCached(services.principals.servicePrincipal, principal.id, function(err, updatedPrincipal) {
+                            if (err) return callback(err);
+
                             if (principal.is('reactor')) {
                                 return initializeIfFirstReactor(updatedPrincipal, callback);
                             } else {
@@ -123,7 +137,7 @@ var checkForExistingPrincipal = function(principal, callback) {
     if (principal.is('user')) {
         findByEmail(services.principals.servicePrincipal, principal.email, callback);
     } else {
-        findById(services.principals.servicePrincipal, principal.id, callback);
+        findByIdCached(services.principals.servicePrincipal, principal.id, callback);
     }
 };
 
@@ -163,7 +177,7 @@ var createPermissions = function(principal, callback) {
             services.apiKeys.findById(principal.api_key, function(err, apiKey) {
                 if (err) return callback(err);
 
-                services.principals.findById(services.principals.servicePrincipal, apiKey.owner, function(err, ownerPrincipal) {
+                findByIdCached(services.principals.servicePrincipal, apiKey.owner, function(err, ownerPrincipal) {
                     if (err) return callback(err);
                     if (!ownerPrincipal || !ownerPrincipal.is('user')) return callback();
 
@@ -236,8 +250,48 @@ var findByEmail = function(principal, email, callback) {
     models.Principal.findOne(filterForPrincipal(principal, { "email": email }), callback);
 };
 
-var findById = function(principal, id, callback) {
-    models.Principal.findOne(filterForPrincipal(principal, { "_id": id }), callback);
+var findByIdCached = function(authzPrincipal, id, callback) {
+    var cacheKey = cacheKeyPrincipalId(id);
+
+    log.error('looking for principalId: ' + id + ' with cache key: ' + cacheKey);
+
+    config.cache_provider.get('principals', cacheKey, function(err, principalObj) {
+        if (err) return callback(err);
+        if (principalObj) {
+
+            // check to make sure it is visible to authz principal
+            if (principalObj.visible_to.indexOf(authzPrincipal.id.toString()) !== -1) {
+                log.error("principals: " + cacheKey + ": cache hit");
+
+                var principal = new models.Principal(principalObj);
+
+                // Mongoose by default will override the passed id with a new unique one.  Set it back.
+                principal._id = mongoose.Types.ObjectId(id);
+
+                return callback(null, principal);
+            }
+        }
+
+        log.error("principals: " + cacheKey + ": cache miss.");
+
+        // find and cache result
+        return findById(authzPrincipal, id, callback);
+    });
+};
+
+var findById = function(authzPrincipal, id, callback) {
+    models.Principal.findOne(filterForPrincipal(authzPrincipal, { "_id": id }), function(err, principal) {
+        if (err) return callback(err);
+        if (!principal) return callback(null, undefined);
+
+        var cacheKey = cacheKeyPrincipalId(id);
+
+        log.error("principals: setting cache entry for " + cacheKey);
+
+        config.cache_provider.set('principals', cacheKey, principal.toObject(), moment().add('minutes', config.principals_cache_lifetime_minutes).toDate(), function(err) {
+            return callback(err, principal);
+        });
+    });
 };
 
 var checkClaimCode = function(code, callback) {
@@ -309,7 +363,7 @@ var hashSecret = function(secret, callback) {
 
 var impersonate = function(authzPrincipal, impersonatedPrincipalId, callback) {
 
-    findById(services.principals.servicePrincipal, impersonatedPrincipalId, function(err, impersonatedPrincipal) {
+    findByIdCached(services.principals.servicePrincipal, impersonatedPrincipalId, function(err, impersonatedPrincipal) {
         if (err) return callback(err);
         if (!impersonatedPrincipal) return callback(utils.notFoundError());
 
@@ -427,7 +481,7 @@ var notifySubscriptions = function(principal, callback) {
 };
 
 var removeById = function(authzPrincipal, principalId, callback) {
-    findById(authzPrincipal, principalId, function (err, principal) {
+    findByIdCached(authzPrincipal, principalId, function (err, principal) {
         if (err) return callback(err);
         if (!principal) return callback(utils.notFoundError());
 
@@ -454,7 +508,13 @@ var removeById = function(authzPrincipal, principalId, callback) {
                 }, function(err) {
                     if (err) return callback(err);
 
-                    models.Principal.remove({ _id: principalId }, callback);
+                    models.Principal.remove({ _id: principalId }, function(err, removedCount) {
+                        if (err) return callback(err);
+
+                        clearCacheEntry(principalId, function(err) {
+                            return callback(err, removedCount);
+                        })
+                    });
                 });
 
             } else {
@@ -514,7 +574,7 @@ var update = function(authorizingPrincipal, id, updates, callback) {
     if (!authorizingPrincipal) return callback(utils.principalRequired());
     if (!id) return callback(utils.badRequestError('Missing required argument id.'));
 
-    findById(authorizingPrincipal, id, function(err, principal) {
+    findByIdCached(authorizingPrincipal, id, function(err, principal) {
         if (err) return callback(err);
         if (!principal) return callback(utils.badRequestError("Can't find principal for update."));
 
@@ -529,14 +589,18 @@ var update = function(authorizingPrincipal, id, updates, callback) {
             models.Principal.update({ _id: id }, { $set: updates }, function (err, updateCount) {
                 if (err) return callback(err);
 
-                findById(authorizingPrincipal, id, function(err, updatedPrincipal) {
+                clearCacheEntry(id, function(err) {
                     if (err) return callback(err);
 
-                    // TODO: principals_realtime:  Disabled until rate limited to prevent update storms.
+                    findByIdCached(authorizingPrincipal, id, function(err, updatedPrincipal) {
+                        if (err) return callback(err);
 
-                    //notifySubscriptions(updatedPrincipal, function(err) {
-                        if (callback) return callback(err, updatedPrincipal);
-                    //});
+                        // TODO: principals_realtime:  Disabled until rate limited to prevent update storms.
+
+                        //notifySubscriptions(updatedPrincipal, function(err) {
+                            if (callback) return callback(err, updatedPrincipal);
+                        //});
+                    });
                 });
             });
 
@@ -579,7 +643,7 @@ var updateLastConnection = function(principal, ip) {
 
 var updateVisibleTo = function(principalId, callback) {
     log.debug("principal service: updating visible_to for: " + principalId);
-    findById(services.principals.servicePrincipal, principalId, function(err, principal) {
+    findByIdCached(services.principals.servicePrincipal, principalId, function(err, principal) {
         if (err) return callback(err);
         if (!principal) return callback();
         log.debug("principal service: updating visible_to for principal id: " + principalId);
@@ -616,7 +680,7 @@ var updateVisibleTo = function(principalId, callback) {
                     if (visibilityMap[key]) principal.visible_to.push(key);
                 });
 
-                log.debug("principal service: final visible_to: " + JSON.stringify(principal.visible_to));
+                log.error("principal service: final visible_to: " + JSON.stringify(principal.visible_to));
 
                 services.principals.update(services.principals.servicePrincipal, principalId, { visible_to: principal.visible_to }, callback);
             }
@@ -667,7 +731,7 @@ var verifySignature = function(nonceString, signature, callback) {
 
         var nonce = nonces[0];
 
-        services.principals.findById(services.principals.servicePrincipal, nonce.principal, function(err, principal) {
+        findByIdCached(services.principals.servicePrincipal, nonce.principal, function(err, principal) {
             if (err) return callback(utils.internalError(err));
             if (!principal) return callback(utils.authenticationError("Nonce principal not found."));
             if (!principal.public_key) return callback(utils.authenticationError("Principal does not use public key to authenticate."));
@@ -699,6 +763,7 @@ module.exports = {
     create: create,
     filterForPrincipal: filterForPrincipal,
     find: find,
+    findByIdCached: findByIdCached,
     findById: findById,
     generateClaimCode: generateClaimCode,
     impersonate: impersonate,

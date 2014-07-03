@@ -18,12 +18,14 @@ var assign = function(principal, callback) {
         // if we assigned a key, return that.
         if (apiKey) return callback(null, apiKey);
 
-        // otherwise, no unassigned keys available, so create an assigned one directly.
-        create(services.principals.servicePrincipal, new models.ApiKey({ 
+        var apiKey = new models.ApiKey({
             name: 'User',
-            type: 'user', 
-            owner: principal.id 
-        }), callback);
+            type: 'user',
+            owner: principal.id
+        });
+
+        // otherwise, no unassigned keys available, so create an assigned one directly.
+        create(services.principals.servicePrincipal, apiKey, callback);
     });
 };
 
@@ -74,6 +76,7 @@ var create = function(authzPrincipal, apiKey, callback) {
 
         apiKey.save(function(err) {
             // kick off creating a personalized image for this key.
+
             redisClient.rpush('images.build', JSON.stringify({ key: apiKey.key }), function(err) {
                 if (callback) return callback(err, apiKey);
             });

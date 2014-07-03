@@ -142,7 +142,7 @@ var verify = function(token, done) {
             return done(msg, false);
         }
 
-        services.principals.findById(services.principals.servicePrincipal, accessToken.principal, function(err, principal) {
+        services.principals.findByIdCached(services.principals.servicePrincipal, accessToken.principal, function(err, principal) {
             if (err) return done(err);
             if (!principal) {
                 var msg = "AccessToken service.verify: principal for accessToken " + accessToken.id + " not found.";

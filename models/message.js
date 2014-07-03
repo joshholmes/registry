@@ -41,8 +41,15 @@ config.message_indexes.forEach(function(index) {
     messageSchema.index(index);
 });
 
+var messageJsonTransform = function(doc, ret, options) {
+    BaseSchema.baseObjectTransform(doc, ret, options);
+
+    delete ret.body_length;
+    delete ret.visible_to;
+};
+
 messageSchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
-messageSchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
+messageSchema.set('toJSON', { transform: messageJsonTransform });
 
 var Message = mongoose.model('Message', messageSchema);
 

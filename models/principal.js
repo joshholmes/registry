@@ -29,7 +29,6 @@ principalSchema.add({
 
     private_key:     { type: String },
 
-
 // user fields
 
     email:           { type: String },
@@ -52,7 +51,7 @@ principalSchema.index({ visible_to: 1 });
 principalSchema.virtual('password').set(function(value) { this._password = value; });
 principalSchema.virtual('password').get(function() { return this._password; });
 
-var principalObjectTransform = function(doc, ret, options) {
+var principalJsonTransform = function(doc, ret, options) {
     BaseSchema.baseObjectTransform(doc, ret, options);
 
     delete ret.salt;
@@ -61,8 +60,8 @@ var principalObjectTransform = function(doc, ret, options) {
     delete ret.visible_to;
 };
 
-principalSchema.set('toObject', { transform: principalObjectTransform });
-principalSchema.set('toJSON', { transform: principalObjectTransform });
+principalSchema.set('toObject', { transform: BaseSchema.baseObjectTransform  });
+principalSchema.set('toJSON', { transform: principalJsonTransform });
 
 principalSchema.path('type').validate(function (value) {
     return Principal.PRINCIPAL_TYPES.indexOf(value) !== -1;

@@ -6,7 +6,7 @@ var config = require('../config')
   , utils = require('../utils');
 
 var create = function(principalId, callback) {
-    services.principals.findById(services.principals.servicePrincipal, principalId, function(err, principal) {
+    services.principals.findByIdCached(services.principals.servicePrincipal, principalId, function(err, principal) {
         if (err) return callback(err);
         if (!principal) return callback(utils.notFoundError("Principal " + principalId + " not found."));
 

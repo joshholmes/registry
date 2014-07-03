@@ -45,7 +45,9 @@ describe('principals endpoint', function() {
 
                     assert.equal(get_body.principal.secret, undefined);
                     assert.equal(get_body.principal.name, "createTest");
-                    assert.equal(post_body.principal.salt, undefined);
+                    assert.equal(get_body.principal.salt, undefined);
+                    assert.equal(get_body.principal.visible_to, undefined);
+
                     assert.notEqual(get_body.principal.last_connection, undefined);
                     assert.notEqual(get_body.principal.last_ip, undefined);
 

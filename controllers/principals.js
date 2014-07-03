@@ -114,7 +114,7 @@ exports.remove = function(req, res) {
 };
 
 exports.show = function(req, res) {
-	services.principals.findById(req.user, req.params.id, function (err, principal) {
+	services.principals.findByIdCached(req.user, req.params.id, function (err, principal) {
 		if (err) return utils.handleError(res, err);
 		if (!principal) return utils.sendFailedResponse(res, 403, "Can't show requested principal.");
 

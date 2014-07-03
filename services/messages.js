@@ -270,13 +270,13 @@ var validate = function(message, callback) {
         if (err) return callback(err);
         if (!result.valid) return callback(result.errors);
 
-        services.principals.findById(services.principals.servicePrincipal, message.from, function(err, fromPrincipal) {
+        services.principals.findByIdCached(services.principals.servicePrincipal, message.from, function(err, fromPrincipal) {
             if (err) return callback(err);
             if (!fromPrincipal) return callback(utils.badRequestError('From: principal on message was not found.'));
 
             if (!message.to) return callback(null, fromPrincipal, null);
 
-            services.principals.findById(services.principals.servicePrincipal, message.to, function(err, toPrincipal) {
+            services.principals.findByIdCached(services.principals.servicePrincipal, message.to, function(err, toPrincipal) {
                 if (err) return callback(err);
                 if (!toPrincipal) return callback(utils.badRequestError('Principal in to: field (' + message.to +') of message not found.'));
 

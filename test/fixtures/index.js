@@ -29,7 +29,7 @@ var createApiKeyFixtures = function(callback) {
 
         var regularAppKey = new models.ApiKey({
             name: 'Regular App',
-            type: 'app',    
+            type: 'app',
             capabilities: [],
             redirect_uri: 'http://localhost:9000/',
             owner: fixtures.principals.anotherUser.id
@@ -165,7 +165,6 @@ var createUserFixtures = function(callback) {
             if (err) throw err;
 
             fixtures.accessTokens.user = accessToken;
-
 
             var anotherUser = new models.Principal({
                 type: 'user',

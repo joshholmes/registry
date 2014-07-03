@@ -14,10 +14,6 @@ BaseSchema.baseObjectTransform = function(doc,ret,options) {
     ret.id = ret._id;
     delete ret._id;
     delete ret.__v;
-
-    // remove internally used fields
-    if (ret.visible_to) delete ret.visible_to;
-    if (ret.body_length) delete ret.body_length;
 };
 
 module.exports = BaseSchema;
