@@ -20,8 +20,6 @@ var buildStats = function(callback) {
             $gt: measurementStart
         }
     }, {}, function(err, principals) {
-        console.dir(err);
-
         if (err) return callback(err);
 
         stats.principals_24h_active = principals.length;
@@ -40,8 +38,6 @@ var buildStats = function(callback) {
             }, function(err, messagesCount) {
                 if (err) return callback(err);
 
-                console.log(messagesCount);
-
                 stats.messages = messagesCount;
 
                 return callback(null, stats);
@@ -52,9 +48,12 @@ var buildStats = function(callback) {
 
 var filterByType = function(principals, type) {
     var principalsOfType = [];
-    return principals.map(function(principal) {
-        if (principal.is(type)) principalsOfType.push(principal);
+    principals.forEach(function(principal) {
+        if (principal.type === type)
+            principalsOfType.push(principal);
     });
+
+    console.dir(principalsOfType);
 
     return principalsOfType;
 };
