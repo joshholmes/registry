@@ -79,6 +79,9 @@ var create = function(principal, message, callback) {
                 message.id = new mongoose.Types.ObjectId();
                 message.body_length = JSON.stringify(message.body).length;
 
+                message.tags.push('involves:' + fromPrincipal.id);
+                if (toPrincipal) message.tags.push('involves:' + toPrincipal.id);
+
                 if (message.index_until.getTime() > new Date().getTime()) message.save(function(err, message) {
                     if (err) log.error('message service create: save error: ' + err);
                 });
