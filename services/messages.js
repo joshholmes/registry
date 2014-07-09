@@ -49,6 +49,10 @@ var buildVisibility = function(message, callback) {
     });
 };
 
+var count = function(query, callback) {
+    models.Message.count(query, callback);
+};
+
 var create = function(principal, message, callback) {
 
     translate(message);
@@ -306,6 +310,7 @@ var validateAll = function(messages, callback) {
 
 module.exports = {
     clients: clients,
+    count: count,
     create: create,
     createMany: createMany,
     find: find,

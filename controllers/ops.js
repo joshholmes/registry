@@ -14,3 +14,11 @@ exports.health = function(req, res) {
                    uptime: services.global.uptime() });
     });
 };
+
+exports.stats = function(req, res) {
+    services.global.buildStats(function(err, stats) {
+        if (err) return utils.handleError(res, err);
+
+        res.send(stats);
+    });
+};

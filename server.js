@@ -80,8 +80,9 @@ mongoose.connection.once('open', function () {
             log.warn("not exposing blob endpoints because no blob provider configured (see config.js).");
         }
 
-        // health endpoint
+        // ops endpoints
         app.get(config.ops_path + '/health',                                          controllers.ops.health);
+        app.get(config.ops_path + '/stats',                                           controllers.ops.stats);
 
         // permissions endpoints
         app.get(config.permissions_path,           middleware.accessTokenAuth,        controllers.permissions.index);

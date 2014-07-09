@@ -30,6 +30,7 @@ messageSchema.add({
     body_length:    { type: Number }
 });
 
+messageSchema.index({ created_at: 1 });
 messageSchema.index({ expires: 1 });
 messageSchema.index({ from: 1 });
 messageSchema.index({ index_until: 1 });
