@@ -38,6 +38,7 @@ MESSAGE_DEFAULT_INDEXES = [
     { tags: 1 },
     { type: 1 },
     { to: 1 },
+    { ts: -1 },
     { visible_to: 1}
 ];
 
