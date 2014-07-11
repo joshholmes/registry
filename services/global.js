@@ -26,22 +26,33 @@ var buildStats = function(callback) {
         stats.devices_24h_active = filterByType(principals, 'device').length;
         stats.users_24h_active = filterByType(principals, 'user').length;
 
-        services.subscriptions.count(function(err, subscriptionsCount) {
+        services.principals.find(services.principals.servicePrincipal, {
+            created_at: {
+                $gt: measurementStart
+            }
+        }, {}, function(err, newPrincipals) {
             if (err) return callback(err);
 
-            stats.subscriptions = subscriptionsCount;
+            stats.new_principals = newPrincipals;
+            stats.new_principals_count = newPrincipals.length;
 
-            services.messages.count({
-                created_at: {
-                    $gt: measurementStart
-                }
-            }, function(err, messagesCount) {
+            services.subscriptions.count(function(err, subscriptionsCount) {
                 if (err) return callback(err);
 
-                stats.messages = messagesCount;
+                stats.subscriptions = subscriptionsCount;
 
-                return callback(null, stats);
-            })
+                services.messages.count({
+                    created_at: {
+                        $gt: measurementStart
+                    }
+                }, function(err, messagesCount) {
+                    if (err) return callback(err);
+
+                    stats.messages = messagesCount;
+
+                    return callback(null, stats);
+                })
+            });
         });
     });
 };
