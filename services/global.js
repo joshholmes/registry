@@ -51,9 +51,12 @@ var buildStats = function(callback) {
 };
 
 var filterByType = function(principals, type) {
+    var principalsOfType = [];
     return principals.map(function(principal) {
-        if (principal.is(type)) return principal;
+        if (principal.is(type)) principalsOfType.push(principal);
     });
+
+    return principalsOfType;
 };
 
 // TODO: when scaled out do we just let all the nodes do this and use the
