@@ -111,10 +111,11 @@ var createMany = function(principal, messages, callback) {
 };
 
 var find = function(principal, filter, options, callback) {
+    if (!models.Message.filterHasIndex(filter)) return callback(utils.badRequestError("filter: " + JSON.stringify(filter) + " does not have an index."));
     var translatedFilter = utils.translateQuery(filter, models.Message.fieldTranslationSpec);
     var filter = services.principals.filterForPrincipal(principal, translatedFilter);
 
-    log.debug('messages: find filter: ' + JSON.stringify(filter));
+    log.debug('final message query filter: ' + JSON.stringify(filter));
 
     models.Message.find(filter, null, options, callback);
 };

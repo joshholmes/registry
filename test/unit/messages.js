@@ -131,7 +131,7 @@ describe('messages service', function() {
 
     it('does queries with string object ids correctly', function(done) {
         var deviceIdString = fixtures.models.principals.device.id.toString();
-        services.messages.find(fixtures.models.principals.device, { $or: [ { to: deviceIdString }, { from: deviceIdString } ] }, {}, function(err, messages) {
+        services.messages.find(fixtures.models.principals.device, { from: deviceIdString }, {}, function(err, messages) {
             assert.ifError(err);
             messages.forEach(function(message) {
                assert.equal(message.to && message.to.toString() === fixtures.models.principals.device.id ||

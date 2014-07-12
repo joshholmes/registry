@@ -30,17 +30,28 @@ messageSchema.add({
     body_length:    { type: Number }
 });
 
-messageSchema.index({ created_at: 1 });
-messageSchema.index({ expires: 1 });
-messageSchema.index({ from: 1 });
-messageSchema.index({ index_until: 1 });
-messageSchema.index({ type: 1 });
-messageSchema.index({ to: 1 });
-messageSchema.index({ visible_to: 1 });
+MESSAGE_DEFAULT_INDEXES = [
+    { created_at: 1 },
+    { expires: 1 },
+    { from: 1 },
+    { index_until: 1 },
+    { tags: 1 },
+    { type: 1 },
+    { to: 1 },
+    { visible_to: 1}
+];
 
-config.message_indexes.forEach(function(index) {
+var MESSAGE_INDEXES = MESSAGE_DEFAULT_INDEXES.concat(config.message_indexes);
+
+MESSAGE_INDEXES.forEach(function(index) {
     messageSchema.index(index);
 });
+
+// add fake indexes that cover id queries (since these are indexed by default):
+MESSAGE_INDEXES = MESSAGE_INDEXES.concat([
+    { id: 1 },
+    { _id: 1 }
+]);
 
 var messageJsonTransform = function(doc, ret, options) {
     BaseSchema.baseObjectTransform(doc, ret, options);
@@ -53,6 +64,28 @@ messageSchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
 messageSchema.set('toJSON', { transform: messageJsonTransform });
 
 var Message = mongoose.model('Message', messageSchema);
+
+Message.filterHasIndex = function(filter) {
+    var filterIdx;
+    var filterKeys = Object.keys(filter);
+
+    if (filterKeys.length === 0)
+        return true;
+
+    for (filterIdx = 0; filterIdx < filterKeys.length; filterIdx++) {
+        var filterKey = filterKeys[filterIdx];
+
+        var indexesIdx;
+        for (indexesIdx = 0; indexesIdx < MESSAGE_INDEXES.length; indexesIdx++) {
+            var firstIndexKey = Object.keys(MESSAGE_INDEXES[indexesIdx])[0];
+
+            if (firstIndexKey === filterKey)
+                return true;
+        }
+    }
+
+    return false;
+};
 
 Message.fieldTranslationSpec = {
     dateFields: ['created_at', 'expires', 'index_until', 'ts'],
