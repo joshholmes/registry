@@ -77,15 +77,6 @@ describe('messages service', function() {
         });
     });
 
-    it ('rejects message without from', function(done) {
-        var message = new models.Message({ type: "_test" });
-
-        services.messages.create(fixtures.models.principals.user, message, function(err, savedMessages) {
-            assert.notEqual(err, null);
-            done();
-        });
-    });
-
     it ('handles log message by creating log entry', function(done) {
         var message = new models.Message({
             from: fixtures.models.principals.device.id,

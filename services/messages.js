@@ -49,50 +49,75 @@ var buildVisibility = function(message, callback) {
     });
 };
 
+var checkFrom = function(principal, message, callback) {
+    if (!message.from || message.from === principal.id)
+        return callback(null, new models.Permission({ authorized: true }));
+
+    services.permissions.authorize({
+        principal: principal.id,
+        principal_for: message.from,
+        action: 'admin'
+    }, message, callback);
+};
+
 var count = function(query, callback) {
     models.Message.count(query, callback);
 };
 
 var create = function(principal, message, callback) {
+    message = translate(message);
 
-    translate(message);
+    delete message.created_at;
+
+    if (!message.from) message.from = principal.id;
 
     validate(message, function(err, fromPrincipal, toPrincipal) {
         if (err) return callback(err);
 
-        var toPrincipalId = toPrincipal ? toPrincipal.id : undefined;
-
-        services.permissions.authorize({
-            principal: principal.id,
-            principal_for: toPrincipalId,
-            action: 'send'
-        }, message, function(err, permission) {
+        checkFrom(principal, message, function(err, permission) {
             if (err) return callback(err);
+
             if (!permission.authorized) {
-                log.warn('principal: ' + principal.id + ' attempted unauthorized send of message: ' + JSON.stringify(message));
+                log.warn('principal: ' + req.user.id + ' attempted to send message with from: of another principal: ' + JSON.stringify(message));
                 return callback(utils.authorizationError());
             }
 
-            buildVisibility(message, function(err, message) {
+            var toPrincipalId = toPrincipal ? toPrincipal.id : undefined;
+
+            services.permissions.authorize({
+                principal: principal.id,
+                principal_for: toPrincipalId,
+                action: 'send'
+            }, message, function(err, permission) {
                 if (err) return callback(err);
+                if (!permission.authorized) {
+                    log.warn('principal: ' + principal.id + ' attempted unauthorized send of message: ' + JSON.stringify(message));
+                    return callback(utils.authorizationError());
+                }
 
-                message.id = new mongoose.Types.ObjectId();
-                message.body_length = JSON.stringify(message.body).length;
+                buildVisibility(message, function(err, message) {
+                    if (err) return callback(err);
 
-                message.tags.push('involves:' + fromPrincipal.id);
-                if (toPrincipal) message.tags.push('involves:' + toPrincipal.id);
+                    message.id = new mongoose.Types.ObjectId();
+                    message.body_length = JSON.stringify(message.body).length;
 
-                if (message.index_until.getTime() > new Date().getTime()) message.save(function(err, message) {
-                    if (err) log.error('message service create: save error: ' + err);
-                });
+                    message.tags.push('involves:' + fromPrincipal.id);
+                    if (toPrincipal) message.tags.push('involves:' + toPrincipal.id);
 
-                services.subscriptions.publish('message', message, function(err) {
-                    if (err) log.error('message service create: publish error: ' + err);
-                    return callback(null, [message]);
-                });
+                    var theMessage = message;
 
-                if (config.archive_provider) config.archive_provider.archive(message, function(err) {
-                    if (err) log.error('messages service create: archive_provider error: ' + err);
+                    if (message.index_until.getTime() > new Date().getTime()) message.save(function(err, message) {
+                        if (err) log.error('message service create: save error: ' + err + ": " + theMessage);
+                    });
+
+                    services.subscriptions.publish('message', message, function(err) {
+                        if (err) log.error('message service create: publish error: ' + err);
+                        return callback(null, [message]);
+                    });
+
+                    if (config.archive_provider) config.archive_provider.archive(message, function(err) {
+                        if (err) log.error('messages service create: archive_provider error: ' + err);
+                    });
                 });
             });
         });
@@ -105,7 +130,7 @@ var createMany = function(principal, messages, callback) {
     async.concat(messages, function(message, cb) {
         if (!message.ts) {
             message.ts = ts;
-            // increment the timestamp of the next message (if any) by 1ms to preserve ordering.
+            // increment the timestamp of the next message (if any) by 1ms to preserve ordering in message stream.
             ts = new Date(ts.getTime() + 1);
         }
 
@@ -264,6 +289,12 @@ var translate = function(message) {
     if (message.to === 'service') {
         message.to = services.principals.servicePrincipal.id;
     }
+
+    // convert json/object to model if needed
+    if (!models.Message.isPrototypeOf(message))
+        message = new models.Message(message);
+
+    return message;
 };
 
 var validate = function(message, callback) {

@@ -5,44 +5,11 @@ var async = require('async')
   ,	services = require('../services')
   , utils = require('../utils');
 
-var checkFrom = function(req, message, callback) {
-    if (!message.from || message.from === req.user.id)
-        return callback(null, new models.Permission({ authorized: true }));
-
-    services.permissions.authorize({
-        principal: req.user.id,
-        principal_for: message.from,
-        action: 'admin'
-    }, message, callback);
-};
-
 exports.create = function(req, res) {
-    async.concat(req.body, function(messageObject, callback) {
-        delete messageObject.created_at;
-
-        // translate constants to ObjectIds, apply defaults.
-        services.messages.translate(messageObject);
-
-        var message = new models.Message(messageObject);
-        if (!message.from) message.from = req.user.id;
-
-        checkFrom(req, message, function(err, permission) {
-            if (err) return callback(err);
-            if (!permission.authorized) {
-                log.warn('principal: ' + req.user.id + ' attempted to send message with from: of another principal: ' + JSON.stringify(message));
-                return callback(utils.authorizationError());
-            }
-
-            return callback(null, [message]);
-        });
-    }, function (err, messages) {
+    services.messages.createMany(req.user, req.body, function(err, messages) {
         if (err) return utils.handleError(res, err);
 
-        services.messages.createMany(req.user, messages, function(err, messages) {
-            if (err) return utils.handleError(res, err);
-
-            res.send({ "messages": messages });
-        });
+        res.send({ "messages": messages });
     });
 };
 
