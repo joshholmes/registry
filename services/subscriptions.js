@@ -82,8 +82,15 @@ var attachSubscriptionsEndpoint = function() {
             });
         });
 
-        // TODO: add ability to create messages through the socket connection.
-        //socket.on('message', function(message) {});
+        // Expose message endpoint through socket connection.
+        socket.on('messages', function(messageBundle) {
+            services.messages.createMany(socket.handshake.principal, messageBundle.messages, function(err, messages) {
+                socket.emit(messageBundle.uniqueId, {
+                    error: err,
+                    messages: messages
+                });
+            });
+        });
     });
 };
 

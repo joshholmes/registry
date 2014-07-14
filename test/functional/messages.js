@@ -90,6 +90,55 @@ describe('messages endpoint', function() {
 
     });
 
+    it('should be able to create a message via socket.io', function(done) {
+        var socket = io.connect(config.subscriptions_endpoint, {
+            query: "auth=" + encodeURIComponent(fixtures.models.accessTokens.device.token),
+            'force new connection': true
+        });
+
+        var subscriptionId = 'sub1';
+        socket.emit('start', {
+            id: subscriptionId,
+            filter: {
+                type: '_messageSubscriptionTest'
+            },
+            type: 'message'
+        });
+
+        var messageBundle = {
+            uniqueId: 'ABC123',
+            messages: [
+                {
+                    type: '_custom',
+                    body: {
+                        seq: 1
+                    }
+                },
+                {
+                    type: '_custom',
+                    body: {
+                        seq: 2
+                    }
+                }
+            ]
+        };
+
+        // give the subscription time to setup 'messages' channel.
+        setTimeout(function() {
+            socket.emit('messages', messageBundle);
+        }, 200);
+
+        socket.on(messageBundle.uniqueId, function(response) {
+            assert(!response.error);
+
+            assert.equal(response.messages.length, 2);
+            assert(response.messages[0].id);
+            assert.equal(response.messages[0].body.seq, 1);
+
+            done();
+        });
+    });
+
     it('should create and fetch a message', function(done) {
         var subscriptionPassed = false
           , restPassed = false
