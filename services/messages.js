@@ -64,10 +64,11 @@ var count = function(query, callback) {
     models.Message.count(query, callback);
 };
 
-var create = function(principal, message, callback) {
-    message = translate(message);
+var create = function(principal, msg, callback) {
+    var message = translate(msg);
 
     delete message.created_at;
+    message._id = new mongoose.Types.ObjectId();
 
     if (!message.from) message.from = principal.id;
 
@@ -104,10 +105,8 @@ var create = function(principal, message, callback) {
                     message.tags.push('involves:' + fromPrincipal.id);
                     if (toPrincipal) message.tags.push('involves:' + toPrincipal.id);
 
-                    var theMessage = message;
-
                     if (message.index_until.getTime() > new Date().getTime()) message.save(function(err, message) {
-                        if (err) log.error('message service create: save error: ' + err + ": " + theMessage);
+                        if (err) log.error('message service create: save error: ' + err);
                     });
 
                     services.subscriptions.publish('message', message, function(err) {
