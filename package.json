@@ -6,7 +6,7 @@
     "url": "https://github.com/nitrogenjs/service.git"
   },
   "author": "Tim Park <timfpark@gmail.com>",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "licenses": [
     {
       "type": "Apache",
@@ -27,12 +27,12 @@
     "mongodb": "~1.4.3",
     "mongoose": "~3.8.11",
     "newrelic": "~1.7.4",
-    "nitrogen": "~0.1.327",
-    "nitrogen-camera": "~0.1.18",
-    "nitrogen-light": "~0.1.13",
-    "nitrogen-reactor": "~0.1.19",
-    "nitrogen-sensor": "~0.1.2",
-    "nitrogen-switch": "~0.1.10",
+    "nitrogen": "~0.2",
+    "nitrogen-camera": "~0.2",
+    "nitrogen-light": "~0.2",
+    "nitrogen-reactor": "~0.2",
+    "nitrogen-sensor": "~0.2",
+    "nitrogen-switch": "~0.2",
     "passport": "~0.2",
     "passport-http-bearer": "~1.0",
     "passport-local": "~1.0",
