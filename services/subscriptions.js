@@ -187,10 +187,8 @@ var janitor = function(callback) {
     var cutoffTime = config.pubsub_provider.staleSubscriptionCutoff();
 
     find(services.principals.servicePrincipal, {
-        $and: [
-            { last_receive: { $lt: cutoffTime } },
-            { permanent: false }
-        ]
+        last_receive: { $lt: cutoffTime },
+        permanent: false
     }, function(err, subscriptions) {
         log.info('subscriptions: janitoring ' + subscriptions.length + ' abandoned session subscriptions from before: ' + cutoffTime.toString());
         async.each(subscriptions, remove, callback);
