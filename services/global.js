@@ -13,7 +13,6 @@ var buildStats = function(callback) {
 
     var stats = {};
 
-    console.dir(measurementStart);
     // measure total
     services.principals.find(services.principals.servicePrincipal, {
         last_connection: {
@@ -63,8 +62,6 @@ var filterByType = function(principals, type) {
         if (principal.type === type)
             principalsOfType.push(principal);
     });
-
-    console.dir(principalsOfType);
 
     return principalsOfType;
 };

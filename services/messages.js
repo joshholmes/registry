@@ -110,7 +110,7 @@ var create = function(principal, msg, callback) {
                     });
 
                     services.subscriptions.publish('message', message, function(err) {
-                        if (err) log.error('message service create: publish error: ' + err);
+                        if (err) log.error('message service create: publish error: ' + JSON.stringify(err));
                         return callback(null, [message]);
                     });
 
