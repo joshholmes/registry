@@ -36,6 +36,32 @@ var legacyAuthentication = function(authBody, callback) {
     }
 };
 
+var accessTokenFor = function(authzPrincipal, principalId, options, callback) {
+
+    findByIdCached(services.principals.servicePrincipal, principalId, function(err, accessTokenPrincipal) {
+        if (err) return callback(err);
+        if (!principalId) return callback(utils.notFoundError());
+
+        services.permissions.authorize({
+            principal: authzPrincipal.id,
+            principal_for: principalId,
+            action: 'admin'
+        }, accessTokenPrincipal, function(err, permission) {
+            if (err) return callback(err);
+            if (!permission.authorized)  {
+                return callback(utils.authorizationError('Principal ' + authzPrincipal.id + ' does not have an admin permission for this principal.'));
+            }
+
+            services.accessTokens.create(accessTokenPrincipal, options, function(err, accessToken) {
+                if (err) return callback(err);
+
+                log.info("principal service: principal " + authzPrincipal.id + " created access token for principal: " + principalId + " via permission: " + permission);
+                callback(null, accessToken);
+            });
+        });
+    });
+};
+
 var authenticateUser = function(email, password, callback) {
     findByEmail(services.principals.servicePrincipal, email, function(err, principal) {
         if (err) return callback(err);
@@ -752,6 +778,7 @@ var verifySignature = function(nonceString, signature, callback) {
 };
 
 module.exports = {
+    accessTokenFor: accessTokenFor,
     authenticateUser: authenticateUser,
     changePassword: changePassword,
     create: create,

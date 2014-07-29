@@ -101,6 +101,7 @@ mongoose.connection.once('open', function () {
         app.post(config.principals_path + '/user/auth',                               controllers.principals.authenticateUser);
         app.post(config.principals_path,                                              controllers.principals.create);
 
+        app.post(config.principals_path + '/accesstoken', middleware.accessTokenAuth, controllers.principals.accessTokenFor);
         app.post(config.principals_path + '/impersonate', middleware.accessTokenAuth, controllers.principals.impersonate);
         app.put(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.update);
         app.delete(config.principals_path + '/:id', middleware.accessTokenAuth,       controllers.principals.remove);

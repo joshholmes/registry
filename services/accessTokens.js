@@ -19,11 +19,21 @@ var clearTokenCacheEntry = function(token, callback) {
     config.cache_provider.del('accessTokens', cacheKey, callback);
 };
 
-var create = function(principal, callback) {
+var create = function(principal, options, callback) {
     log.debug('accesstokens: creating accesstoken for principal: ' + principal.id);
 
+    if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+    }
+
+    var expiration = moment().add('days', config.access_token_lifetime).toDate();
+    if (options.expires) {
+        expiration = new Date(options.expires);
+    }
+
     var accessToken = new models.AccessToken({
-        expires_at: moment().add('days', config.access_token_lifetime).toDate(),
+        expires_at: expiration,
         principal: principal
     });
 

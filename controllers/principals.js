@@ -20,6 +20,17 @@ exports.legacyAuthentication = function(req, res) {
     });
 };
 
+exports.accessTokenFor = function(req, res) {
+    var options = req.body;
+    var principalId = options.principal_id;
+
+    services.principals.accessTokenFor(req.user, principalId, options, function(err, accessToken) {
+        if (err) return utils.handleError(res, err);
+
+        res.send({ accessToken: accessToken });
+    });
+};
+
 exports.authenticateUser = function(req, res) {
     var email = req.body.email;
     var password = req.body.password;
