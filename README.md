@@ -87,7 +87,7 @@ If at any time you run into issues, please file an issue with this project. It i
 
 1. Clone or fork this repo: `https://github.com/nitrogenjs/service`
 2. Fetch and install its node.js dependencies: `npm install`
-3. Install mongodb locally.
+3. Install mongodb and redis locally.
 4. Edit `config.js` to change defaults as necessary.
 5. `node server.js`
 
