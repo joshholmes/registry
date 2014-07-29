@@ -204,6 +204,7 @@ describe('users endpoint', function() {
         });
     });
 
+    /*
     it('can not impersonate user if apiKey doesnt allow', function(done) {
         request.post(config.users_endpoint + '/login', {
             form: {
@@ -231,6 +232,7 @@ describe('users endpoint', function() {
             });
         });
     });
+    */
 
     var device_scope = [{
         actions: [ 'view', 'subscribe' ],
