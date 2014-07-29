@@ -47,7 +47,7 @@
     "redis": "~0.10.3",
     "sendgrid": "~1.1.0",
     "winston-loggly": "~1.0",
-    "windston-log4stuff": "~0.1"
+    "winston-log4stuff": "~0.1"
   },
   "devDependencies": {
     "mocha": "~1.20.1",
