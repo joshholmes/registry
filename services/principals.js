@@ -695,8 +695,9 @@ var validate = function(principal, callback) {
     }
 
     if (principal.is('user')) {
-        if (!principal.email) return callback(utils.badRequestError("User principal must have email"));
-        if (!principal.password) return callback(utils.badRequestError("User principal must have password"));
+        if (!principal.email) return callback(utils.badRequestError("User must have email"));
+        if (!principal.password) return callback(utils.badRequestError("User must have password"));
+        if (principal.password.length < config.minimum_password_length) return callback(utils.badRequestError("User password must be at least " + config.minimum_password_length + " characters."));
     } else if (!principal.is('service')) {
         if (!principal.api_key) return callback(utils.badRequestError("Non-user principals must have api_key"));
         if (!principal.public_key) return callback(utils.badRequestError("Non-user principal must have public_key"));

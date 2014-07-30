@@ -96,6 +96,7 @@ config.password_hash_iterations = 10000;
 config.password_hash_length = 128;
 config.salt_length_bytes = 64;
 config.reset_password_length = 10;
+config.minimum_password_length = 8;
 
 config.auth_code_bytes = 16;
 config.api_key_bytes = 16;
