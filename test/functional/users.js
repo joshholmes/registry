@@ -204,8 +204,7 @@ describe('users endpoint', function() {
         });
     });
 
-    /*
-    it('can not impersonate user if apiKey doesnt allow', function(done) {
+    xit('can not impersonate user if apiKey doesnt allow', function(done) {
         request.post(config.users_endpoint + '/login', {
             form: {
                 email: fixtures.models.principals.user.email,
@@ -232,7 +231,6 @@ describe('users endpoint', function() {
             });
         });
     });
-    */
 
     var device_scope = [{
         actions: [ 'view', 'subscribe' ],
