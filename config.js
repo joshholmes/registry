@@ -1,5 +1,6 @@
 var log = require('./log')
   , Loggly = require('winston-loggly').Loggly
+  , Log4stuff = require('winston-log4stuff').Log4stuff
   , providers = require('./providers')
   , winston = require('winston');
 
@@ -205,6 +206,14 @@ if (process.env.LOGGLY_SUBDOMAIN && process.env.LOGGLY_INPUT_TOKEN &&
 
 log.remove(winston.transports.Console);
 log.add(winston.transports.Console, { colorize: true, timestamp: true, level: 'info' });
+
+// You can use Log4Stuff's service by adding this environment variable
+var log4stuffAppId = process.env.LOG4STUFF_APPLICATION_ID;
+if (log4stuffAppId) {
+    log.add(winston.transports.Log4stuff, {applicationId: log4stuffAppId});
+
+    console.log('Log4stuff enabled at http://log4stuff.com/app/' + log4stuffAppId);
+}
 
 // if you'd like additional indexes applied to messages at the database layer, you can specify them here.
 config.message_indexes = [
