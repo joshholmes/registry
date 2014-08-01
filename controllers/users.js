@@ -48,6 +48,14 @@ var authorize = function(req, res) {
     });
 };
 
+var englishActionMappings = {
+    admin: "have administrative privileges",
+    impersonate: "impersonate",
+    send: "send messages to",
+    subscribe: "receive messages from",
+    view: "view and query metadata"
+};
+
 var populateClauses = function(req, scope, callback) {
     if (typeof scope === 'string') {
         try {
@@ -62,6 +70,30 @@ var populateClauses = function(req, scope, callback) {
             if (err) return callback(err);
 
             clause.principals = clausePrincipals;
+
+            clause.actionsEnglish = "";
+
+            if (clause.actions.length > 1) {
+                for (var idx = 0; idx < clause.actions.length - 1; idx++) {
+                    var action = clause.actions[idx];
+                    clause.actionsEnglish += englishActionMappings[action];
+
+                    if (clause.actions.length > 2)
+                        clause.actionsEnglish += ', ';
+                    else
+                        clause.actionsEnglish += ' ';
+                }
+
+                clause.actionsEnglish += 'and ';
+            }
+
+            if (clause.actions.length > 0) {
+                var action = clause.actions[clause.actions.length - 1];
+                log.error('action: ' + action + ' mapping: ' + englishActionMappings[action]);
+
+                clause.actionsEnglish += englishActionMappings[action];
+            }
+
             return clauseCallback(null, [clause]);
         });
     }, callback);
@@ -264,8 +296,11 @@ var redirectWithSession = function(res, user, redirectUri) {
     services.accessTokens.findOrCreateToken(user, function (err, accessToken) {
         if (err) return redirectWithError(res, redirectUri, err);
 
-        res.redirect(redirectUri + "?principal=" + encodeURIComponent(JSON.stringify(user.toObject())) +
-            "&accessToken=" + encodeURIComponent(JSON.stringify(accessToken.toObject())));
+        var userJSON = user.toJSON();
+        console.dir(userJSON);
+
+        res.redirect(redirectUri + "?principal=" + encodeURIComponent(JSON.stringify(user.toJSON())) +
+            "&accessToken=" + encodeURIComponent(JSON.stringify(accessToken.toJSON())));
     });
 };
 

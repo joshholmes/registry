@@ -306,9 +306,10 @@ var findByIdCached = function(authzPrincipal, id, callback) {
 };
 
 var findById = function(authzPrincipal, id, callback) {
+
     models.Principal.findOne(filterForPrincipal(authzPrincipal, { "_id": id }), function(err, principal) {
         if (err) return callback(err);
-        if (!principal) return callback(null, undefined);
+        if (!principal) return callback(null);
 
         var cacheKey = cacheKeyPrincipalId(id);
 
