@@ -167,7 +167,24 @@ var renderCreateForm = function(res, error) {
 };
 
 var createForm = function(req, res) {
-    return renderCreateForm(res);
+    if (config.max_new_users_per_day) {
+        var measurementStart = moment().subtract('days', 1).toDate();
+
+        services.principals.find(services.principals.servicePrincipal, {
+            type: 'user',
+            created_at: {
+                $gt: measurementStart
+            }
+        }, function(err, principals) {
+            if (principals.length > config.max_new_users_per_day) {
+                return renderLoginForm(res, "Cannot create a new user right now due to overwhelming demand. Please try again later.");
+            } else {
+                return renderCreateForm(res);
+            }
+        });
+    } else {
+        return renderCreateForm(res);
+    }
 };
 
 var deleteAccount = function(req, res) {
