@@ -132,7 +132,7 @@ config.refresh_token_threshold = 0.1;
 //
 if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
     console.log('archive_provider: using Azure Table storage.');
-    config.archive_provider = new providers.azure.AzureArchiveProvider(config);
+    config.archive_providers = [ new providers.azure.AzureArchiveProvider(config) ];
 
     console.log('blob_provider: using Azure Blob storage.');
     config.blob_provider = new providers.azure.AzureBlobProvider(config);
@@ -140,7 +140,7 @@ if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
     config.images_endpoint = config.blob_provider.base_endpoint + "/images";
 } else {
     console.log('archive_provider: using local storage.');
-    config.archive_provider = new providers.local.NullArchiveProvider(config);
+    config.archive_providers = [ new providers.local.NullArchiveProvider(config) ];
 
     console.log('blob_provider: using local storage.');
     config.blob_storage_path = './storage';

@@ -114,9 +114,13 @@ var create = function(principal, msg, callback) {
                         return callback(null, [message]);
                     });
 
-                    if (config.archive_provider) config.archive_provider.archive(message, function(err) {
-                        if (err) log.error('messages service create: archive_provider error: ' + err);
-                    });
+                    if (config.archive_providers) {
+                        async.each(config.archive_providers, function(archiveProvider, providerCallback) {
+                            archiveProvider.archive(message, providerCallback);
+                        }, function(err) {
+                            if (err) log.error('messages service create: archive_provider error: ' + err);
+                        });
+                    }
                 });
             });
         });
