@@ -14,6 +14,31 @@ describe('principals endpoint', function() {
     it('should create and fetch a device principal', function(done) {
         var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
 
+        var subscribeFinished = false;
+        var restFinished = false;
+        var isDone = false;
+
+        var socket = io.connect(config.subscriptions_endpoint, {
+            query: "auth=" + encodeURIComponent(fixtures.models.accessTokens.user.token),
+            'force new connection': true
+        });
+
+        var subscriptionId = 'p1';
+        socket.emit('start', { id: subscriptionId, filter: { }, type: 'principal' });
+
+        socket.on(subscriptionId, function(principal) {
+            assert.equal(principal.type, 'device');
+            assert.equal(principal.name, 'createTest');
+
+            subscribeFinished = true;
+            socket.emit('stop', { id: subscriptionId });
+
+            if (subscribeFinished && restFinished && !isDone) {
+                isDone = true;
+                done();
+            }
+        });
+
         request.post(config.principals_endpoint, {
             json: {
                 type: 'device',
@@ -59,7 +84,11 @@ describe('principals endpoint', function() {
                 assert.notEqual(get_body.principal.last_connection, undefined);
                 assert.notEqual(get_body.principal.last_ip, undefined);
 
-                done();
+                restFinished = true;
+                if (restFinished && subscribeFinished && !isDone) {
+                    isDone = true;
+                    done();
+                }
               });
         });
     });

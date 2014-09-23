@@ -132,11 +132,15 @@ var create = function(principal, callback) {
                         findByIdCached(services.principals.servicePrincipal, principal.id, function(err, updatedPrincipal) {
                             if (err) return callback(err);
 
-                            if (principal.is('reactor')) {
-                                return initializeIfFirstReactor(updatedPrincipal, callback);
-                            } else {
-                                return callback(err, updatedPrincipal);
-                            }
+                            notifySubscriptions(updatedPrincipal, function(err) {
+                                if (err) return callback(err);
+
+                                if (principal.is('reactor')) {
+                                    return initializeIfFirstReactor(updatedPrincipal, callback);
+                                } else {
+                                    return callback(err, updatedPrincipal);
+                                }
+                            });
                         });
                     });
                 });
@@ -623,7 +627,12 @@ var update = function(authorizingPrincipal, id, updates, callback) {
 
                     findByIdCached(authorizingPrincipal, id, function(err, updatedPrincipal) {
                         if (err) return callback(err);
-                        if (callback) return callback(err, updatedPrincipal);
+
+                        notifySubscriptions(updatedPrincipal, function(err) {
+                            if (err) return callback(err);
+
+                            if (callback) return callback(err, updatedPrincipal);
+                        });
                     });
                 });
             });

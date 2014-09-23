@@ -238,7 +238,6 @@ describe('subscriptions service', function() {
         });
     }
 
-
     it('running the janitor should remove abandoned session subscriptions', function(done) {
         var permSub = new models.Subscription({
             assignment: 'localhost',
