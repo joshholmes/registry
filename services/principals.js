@@ -613,6 +613,8 @@ var update = function(authorizingPrincipal, id, updates, callback) {
             if (err) return callback(err);
             if (!permission.authorized) return callback(utils.authorizationError(permission));
 
+            updates.updated_at = new Date();
+
             models.Principal.update({ _id: id }, { $set: updates }, function (err, updateCount) {
                 if (err) return callback(err);
 

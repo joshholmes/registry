@@ -6,6 +6,7 @@ var BaseSchema = function() {
 
   // base fields used by all models
   this.add({ created_at: { type: Date, default: Date.now } });
+  this.add({ updated_at: { type: Date, default: Date.now } });
 };
 
 util.inherits(BaseSchema, mongoose.Schema);

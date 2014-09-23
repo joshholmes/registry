@@ -234,4 +234,19 @@ describe('principals service', function() {
             });
         });
     });
+
+    it('can find a device by created_at or updated_at', function(done) {
+        services.principals.find(services.principals.servicePrincipal, { created_at: { $gt: new Date(1900, 1, 1) } }, function(err, principals) {
+            assert(!err);
+            assert(principals.length > 1);
+
+            services.principals.find(services.principals.servicePrincipal, { updated_at: { $gt: new Date(1900, 1, 1) } }, function(err, principals) {
+                console.log(err);
+                assert(!err);
+                assert(principals.length > 1);
+
+                done();
+            });
+        });
+    });
 });

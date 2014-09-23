@@ -47,6 +47,7 @@ principalSchema.index({ last_ip: 1 });
 principalSchema.index({ last_connection: 1 });
 principalSchema.index({ tags: 1 });
 principalSchema.index({ type: 1 });
+principalSchema.index({ updated_at: 1 });
 principalSchema.index({ visible_to: 1 });
 
 principalSchema.virtual('password').set(function(value) { this._password = value; });
