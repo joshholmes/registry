@@ -156,8 +156,15 @@ mongoose.connection.once('open', function () {
         app.post(config.users_path + '/decision', ensureLoggedIn, controllers.users.decision);
 
         // client libraries
-        app.get('/client/nitrogen.js', function(req, res) { res.send(services.messages.clients['nitrogen.js']); });
-        app.get('/client/nitrogen-min.js', function(req, res) { res.send(services.messages.clients['nitrogen-min.js']); });
+        app.get('/client/nitrogen.js', function(req, res) {
+            res.contentType('application/javascript');
+            res.send(services.messages.clients['nitrogen.js']);
+        });
+
+        app.get('/client/nitrogen-min.js', function(req, res) {
+            res.contentType('application/javascript');
+            res.send(services.messages.clients['nitrogen-min.js']);
+        });
 
         // static files (static/ is mapped to the root API url for any path not already covered above)
         app.use(express.static(path.join(__dirname, '/static')));
