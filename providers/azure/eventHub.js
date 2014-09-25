@@ -42,10 +42,9 @@ function AzureEventHubProvider(config) {
 AzureEventHubProvider.prototype.archive = function(message, callback) {
     var messageObject = message.toObject();
 
-    var publisher = messageObject.from;
+    var publisher = (messageObject.from && messageObject.from.name) ? messageObject.from.name : null;
 
-    this.eventHubClient.sendMessage(JSON.stringify(messageObject), publisher,
-        callback, callback);
+    this.eventHubClient.sendMessage(JSON.stringify(messageObject), publisher, callback);
 };
 
 /**
@@ -54,7 +53,7 @@ AzureEventHubProvider.prototype.archive = function(message, callback) {
  * @param {Function(error, statusCode)} callback    Callback, error evaluates to true on failure.
  */
 AzureEventHubProvider.prototype.initialize = function(callback) {
-    this.eventHubClient.createHubIfNotExists(callback, callback);
+    this.eventHubClient.createHubIfNotExists(callback);
 };
 
 module.exports = AzureEventHubProvider;
