@@ -1,5 +1,6 @@
 var assert = require('assert')
     , config = require('../../../config')
+    , models = require('../../../models')
     , providers = require('../../../providers')
     , services = require('../../../services');
 
