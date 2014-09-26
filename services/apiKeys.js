@@ -89,6 +89,16 @@ var createUnassigned = function(callback) {
     services.apiKeys.create(services.principals.servicePrincipal, new models.ApiKey({ type: 'user', name: 'User' }), callback);
 };
 
+var createAdminKey = function(callback) {
+    log.info('apikeys service: creating unassigned key.');
+    services.apiKeys.create(services.principals.servicePrincipal, new models.ApiKey({
+        type: 'app',
+        name: 'Web Admin',
+        key: process.env.ADMIN_API_KEY,
+        redirect_uri: process.env.ADMIN_REDIRECT_ROOT
+    }), callback);
+};
+
 var find = function(query, options, callback) {
     models.ApiKey.find(query, null, options, callback);
 };
@@ -119,6 +129,15 @@ var initialize = function(callback) {
             return callback();
         }
     });
+
+    if (process.env.ADMIN_API_KEY && process.env.ADMIN_REDIRECT_ROOT) {
+        models.ApiKey.find({ name: process.env.ADMIN_API_KEY }, {}, function(err, apiKeys) {
+            if (err) return callback(err);
+            if (apiKeys.length !== 0) return callback();
+
+            createAdminKey(callback);
+        });
+    }
 };
 
 var remove = function(query, callback) {
