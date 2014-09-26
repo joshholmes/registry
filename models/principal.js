@@ -15,6 +15,9 @@ principalSchema.add({
     last_ip:         { type: String },
     last_connection: { type: Date, default: Date.now },
 
+    // TODO: re-evaluate if this makes sense
+    network:         { type: String },
+
     tags:            [{ type: String }],
 
 // for users, this is their api_key. for others, this is the api_key that authorized their creation.
