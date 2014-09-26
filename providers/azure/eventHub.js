@@ -23,14 +23,12 @@ function AzureEventHubProvider(config) {
         return;
     }
 
-    var retryOperations = new azure.ExponentialRetryPolicyFilter();
-
     this.eventHubClient = eventhub.restClient(
         azure_servicebus_namespace,
         azure_eventhub_name,
         azure_shared_access_key_name,
         azure_shared_access_key
-    ).withFilter(retryOperations);
+    );
 }
 
 /**
