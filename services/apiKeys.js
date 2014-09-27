@@ -92,10 +92,11 @@ var createUnassigned = function(callback) {
 var createAdminKey = function(callback) {
     log.info('apikeys service: creating unassigned key.');
     services.apiKeys.create(services.principals.servicePrincipal, new models.ApiKey({
-        type: 'app',
-        name: 'Web Admin',
+        capabilities: ["impersonate"],
         key: process.env.ADMIN_API_KEY,
-        redirect_uri: process.env.ADMIN_REDIRECT_ROOT
+        name: 'Web Admin',
+        redirect_uri: process.env.ADMIN_REDIRECT_ROOT,
+        type: 'app'
     }), callback);
 };
 
