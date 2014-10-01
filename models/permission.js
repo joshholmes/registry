@@ -29,7 +29,7 @@ permissionSchema.path('authorized').validate(function (value) {
 }, 'Permission must have valid authorized field.');
 
 permissionSchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
-permissionSchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
+permissionSchema.set('toJSON', { transform: BaseSchema.baseJsonTransform });
 
 var Permission = mongoose.model('Permission', permissionSchema);
 

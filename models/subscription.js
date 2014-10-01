@@ -21,7 +21,7 @@ subscriptionSchema.index({ principal: 1 });
 subscriptionSchema.index({ name: 1 });
 
 subscriptionSchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
-subscriptionSchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
+subscriptionSchema.set('toJSON', { transform: BaseSchema.baseJsonTransform });
 
 subscriptionSchema.virtual('clientId').set(function(value) { this._clientId = value; });
 subscriptionSchema.virtual('clientId').get(function() { return this._clientId; });

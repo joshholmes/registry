@@ -21,7 +21,7 @@ blobSchema.add({
 blobSchema.index({ link: 1 });
 
 blobSchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
-blobSchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
+blobSchema.set('toJSON', { transform: BaseSchema.baseJsonTransform });
 
 var Blob = mongoose.model('Blob', blobSchema);
 

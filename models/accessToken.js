@@ -7,8 +7,8 @@ accessTokenSchema.add({
 //  From BaseSchema:
 //  created_at:     { type: Date, default: Date.now },
 
-    principal:      { type: Schema.Types.ObjectId, ref: 'Principal' },
     expires_at:     { type: Date },
+    principal:      { type: Schema.Types.ObjectId, ref: 'Principal' },
     token:          { type: String }
 });
 
@@ -17,7 +17,7 @@ accessTokenSchema.index({ expires_at: 1 });
 accessTokenSchema.index({ token: 1 });
 
 accessTokenSchema.set('toObject', { transform: BaseSchema.baseObjectTransform });
-accessTokenSchema.set('toJSON', { transform: BaseSchema.baseObjectTransform });
+accessTokenSchema.set('toJSON', { transform: BaseSchema.baseJsonTransform });
 
 var AccessToken = mongoose.model('AccessToken', accessTokenSchema);
 

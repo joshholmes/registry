@@ -55,7 +55,7 @@ MESSAGE_INDEXES = MESSAGE_INDEXES.concat([
 ]);
 
 var messageJsonTransform = function(doc, ret, options) {
-    BaseSchema.baseObjectTransform(doc, ret, options);
+    BaseSchema.baseJsonTransform(doc, ret, options);
 
     delete ret.body_length;
     delete ret.visible_to;

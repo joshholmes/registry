@@ -57,7 +57,7 @@ principalSchema.virtual('password').set(function(value) { this._password = value
 principalSchema.virtual('password').get(function() { return this._password; });
 
 var principalJsonTransform = function(doc, ret, options) {
-    BaseSchema.baseObjectTransform(doc, ret, options);
+    BaseSchema.baseJsonTransform(doc, ret, options);
 
     delete ret.salt;
     delete ret.password_hash;
