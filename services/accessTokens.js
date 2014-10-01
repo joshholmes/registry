@@ -1,6 +1,7 @@
 var async = require('async')
   , config = require('../config')
   , crypto = require('crypto')
+  , jwt = require('jsonwebtoken')
   , log = require('../log')
   , models = require('../models')
   , moment = require('moment')
@@ -37,12 +38,11 @@ var create = function(principal, options, callback) {
         principal: principal
     });
 
-    crypto.randomBytes(config.access_token_bytes, function(err, tokenBuf) {
-        if (err) return callback(err);
+    accessToken.token = jwt.sign({
+        iss: principal.id
+    }, config.access_token_signing_key, { expiresInMinutes: 60 * 24 * config.access_token_lifetime });
 
-        accessToken.token = tokenBuf.toString('base64');
-        accessToken.save(callback);
-    });
+    accessToken.save(callback);
 };
 
 var find = function(query, options, callback) {

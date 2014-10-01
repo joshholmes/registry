@@ -24,6 +24,7 @@
     "express": "~3.5.3",
     "express-handlebars": "~1.0.1",
     "hiredis": "~0.1.16",
+    "jsonwebtoken": "*",
     "moment": "~2.7.0",
     "mongodb": "~1.4.3",
     "mongoose": "~3.8.11",

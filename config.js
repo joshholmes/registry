@@ -18,6 +18,12 @@ if (process.env.NODE_ENV === "production") {
         internal_port: process.env.PORT,
         web_admin_uri: "https://admin.nitrogen.io"
     };
+
+    if (!process.env.ACCESS_TOKEN_SIGNING_KEY) {
+        console.log('FATAL ERROR: you must provide an ACCESS_TOKEN_SIGNING_KEY as an environmental variable.');
+        process.exit(0);
+    }
+
 } else if (process.env.NODE_ENV === "test") {
     config = {
         external_port: 3050,
@@ -115,6 +121,7 @@ config.device_secret_bytes = 128;
 
 config.access_token_bytes = 32;
 config.access_token_lifetime = 1; // days
+config.access_token_signing_key = process.env.ACCESS_TOKEN_SIGNING_KEY || '12345678901234567890123456789012';
 
 config.blob_cache_lifetime = 2592000; // seconds
 
