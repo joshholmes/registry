@@ -1,10 +1,14 @@
-var log = require('../log')
+var config = require('../config')
+  , log = require('../log')
   , passport = require('passport')
   , services = require('../services')
   , utils = require('../utils');
 
 var tokenNearExpirationCheck = function(req, res, callback) {
-    if (!services.accessTokens.isCloseToExpiration(req.user.accessToken)) return callback();
+    var secondsToExpiration = req.user.jwtToken - (Date.now() / 1000);
+
+    if (secondsToExpiration > config.refresh_token_threshold * config.access_token_lifetime * 24 * 60 * 60)
+        return callback();
 
     services.accessTokens.create(req.user, function(err, accessToken) {
         if (err) return callback(err);
