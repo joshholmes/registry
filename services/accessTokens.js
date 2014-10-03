@@ -137,30 +137,18 @@ var removeByPrincipal = function(principal, callback) {
 };
 
 var verify = function(token, done) {
-    findByTokenCached(token, function(err, accessToken) {
+    jwt.verify(token, config.access_token_signing_key, function(err, jwtToken) {
         if (err) return done(err);
 
-        if (!accessToken) {
-            var msg = "Access token " + token + " not found.";
-            log.error(msg);
-            return done(msg, false);
-        }
-
-        if (accessToken.expired()) {
-            var msg = "Access token has expired.";
-            log.error(msg);
-            return done(msg, false);
-        }
-
-        services.principals.findByIdCached(services.principals.servicePrincipal, accessToken.principal, function(err, principal) {
+        services.principals.findByIdCached(services.principals.servicePrincipal, jwtToken.iss, function(err, principal) {
             if (err) return done(err);
             if (!principal) {
-                var msg = "AccessToken service.verify: principal for accessToken " + accessToken.id + " not found.";
+                var msg = "AccessToken service.verify: principal for accessToken " + token + " with id " + jwtToken.iss + " not found.";
                 log.error(msg);
                 return done(new Error(msg));
             }
 
-            principal.accessToken = accessToken;
+            principal.jwtToken = jwtToken;
             done(null, principal);
         });
     });
