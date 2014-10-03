@@ -50,7 +50,7 @@ var buildVisibility = function(message, callback) {
 };
 
 var checkFrom = function(principal, message, callback) {
-    if (!message.from || message.from === principal.id)
+    if (!message.from || message.from.equals(principal.id))
         return callback(null, new models.Permission({ authorized: true }));
 
     services.permissions.authorize({
@@ -79,7 +79,7 @@ var create = function(principal, msg, callback) {
             if (err) return callback(err);
 
             if (!permission.authorized) {
-                log.warn('principal: ' + req.user.id + ' attempted to send message with from: of another principal: ' + JSON.stringify(message));
+                log.warn('principal: ' + principal.id + ' attempted to send message with from: of another principal: ' + JSON.stringify(message));
                 return callback(utils.authorizationError());
             }
 
