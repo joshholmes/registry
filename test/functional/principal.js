@@ -45,6 +45,17 @@ describe('principals endpoint', function() {
                 tags: ['executes:cameraCommand', 'sends:image'],
                 api_key: fixtures.models.apiKeys.user.key,
                 public_key: keys.toPublicPem().toString('base64'),
+
+                sensors: [ {
+                    id: 1,
+                    name: 'switch',
+                    executes: 'switchCommand'
+                }, {
+                    id: 2,
+                    name: 'temperature',
+                    sends: 'temperature'
+                }],
+
                 name: "createTest"
             }
         }, function(post_err, post_resp, post_body) {
@@ -59,6 +70,7 @@ describe('principals endpoint', function() {
             assert(post_body.principal.tags.indexOf('sends:image') !== -1);
 
             assert.equal(post_body.principal.name, "createTest");
+            assert.equal(post_body.principal.sensors.length, 2);
             assert.ok(Date.now() < Date.parse(post_body.accessToken.expires_at));
 
             assert.equal(post_body.principal.id, post_body.accessToken.principal);

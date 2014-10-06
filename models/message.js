@@ -21,6 +21,8 @@ messageSchema.add({
     to:             { type: Schema.Types.ObjectId, ref: 'Principal' }, // principal message is to (optional)
     response_to:    [{ type: Schema.Types.ObjectId, ref: 'Message' }], // message(s) this is in response to
 
+    sensor_id:      { type: Number }, // sensor or acuator this message belongs to
+
     tags:           [{ type: String }],
     body:           { type: Schema.Types.Mixed, default: {} },
 

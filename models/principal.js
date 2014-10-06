@@ -15,9 +15,6 @@ principalSchema.add({
     last_ip:         { type: String },
     last_connection: { type: Date, default: Date.now },
 
-    // TODO: re-evaluate if this makes sense
-    network:         { type: String },
-
     tags:            [{ type: String }],
 
 // for users, this is their api_key. for others, this is the api_key that authorized their creation.
@@ -27,6 +24,15 @@ principalSchema.add({
 // non-user fields
 
     public_key:      { type: String },  // base64
+
+// device fields
+
+    sensors: [{
+        id:         Number,
+        name:       String,
+        executes:   [{ type: String }],
+        sends:      [{ type: String }]
+    }],
 
 // service fields
 
@@ -79,7 +85,7 @@ Principal.prototype.is = function(type) {
 };
 
 Principal.prototype.equals = function(principal) {
-    return principal.id.toString() === this.id.toString();
+    return principal.id.equals(this.id);
 };
 
 Principal.PRINCIPAL_TYPES = ['app', 'device', 'reactor', 'service', 'user'];
