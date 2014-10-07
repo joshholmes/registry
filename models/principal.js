@@ -41,6 +41,7 @@ principalSchema.add({
 // service fields
 
     private_key:     { type: String },
+    secret:          { type: String },
 
 // user fields
 
@@ -66,9 +67,6 @@ principalSchema.index({ visible_to: 1 });
 principalSchema.virtual('password').set(function(value) { this._password = value; });
 principalSchema.virtual('password').get(function() { return this._password; });
 
-principalSchema.virtual('secret').set(function(value) { this._secret = value; });
-principalSchema.virtual('secret').get(function() { return this._secret; });
-
 var principalJsonTransform = function(doc, ret, options) {
     BaseSchema.baseJsonTransform(doc, ret, options);
 
@@ -76,6 +74,7 @@ var principalJsonTransform = function(doc, ret, options) {
     delete ret.password_hash;
     delete ret.private_key;
     delete ret.secret_hash;
+    delete ret.secret;
     delete ret.visible_to;
 };
 

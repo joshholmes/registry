@@ -7,7 +7,6 @@ var async = require('async')
   , mongoose = require('mongoose')
   , nitrogen = require('nitrogen')
   , services = require('../services')
-  , ursa = require('ursa')
   , utils = require('../utils');
 
 var DEVICE_AUTH_FAILURE_MESSAGE = "The device authentication details provided were not accepted.";
@@ -133,6 +132,13 @@ var create = function(principal, callback) {
 
             createCredentials(principal, function(err, principal) {
                 if (err) return callback(err);
+
+                if (!principal.is('service') && principal.secret) {
+                    principal.secret = undefined;
+                }
+
+                console.log('after delete: ' + principal.type);
+                console.dir(principal);
 
                 principal.save(function(err, principal) {
                     if (err) return callback(err);
@@ -521,20 +527,20 @@ var initialize = function(callback) {
         if (principals.length === 0) {
             log.info("bootstrapping: creating service principal");
 
-            var keys = ursa.generatePrivateKey(config.public_key_bits, config.public_key_exponent);
-
             var servicePrincipal = new models.Principal({
                 name:           'Service',
                 type:           'service',
-                public_key:     keys.toPublicPem().toString('base64'),
-                private_key:    keys.toPrivatePem().toString('base64')
             });
 
-            create(servicePrincipal, function(err, servicePrincipal) {
+            services.principals.createSecretCredentials(servicePrincipal, function(err, servicePrincipal) {
                 if (err) return callback(err);
 
-                services.principals.servicePrincipal = servicePrincipal;
-                return callback();
+                create(servicePrincipal, function(err, servicePrincipal) {
+                    if (err) return callback(err);
+
+                    services.principals.servicePrincipal = servicePrincipal;
+                    return callback();
+                });
             });
         } else {
             services.principals.servicePrincipal = principals[0];

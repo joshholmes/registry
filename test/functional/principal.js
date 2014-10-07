@@ -319,6 +319,7 @@ describe('principals endpoint', function() {
             assert.notEqual(body.accessToken.token, undefined);
 
             assert.notEqual(body.principal.last_ip, undefined);
+            assert.equal(body.principal.secret, undefined);
             done();
         });
      });
