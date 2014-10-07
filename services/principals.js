@@ -62,6 +62,19 @@ var accessTokenFor = function(authzPrincipal, principalId, options, callback) {
     });
 };
 
+var authenticateSecret = function(principalId, secret, callback) {
+    findById(services.principals.servicePrincipal, principalId, function(err, principal) {
+        if (err) return callback(err);
+        if (!principal) return callback(utils.authenticationError(DEVICE_AUTH_FAILURE_MESSAGE));
+
+        verifySecret(secret, principal, function(err) {
+            if (err) return callback(err);
+
+            return callback(err, principal);
+        });
+    });
+};
+
 var authenticateUser = function(email, password, callback) {
     findByEmail(services.principals.servicePrincipal, email, function(err, principal) {
         if (err) return callback(err);
@@ -235,6 +248,29 @@ var createPermissions = function(principal, callback) {
 
         services.permissions.createInternal(permission, callback);
     }
+};
+
+var createSecretCredentials = function(principal, callback) {
+    if (!config.device_secret_bytes) return callback(
+        utils.internalError('principals service: Service is missing required configuration item device_secret_bytes.')
+    );
+
+    crypto.randomBytes(config.device_secret_bytes, function(err, secretBuf) {
+        if (err) return callback(err);
+
+        principal.secret = secretBuf.toString('base64');
+        issueClaimCode(principal, function(err, code) {
+            if (err) return callback(err);
+            principal.claim_code = code;
+
+            hashSecret(principal.secret, function(err, hashedSecret) {
+                if (err) return callback(err);
+
+                principal.secret_hash = hashedSecret;
+                callback(null, principal);
+            });
+        });
+    });
 };
 
 var createUserCredentials = function(principal, callback) {
@@ -738,7 +774,7 @@ var validate = function(principal, callback) {
         if (principal.password.length < config.minimum_password_length) return callback(utils.badRequestError("User password must be at least " + config.minimum_password_length + " characters."));
     } else if (!principal.is('service')) {
         if (!principal.api_key) return callback(utils.badRequestError("Non-user principals must have api_key"));
-        if (!principal.public_key) return callback(utils.badRequestError("Non-user principal must have public_key"));
+        if (!principal.public_key && !principal.secret_hash) return callback(utils.badRequestError("Non-user principal must have public_key or secret_hash."));
     }
 
     callback(null);
@@ -753,6 +789,19 @@ var verifyPassword = function(password, user, callback) {
             return callback(utils.authenticationError(USER_AUTH_FAILURE_MESSAGE));
         else
             return callback(null);
+    });
+};
+
+var verifySecret = function(secret, principal, callback) {
+    hashSecret(secret, function(err, hashedSecret) {
+        if (err) return callback(err);
+
+        if (hashedSecret != principal.secret_hash) {
+            log.warn("verification of secret for principal: " + principal.id + " failed");
+            return callback(utils.authenticationError(DEVICE_AUTH_FAILURE_MESSAGE));
+        }
+
+        callback(null);
     });
 };
 
@@ -790,26 +839,29 @@ var verifySignature = function(nonceString, signature, callback) {
 };
 
 module.exports = {
-    accessTokenFor: accessTokenFor,
-    authenticateUser: authenticateUser,
-    changePassword: changePassword,
-    create: create,
-    filterForPrincipal: filterForPrincipal,
-    find: find,
-    findByIdCached: findByIdCached,
-    findById: findById,
-    generateClaimCode: generateClaimCode,
-    impersonate: impersonate,
-    initialize: initialize,
-    resetPassword: resetPassword,
-    removeById: removeById,
-    update: update,
-    updateLastConnection: updateLastConnection,
-    updateVisibleTo: updateVisibleTo,
-    verifyPassword: verifyPassword,
-    verifySignature: verifySignature,
+    accessTokenFor:             accessTokenFor,
+    authenticateSecret:         authenticateSecret,
+    authenticateUser:           authenticateUser,
+    changePassword:             changePassword,
+    create:                     create,
+    createSecretCredentials:    createSecretCredentials,
+    filterForPrincipal:         filterForPrincipal,
+    find:                       find,
+    findByIdCached:             findByIdCached,
+    findById:                   findById,
+    generateClaimCode:          generateClaimCode,
+    impersonate:                impersonate,
+    initialize:                 initialize,
+    resetPassword:              resetPassword,
+    removeById:                 removeById,
+    update:                     update,
+    updateLastConnection:       updateLastConnection,
+    updateVisibleTo:            updateVisibleTo,
+    verifyPassword:             verifyPassword,
+    verifySecret:               verifySecret,
+    verifySignature:            verifySignature,
 
-    servicePrincipal: null,
+    servicePrincipal:           null,
 
-    legacyAuthentication: legacyAuthentication
+    legacyAuthentication:       legacyAuthentication
 };

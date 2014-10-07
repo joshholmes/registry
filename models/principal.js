@@ -23,7 +23,11 @@ principalSchema.add({
 
 // non-user fields
 
-    public_key:      { type: String },  // base64
+    // non-users auth can auth via either a secret (less secure, lower computation requirements) or
+    // public_key (more secure, higher computational requirements).
+
+    public_key:      { type: String }, // base64
+    secret_hash:     { type: String }, // base64
 
 // device fields
 
@@ -62,12 +66,16 @@ principalSchema.index({ visible_to: 1 });
 principalSchema.virtual('password').set(function(value) { this._password = value; });
 principalSchema.virtual('password').get(function() { return this._password; });
 
+principalSchema.virtual('secret').set(function(value) { this._secret = value; });
+principalSchema.virtual('secret').get(function() { return this._secret; });
+
 var principalJsonTransform = function(doc, ret, options) {
     BaseSchema.baseJsonTransform(doc, ret, options);
 
     delete ret.salt;
     delete ret.password_hash;
     delete ret.private_key;
+    delete ret.secret_hash;
     delete ret.visible_to;
 };
 

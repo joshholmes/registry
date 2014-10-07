@@ -93,6 +93,7 @@ mongoose.connection.once('open', function () {
         app.post(config.principals_path + '/auth',                                    controllers.principals.legacyAuthentication);
 
         app.post(config.principals_path + '/publickey/auth', middleware.publicKeyAuth, controllers.principals.authenticate);
+        app.post(config.principals_path + '/secret/auth', middleware.secretAuth,      controllers.principals.authenticate);
 
         app.get(config.principals_path + '/:id',   middleware.accessTokenAuth,        controllers.principals.show);
         app.get(config.principals_path,            middleware.accessTokenAuth,        controllers.principals.index);

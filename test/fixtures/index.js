@@ -84,6 +84,29 @@ var createAuthCodeFixtures = function(callback) {
     });
 };
 
+var createSecretAuthDeviceFixtures = function(callback) {
+    var secretAuthDevice = new models.Principal({
+        api_key: fixtures.apiKeys.user,
+        type: 'device',
+        name: 'secretAuthDevice'
+    });
+
+    services.principals.createSecretCredentials(secretAuthDevice, function(err, secretAuthDevice) {
+        if (err) return callback(err);
+
+        var secret = secretAuthDevice.secret;
+
+        services.principals.create(secretAuthDevice, function(err, secretAuthDevice) {
+            if (err) return callback(err);
+
+            secretAuthDevice.secret = secret;
+            fixtures.principals.secretAuthDevice = secretAuthDevice;
+
+            return callback();
+        });
+    });
+};
+
 var createDeviceFixtures = function(callback) {
     log.debug("creating device fixtures");
 
@@ -261,6 +284,7 @@ exports.reset = function(callback) {
             createUserFixtures,
             createDeviceFixtures,
             createDeviceIpMessageFixture,
+            createSecretAuthDeviceFixtures,
             createServiceUserFixtures,
             createApiKeyFixtures,
             createAppFixtures,

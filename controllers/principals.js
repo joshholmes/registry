@@ -46,7 +46,7 @@ exports.authenticateUser = function(req, res) {
     });
 };
 
-// Authentication is assumed to be done done by middleware that handles publickey vs. user creds.
+// By the time we get here, authentication has been done by middleware.
 exports.authenticate = function(req, res) {
     services.accessTokens.findOrCreateToken(req.user, function(err, accessToken) {
         if (err) return callback(err);

@@ -44,6 +44,7 @@
     "sift": "~0.0.16",
     "streamifier": "~0.1.0",
     "socket.io": "~0.9.17",
+    "ursa": "~0.8",
     "winston": "~0.7.3",
     "azure": "~0.9.7",
     "redis": "~0.10.3",
@@ -53,8 +54,7 @@
   },
   "devDependencies": {
     "mocha": "~1.20.1",
-    "socket.io-client": "~0.9.17",
-    "ursa": "~0.8"
+    "socket.io-client": "~0.9.17"
   },
   "scripts": {
     "test": "NODE_ENV=test mocha"

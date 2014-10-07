@@ -303,6 +303,26 @@ describe('principals endpoint', function() {
         });
     });
 
+    it('should login device principal using secret endpoint', function (done) {
+        var secretAuthDevice = fixtures.models.principals.secretAuthDevice;
+
+        request.post(config.principals_endpoint + '/secret/auth', {
+            json: {
+                type: 'device',
+                method: 'secret',
+                id: secretAuthDevice.id,
+                secret: secretAuthDevice.secret
+            }
+        }, function(err, resp, body) {
+            assert.ifError(err);
+            assert.equal(resp.statusCode, 200);
+            assert.notEqual(body.accessToken.token, undefined);
+
+            assert.notEqual(body.principal.last_ip, undefined);
+            done();
+        });
+     });
+
     it('should allow user to impersonate anotherUser principal', function(done) {
         request.post(config.principals_endpoint + '/impersonate', {
             headers: {
