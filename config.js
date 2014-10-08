@@ -116,7 +116,6 @@ config.public_key_exponent = 65537;
 
 config.auth_code_lifetime_seconds = 60 * 60; // seconds (default: 1 hour)
 
-// TODO: legacy device credential support - remove once migration complete.
 config.device_secret_bytes = 128;
 
 config.access_token_bytes = 32;

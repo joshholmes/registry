@@ -137,9 +137,6 @@ var create = function(principal, callback) {
                     principal.secret = undefined;
                 }
 
-                console.log('after delete: ' + principal.type);
-                console.dir(principal);
-
                 principal.save(function(err, principal) {
                     if (err) return callback(err);
 
@@ -201,11 +198,18 @@ var createCredentials = function(principal, callback) {
             createUserCredentials(principal, callback);
         });
     } else {
-        issueClaimCode(principal, function(err, code) {
-            if (err) return callback(err);
-            principal.claim_code = code;
+        console.log('principal.secret');
+        console.dir(principal);
 
-            return callback(null, principal);
+        hashCredentials(principal, function(err, principal) {
+            if (err) return callback(err);
+
+            issueClaimCode(principal, function(err, code) {
+                if (err) return callback(err);
+                principal.claim_code = code;
+
+                return callback(null, principal);
+            });
         });
     }
 };
@@ -256,7 +260,7 @@ var createPermissions = function(principal, callback) {
     }
 };
 
-var createSecretCredentials = function(principal, callback) {
+var createSecret = function(principal, callback) {
     if (!config.device_secret_bytes) return callback(
         utils.internalError('principals service: Service is missing required configuration item device_secret_bytes.')
     );
@@ -265,17 +269,7 @@ var createSecretCredentials = function(principal, callback) {
         if (err) return callback(err);
 
         principal.secret = secretBuf.toString('base64');
-        issueClaimCode(principal, function(err, code) {
-            if (err) return callback(err);
-            principal.claim_code = code;
-
-            hashSecret(principal.secret, function(err, hashedSecret) {
-                if (err) return callback(err);
-
-                principal.secret_hash = hashedSecret;
-                callback(null, principal);
-            });
-        });
+        callback(null, principal);
     });
 };
 
@@ -424,6 +418,17 @@ var hashPassword = function(password, saltBuf, callback) {
     );
 };
 
+var hashCredentials = function(principal, callback) {
+    if (!principal.secret) return callback(null, principal);
+
+    hashSecret(principal.secret, function(err, hashedSecret) {
+        if (err) return callback(err);
+
+        principal.secret_hash = hashedSecret;
+        return callback(null, principal);
+    });
+}
+
 var hashSecret = function(secret, callback) {
     // have to create a buffer here because node's sha256 hash function expects binary encoding.
     var secretBuf = new Buffer(secret, 'base64');
@@ -532,7 +537,7 @@ var initialize = function(callback) {
                 type:           'service',
             });
 
-            services.principals.createSecretCredentials(servicePrincipal, function(err, servicePrincipal) {
+            services.principals.createSecret(servicePrincipal, function(err, servicePrincipal) {
                 if (err) return callback(err);
 
                 create(servicePrincipal, function(err, servicePrincipal) {
@@ -780,7 +785,7 @@ var validate = function(principal, callback) {
         if (principal.password.length < config.minimum_password_length) return callback(utils.badRequestError("User password must be at least " + config.minimum_password_length + " characters."));
     } else if (!principal.is('service')) {
         if (!principal.api_key) return callback(utils.badRequestError("Non-user principals must have api_key"));
-        if (!principal.public_key && !principal.secret_hash) return callback(utils.badRequestError("Non-user principal must have public_key or secret_hash."));
+        if (!principal.public_key && !principal.secret_hash && !principal.secret) return callback(utils.badRequestError("Non-user principal must have public_key or secret_hash."));
     }
 
     callback(null);
@@ -804,6 +809,8 @@ var verifySecret = function(secret, principal, callback) {
 
         if (hashedSecret != principal.secret_hash) {
             log.warn("verification of secret for principal: " + principal.id + " failed");
+            log.warn("secret provided: " + secret);
+
             return callback(utils.authenticationError(DEVICE_AUTH_FAILURE_MESSAGE));
         }
 
@@ -850,7 +857,7 @@ module.exports = {
     authenticateUser:           authenticateUser,
     changePassword:             changePassword,
     create:                     create,
-    createSecretCredentials:    createSecretCredentials,
+    createSecret:               createSecret,
     filterForPrincipal:         filterForPrincipal,
     find:                       find,
     findByIdCached:             findByIdCached,

@@ -91,7 +91,7 @@ var createSecretAuthDeviceFixtures = function(callback) {
         name: 'secretAuthDevice'
     });
 
-    services.principals.createSecretCredentials(secretAuthDevice, function(err, secretAuthDevice) {
+    services.principals.createSecret(secretAuthDevice, function(err, secretAuthDevice) {
         if (err) return callback(err);
 
         var secret = secretAuthDevice.secret;

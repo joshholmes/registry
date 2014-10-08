@@ -38,7 +38,7 @@ principalSchema.add({
         sends:      [{ type: String }]
     }],
 
-// service fields
+// service fields (which needs to retain these for itself so it can auth)
 
     private_key:     { type: String },
     secret:          { type: String },
