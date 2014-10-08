@@ -198,9 +198,6 @@ var createCredentials = function(principal, callback) {
             createUserCredentials(principal, callback);
         });
     } else {
-        console.log('principal.secret');
-        console.dir(principal);
-
         hashCredentials(principal, function(err, principal) {
             if (err) return callback(err);
 
