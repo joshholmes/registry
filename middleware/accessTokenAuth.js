@@ -1,16 +1,13 @@
-var config = require('../config')
-  , log = require('../log')
-  , passport = require('passport')
-  , services = require('../services')
-  , utils = require('../utils');
+var core = require('nitrogen-core')
+  , passport = require('passport');
 
 var tokenNearExpirationCheck = function(req, res, callback) {
     var secondsToExpiration = req.user.jwtToken - (Date.now() / 1000);
 
-    if (secondsToExpiration > config.refresh_token_threshold * config.access_token_lifetime * 24 * 60 * 60)
+    if (secondsToExpiration > core.config.refresh_token_threshold * core.config.access_token_lifetime * 24 * 60 * 60)
         return callback();
 
-    services.accessTokens.create(req.user, function(err, accessToken) {
+    core.services.accessTokens.create(req.user, function(err, accessToken) {
         if (err) return callback(err);
 
         res.set('X-n2-set-access-token', JSON.stringify(accessToken));
@@ -26,17 +23,17 @@ module.exports = function(req, res, next) {
     auth(req, res, function(err, failed) {
         if (err) {
             req.resume();
-            return utils.handleError(res, utils.authenticationError());
+            return core.utils.handleError(res, core.utils.authenticationError());
         }
 
         tokenNearExpirationCheck(req, res, function(err) {
             req.resume();
 
-            if (err) return res.send(utils.authenticationError(err));
+            if (err) return res.send(core.utils.authenticationError(err));
 
             // opportunistically update the last connection details for this principal.
             if (req.user && req.ips) {
-                services.principals.updateLastConnection(req.user, utils.ipFromRequest(req));
+                core.services.principals.updateLastConnection(req.user, core.utils.ipFromRequest(req));
             }
 
             next();

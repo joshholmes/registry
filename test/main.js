@@ -1,18 +1,29 @@
-var assert = require('assert') 
-  , config = require('../config')
-  , fixtures = require('./fixtures')
-  , log = require('../log')
-  , services = require('../services');
+var async = require('async')
+  , assert = require('assert')
+  , server = require('../server')
+  , core = require('nitrogen-core');
+
+var removeAll = function (modelType, callback) {
+    modelType.remove({}, callback);
+};
 
 before(function(done) {
-    config.pubsub_provider.resetForTest(function(err) {
-        assert.ifError(err);
+    var modelTypes = Object.keys(core.models).map(function(key) {
+        return core.models[key];
+    });
 
-        fixtures.reset(function(err) {
-            assert.ifError(err); 
+    async.each(modelTypes, removeAll, function(err) {
+        assert(!err);
 
-            log.debug("FIXTURES: creation finished...");
-            done();
+        core.config.pubsub_provider.resetForTest(function(err) {
+            assert(!err);
+
+            core.fixtures.reset(function(err) {
+                assert(!err);
+
+                core.log.info("FIXTURES: creation finished...");
+                done();
+            });
         });
     });
 });

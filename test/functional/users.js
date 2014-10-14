@@ -1,15 +1,12 @@
 var app = require('../../server')
   , assert = require('assert')
-  , config = require('../../config')
-  , fixtures = require('../fixtures')
-  , models = require('../../models')
-  , request = require('request').defaults({jar: true})
-  , services = require('../../services');
+  , core = require('nitrogen-core')
+  , request = require('request').defaults({jar: true});
 
 describe('users endpoint', function() {
 
     it('should be able to create user', function(done) {
-        request.post(config.users_endpoint + '/create', {
+        request.post(core.config.users_endpoint + '/create', {
             form: {
                 email: 'newuser@server.org',
                 name: 'Test User',
@@ -24,7 +21,7 @@ describe('users endpoint', function() {
     });
 
     it('should login user', function(done) {
-        request.post(config.users_endpoint + '/login', {
+        request.post(core.config.users_endpoint + '/login', {
             form: {
                 email: 'user@server.org',
                 password: 'sEcReT44'
@@ -41,18 +38,18 @@ describe('users endpoint', function() {
     it('should handle authorization decisions', function(done) {
         var j = request.jar();
 
-        request.post(config.users_endpoint + '/login', {
+        request.post(core.config.users_endpoint + '/login', {
             form: {
-                email: fixtures.models.principals.user.email,
+                email: core.fixtures.models.principals.user.email,
                 password: 'sEcReT44'
             },
             jar: j
         }, function(err, resp, body) {
             assert(!err);
 
-            request.post(config.users_endpoint + '/decision', {
+            request.post(core.config.users_endpoint + '/decision', {
                 form: {
-                    code: fixtures.models.authCodes.regularApp.code,
+                    code: core.fixtures.models.authCodes.regularApp.code,
                     reject: true
                 },
                 jar: true,
@@ -63,7 +60,7 @@ describe('users endpoint', function() {
                 assert.equal(resp.statusCode, 302);
                 assert(body.indexOf('error') !== -1);
 
-                request.post(config.users_endpoint + '/decision', {
+                request.post(core.config.users_endpoint + '/decision', {
                     form: {
                         code: 'HAXXER',
                         authorize: true
@@ -75,9 +72,9 @@ describe('users endpoint', function() {
 
                     assert.equal(resp.statusCode, 400);
 
-                    request.post(config.users_endpoint + '/decision', {
+                    request.post(core.config.users_endpoint + '/decision', {
                         form: {
-                            code: fixtures.models.authCodes.regularApp.code,
+                            code: core.fixtures.models.authCodes.regularApp.code,
                             authorize: true
                         },
                         jar: true,
@@ -96,7 +93,7 @@ describe('users endpoint', function() {
     });
 
     it('should be able to reset password', function(done) {
-        request.post(config.users_endpoint + '/resetpassword', {
+        request.post(core.config.users_endpoint + '/resetpassword', {
             form: { email: 'user@server.org' }
         }, function(err, resp, body) {
             assert(!err);
@@ -108,7 +105,7 @@ describe('users endpoint', function() {
     });
 
     it('should be able to change password', function(done) {
-        request.post(config.users_endpoint + '/create', {
+        request.post(core.config.users_endpoint + '/create', {
             form: {
                 email: 'changeuser@server.org',
                 name: 'Test User',
@@ -119,7 +116,7 @@ describe('users endpoint', function() {
             assert(!err);
             assert.equal(resp.statusCode, 302);
 
-            request.post(config.users_endpoint + '/changepassword', {
+            request.post(core.config.users_endpoint + '/changepassword', {
                 form: {
                     currentPassword: 'sEcReT55',
                     newPassword: 'SUPERS3CRET',
@@ -132,7 +129,7 @@ describe('users endpoint', function() {
 
                 assert.notEqual(body.indexOf('was changed'), -1);
 
-                request.post(config.users_endpoint + '/login', {
+                request.post(core.config.users_endpoint + '/login', {
                     form: {
                         email: 'changeuser@server.org',
                         password: 'SUPERS3CRET'
@@ -148,7 +145,7 @@ describe('users endpoint', function() {
     });
 
     it('should not change password without current password', function(done) {
-        request.post(config.users_endpoint + '/create', {
+        request.post(core.config.users_endpoint + '/create', {
             form: {
                 email: 'changeuser2@server.org',
                 name: 'Test User',
@@ -159,7 +156,7 @@ describe('users endpoint', function() {
             assert(!err);
             assert.equal(resp.statusCode, 302);
 
-            request.post(config.users_endpoint + '/changepassword', {
+            request.post(core.config.users_endpoint + '/changepassword', {
                 form: {
                     currentPassword: 'WRONGPASSWORD',
                     newPassword: 'SUPERS3CRET',
@@ -178,18 +175,18 @@ describe('users endpoint', function() {
     });
 
     it('can impersonate user if apiKey allows', function(done) {
-        request.post(config.users_endpoint + '/login', {
+        request.post(core.config.users_endpoint + '/login', {
             form: {
-                email: fixtures.models.principals.user.email,
+                email: core.fixtures.models.principals.user.email,
                 password: 'sEcReT44'
             },
             jar: true
         }, function(err, resp, body) {
             assert(!err);
 
-            request.get(config.users_endpoint + '/impersonate' +
-                '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.admin.key) +
-                '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.admin.redirect_uri), {
+            request.get(core.config.users_endpoint + '/impersonate' +
+                '?api_key=' + encodeURIComponent(core.fixtures.models.apiKeys.admin.key) +
+                '&redirect_uri=' + encodeURIComponent(core.fixtures.models.apiKeys.admin.redirect_uri), {
                     followRedirect: false
                 }, function(err, resp, body) {
 
@@ -205,9 +202,9 @@ describe('users endpoint', function() {
     });
 
     xit('can not impersonate user if apiKey doesnt allow', function(done) {
-        request.post(config.users_endpoint + '/login', {
+        request.post(core.config.users_endpoint + '/login', {
             form: {
-                email: fixtures.models.principals.user.email,
+                email: core.fixtures.models.principals.user.email,
                 password: 'sEcReT44'
             },
             jar: true
@@ -215,9 +212,9 @@ describe('users endpoint', function() {
             assert(!err);
             assert.equal(resp.statusCode, 200);
 
-            request.get(config.users_endpoint + '/impersonate' +
-                '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.key) +
-                '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.redirect_uri, {
+            request.get(core.config.users_endpoint + '/impersonate' +
+                '?api_key=' + encodeURIComponent(core.fixtures.models.apiKeys.regularApp.key) +
+                '&redirect_uri=' + encodeURIComponent(core.fixtures.models.apiKeys.regularApp.redirect_uri, {
                     followRedirect: false
                 }), function(err, resp, body) {
 
@@ -243,25 +240,22 @@ describe('users endpoint', function() {
     }];
 
     it('can render authorize form', function(done) {
-        request.get(config.users_endpoint + '/authorize' +
-            '?api_key=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.key) +
-            '&app_id=' + encodeURIComponent(fixtures.models.principals.app.id) +
-            '&redirect_uri=' + encodeURIComponent(fixtures.models.apiKeys.regularApp.redirect_uri) +
+        request.get(core.config.users_endpoint + '/authorize' +
+            '?api_key=' + encodeURIComponent(core.fixtures.models.apiKeys.regularApp.key) +
+            '&app_id=' + encodeURIComponent(core.fixtures.models.principals.app.id) +
+            '&redirect_uri=' + encodeURIComponent(core.fixtures.models.apiKeys.regularApp.redirect_uri) +
             '&scope=' + encodeURIComponent(JSON.stringify(device_scope)), function(err, resp, body) {
             assert(!err);
             assert.equal(resp.statusCode, 200);
 
-            assert(body.indexOf(fixtures.models.apiKeys.regularApp.name) !== -1);
+            assert(body.indexOf(core.fixtures.models.apiKeys.regularApp.name) !== -1);
 
             done();
         });
     });
 
     it('can render delete account form', function(done) {
-        var url = config.users_endpoint + '/delete';
-        console.log(url);
-
-        request.get(config.users_endpoint + '/delete', function(err, resp, body) {
+        request.get(core.config.users_endpoint + '/delete', function(err, resp, body) {
             assert(!err);
             assert.equal(resp.statusCode, 200);
 
@@ -270,7 +264,7 @@ describe('users endpoint', function() {
     });
 
     it('can delete account', function(done) {
-        request.post(config.users_endpoint + '/delete', function(err, resp, body) {
+        request.post(core.config.users_endpoint + '/delete', function(err, resp, body) {
             assert(!err);
             assert.equal(resp.statusCode, 200);
 

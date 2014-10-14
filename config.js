@@ -1,17 +1,13 @@
-var log = require('./log')
+var log = require('winston')
   , Loggly = require('winston-loggly').Loggly
-  , Log4stuff = require('winston-log4stuff').Log4stuff
-  , providers = require('./providers')
-  , winston = require('winston');
+  , localProviders = require('nitrogen-local-providers');
 
 var config = null;
 
-//
 // To enable proxies like NGINX, Nitrogen has internal and external ports.
 //
 // external_port defines the port that clients should use to access the service.
 // internal_port defines the port that the service will listen to.
-//
 
 if (process.env.NODE_ENV === "production") {
     config = {
@@ -55,9 +51,6 @@ config.v1_api_path = config.api_path + "v1";
 config.base_endpoint = config.protocol + "://" + config.host + ":" + config.external_port;
 config.api_endpoint = config.base_endpoint + config.v1_api_path;
 
-config.subscriptions_path = '/';
-config.subscriptions_endpoint = config.base_endpoint + config.subscriptions_path;
-
 config.api_keys_path = config.v1_api_path + "/api_keys";
 config.api_keys_endpoint = config.base_endpoint + config.api_keys_path;
 
@@ -78,6 +71,9 @@ config.permissions_endpoint = config.base_endpoint + config.permissions_path;
 
 config.principals_path = config.v1_api_path + "/principals";
 config.principals_endpoint = config.base_endpoint + config.principals_path;
+
+config.subscriptions_path = '/';
+config.subscriptions_endpoint = config.base_endpoint + config.subscriptions_path;
 
 config.users_path = "/user";
 config.users_endpoint = config.base_endpoint + config.users_path;
@@ -122,109 +118,32 @@ config.access_token_bytes = 32;
 config.access_token_lifetime = 1; // days
 config.access_token_signing_key = process.env.ACCESS_TOKEN_SIGNING_KEY || '12345678901234567890123456789012';
 
-config.blob_cache_lifetime = 2592000; // seconds
-
-// # of days a message should be remain in indexed storage by default
-config.default_message_indexed_lifetime = 7; // days
-
-config.permissions_for_cache_lifetime_minutes = 24 * 60; // minutes
-config.principals_cache_lifetime_minutes = 24 * 60; // minutes
-
 // when the token gets within 10% (default) of config.access_token_lifetime,
 // refresh it with a new token via the response header.
 config.refresh_token_threshold = 0.1;
-
-// You can use Azure's Blob storage as a blob provider by uncommenting this configuration.
-//
-if (process.env.AZURE_STORAGE_ACCOUNT && process.env.AZURE_STORAGE_KEY) {
-    console.log('archive_provider: using Azure Table storage.');
-    config.archive_providers = [ new providers.azure.AzureArchiveProvider(config) ];
-
-    console.log('blob_provider: using Azure Blob storage.');
-    config.blob_provider = new providers.azure.AzureBlobProvider(config);
-
-    config.images_endpoint = config.blob_provider.base_endpoint + "/images";
-} else {
-    console.log('archive_provider: using local storage.');
-    config.archive_providers = [ new providers.local.NullArchiveProvider(config) ];
-
-    console.log('blob_provider: using local storage.');
-    config.blob_storage_path = './storage';
-    config.blob_provider = new providers.local.LocalBlobProvider(config);
-}
 
 config.redis_server = {
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT || 6379
 };
 
-console.log('cache_provider: Using Redis cache provider.');
-config.cache_provider = new providers.redis.RedisCacheProvider(config);
+console.log('archive_provider: using local storage.');
+config.archive_providers = [ new localProviders.NullArchiveProvider(config, log) ];
 
-if (process.env.SUBSCRIPTION_REDIS_SERVERS) {
+console.log('blob_provider: using local storage.');
+config.blob_storage_path = './storage';
+config.blob_provider = new localProviders.LocalBlobProvider(config, log);
 
-    // To use Redis as a realtime backend, the env variable SUBSCRIPTION_REDIS_SERVERS
-    // should be set to a JSON specification like this with the set of
-    // redis servers used for pubsub:
-    //
-    // { "redis1": { "port": 6379, "host": "redis1.myapp.com", id: "redis1" }
+console.log('cache_provider: Using memory cache provider.');
+config.cache_provider = new localProviders.MemoryCacheProvider(config, log);
 
-    console.log('pubsub_provider: using Redis pubsub.');
+console.log('pubsub_provider: using memory pubsub.');
+config.pubsub_provider = new localProviders.MemoryPubSubProvider(config, log);
 
-    config.redis_servers = JSON.parse(process.env.SUBSCRIPTION_REDIS_SERVERS);
-    config.pubsub_provider = new providers.redis.RedisPubSubProvider(config);
-} else if (process.env.AZURE_SERVICEBUS_NAMESPACE && process.env.AZURE_SERVICEBUS_ACCESS_KEY) {
-    console.log('pubsub_provider: using Service Bus pubsub.');
-    config.pubsub_provider = new providers.azure.AzurePubSubProvider(config);
-} else if (process.env.RABBITMQ_URL) {
-    console.log('pubsub_provider: using RabbitMQ pubsub.');
-    config.pubsub_provider = new providers.rabbitmq.RabbitMQPubSubProvider(config);
-} else {
-    console.log('pubsub_provider: using memory pubsub.');
-    config.pubsub_provider = new providers.local.MemoryPubSubProvider(config);
-}
-
-// Email provider configuration
-
-if (process.env.SENDGRID_API_USER && process.env.SENDGRID_API_KEY) {
-    console.log('email_provider: using sendgrid.');
-    config.email_provider = new providers.sendgrid.SendgridEmailProvider(config);
-} else {
-    console.log('email_provider: using null provider.');
-    config.email_provider = new providers.local.NullEmailProvider(config);
-}
+console.log('email_provider: using null provider.');
+config.email_provider = new localProviders.NullEmailProvider(config, log);
 
 config.request_log_format = ':remote-addr - - [:date] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ":referrer" ":user-agent"';
-
-// You can use Loggly's log service by specifying these 4 environmental variables
-
-if (process.env.LOGGLY_SUBDOMAIN && process.env.LOGGLY_INPUT_TOKEN &&
-    process.env.LOGGLY_USERNAME && process.env.LOGGLY_PASSWORD) {
-
-    winston.add(Loggly, {
-        "subdomain": process.env.LOGGLY_SUBDOMAIN,
-        "inputToken": process.env.LOGGLY_INPUT_TOKEN,
-        "auth": {
-            "username": process.env.LOGGLY_USERNAME,
-            "password": process.env.LOGGLY_PASSWORD
-        }
-    });
-}
-
-log.remove(winston.transports.Console);
-log.add(winston.transports.Console, { colorize: true, timestamp: true, level: 'info' });
-
-// You can use Log4Stuff's service by adding this environment variable
-var log4stuffAppId = process.env.LOG4STUFF_APPLICATION_ID;
-if (log4stuffAppId) {
-    log.add(winston.transports.Log4stuff, {applicationId: log4stuffAppId});
-
-    console.log('Log4stuff enabled at http://log4stuff.com/app/' + log4stuffAppId);
-}
-
-// if you'd like additional indexes applied to messages at the database layer, you can specify them here.
-config.message_indexes = [
-];
 
 // Claim codes are what users use to claim devices they have added to the service when IP matching fails.
 // Longer claim codes are more secure but less convienent for users.
@@ -243,5 +162,12 @@ config.service_applications = [
     { instance_id: 'claim-agent', module: 'claim-agent' },
     { instance_id: 'matcher', module: 'nitrogen-matcher' }
 ];
+
+// Migration configuration
+config.migrations_file_path = "node_modules/nitrogen_core/migrations/";
+config.migrations_require_path ="../../node_modules/nitrogen_core/migrations/";
+
+// Test fixture location configuration
+config.blob_fixture_path = 'node_modules/nitrogen-core/test/fixtures/images/image.jpg';
 
 module.exports = config;

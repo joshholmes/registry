@@ -1,7 +1,5 @@
-var log = require('../log')
-  , passport = require('passport')
-  , services = require('../services')
-  , utils = require('../utils');
+var core = require('nitrogen-core')
+  , passport = require('passport');
 
 module.exports = function(req, res, next) {
     var auth = passport.authenticate(['publickey'], { session: false });
@@ -10,7 +8,7 @@ module.exports = function(req, res, next) {
     auth(req, res, function(err, failed) {
         req.resume();
 
-        if (err) return utils.handleError(res, err);
+        if (err) return core.utils.handleError(res, err);
 
         next();
     });
