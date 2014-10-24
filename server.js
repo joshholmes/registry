@@ -72,7 +72,9 @@ app.set('view engine', 'handlebars');
 mongoose.connection.once('open', function () {
     core.log.info("service connected to mongodb.");
 
+    console.log('initialize start');
     core.services.initialize(function(err) {
+        console.log('initialize finished: ' + err);
         if (err) return core.log.error("service failed to initialize: " + err);
         if (!core.services.principals.servicePrincipal) return core.log.error("Service principal not available after initialize.");
 

@@ -22,15 +22,15 @@ if (process.env.NODE_ENV === "production") {
 
 } else if (process.env.NODE_ENV === "test") {
     config = {
-        external_port: 3050,
-        internal_port: 3050,
+        external_port: 3051,
+        internal_port: 3051,
         protocol: 'http',
         mongodb_connection_string: "mongodb://localhost/nitrogen_test",
         web_admin_uri: "http://localhost:9000"
     };
 } else {
     config = {
-        external_port: 3030,
+        external_port: 3031,
         protocol: 'http',
         mongodb_connection_string: "mongodb://localhost/nitrogen_dev",
         web_admin_uri: "http://localhost:9000"
