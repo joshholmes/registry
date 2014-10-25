@@ -1,6 +1,7 @@
 var log = require('winston')
   , Loggly = require('winston-loggly').Loggly
-  , localProviders = require('nitrogen-local-providers');
+  , localProviders = require('nitrogen-local-providers') 
+  , redisProviders = require('nitrogen-redis-providers'); 
 
 var config = null;
 
@@ -122,10 +123,14 @@ config.access_token_signing_key = process.env.ACCESS_TOKEN_SIGNING_KEY || '12345
 // refresh it with a new token via the response header.
 config.refresh_token_threshold = 0.1;
 
-config.redis_server = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379
+config.redis_servers = {
+    'redis': { 
+        host: process.env.REDIS_HOST || 'localhost',
+        port: process.env.REDIS_PORT || 6379
+    }
 };
+
+config.redis_server = config.redis_servers['redis'];
 
 console.log('archive_provider: using local storage.');
 config.archive_providers = [ new localProviders.NullArchiveProvider(config, log) ];
@@ -134,11 +139,11 @@ console.log('blob_provider: using local storage.');
 config.blob_storage_path = './storage';
 config.blob_provider = new localProviders.LocalBlobProvider(config, log);
 
-console.log('cache_provider: Using memory cache provider.');
+console.log('cache_provider: Using local memory cache provider.');
 config.cache_provider = new localProviders.MemoryCacheProvider(config, log);
 
-console.log('pubsub_provider: using memory pubsub.');
-config.pubsub_provider = new localProviders.MemoryPubSubProvider(config, log);
+console.log('pubsub_provider: using redis pubsub.');
+config.pubsub_provider = new redisProviders.RedisPubSubProvider(config, log);
 
 console.log('email_provider: using null provider.');
 config.email_provider = new localProviders.NullEmailProvider(config, log);
