@@ -164,8 +164,7 @@ config.service_applications = [
 ];
 
 // Migration configuration
-config.migrations_file_path = "node_modules/nitrogen_core/migrations/";
-config.migrations_require_path ="../../node_modules/nitrogen_core/migrations/";
+config.migrations_relative_path = "/node_modules/nitrogen-core/migrations/";
 
 // Test fixture location configuration
 config.blob_fixture_path = 'node_modules/nitrogen-core/test/fixtures/images/image.jpg';
