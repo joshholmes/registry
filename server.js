@@ -80,7 +80,7 @@ mongoose.connection.once('open', function () {
 
         server.listen(core.config.internal_port);
 
-        core.log.info("registry service has initialized itself, exposing api at: " + core.config.api_endpoint);
+        core.log.info("registry service has initialized itself, exposing api externally at: " + core.config.api_endpoint + " and internally on: " + core.config.internal_port);
 
         // REST API ENDPOINTS
 

@@ -12,7 +12,7 @@ var config = null;
 
 if (process.env.NODE_ENV === "production") {
     config = {
-        internal_port: process.env.PORT,
+        internal_port: process.env.PORT | 8080,
         web_admin_uri: "https://admin.nitrogen.io"
     };
 
