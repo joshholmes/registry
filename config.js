@@ -10,11 +10,9 @@ var config = null;
 // external_port defines the port that clients should use to access the service.
 // internal_port defines the port that the service will listen to.
 
-console.log('PORT: ' + process.env.PORT);
-
 if (process.env.NODE_ENV === "production") {
     config = {
-        internal_port: process.env.PORT | 8080,
+        internal_port: process.env.PORT || 8080,
         web_admin_uri: "https://admin.nitrogen.io"
     };
 
@@ -40,10 +38,7 @@ if (process.env.NODE_ENV === "production") {
     };
 }
 
-console.log('internal_port 2: ' + config.internal_port);
-
 config.internal_port = config.internal_port || 3031;
-console.log('internal_port 3: ' + config.internal_port);
 
 config.external_port = config.external_port || 443;
 config.protocol = process.env.PROTOCOL || config.protocol || "https";
