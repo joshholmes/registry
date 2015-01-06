@@ -89,7 +89,7 @@ config.user_login_path = config.users_path + "/login";
 config.user_logout_path = config.users_path + "/logout";
 config.user_reset_password_path = config.users_path + "/resetpassword";
 
-config.default_user_redirect = "http://admin.nitrogen.io";
+config.default_user_redirect = "https://admin.nitrogen.io";
 
 config.user_session_secret = process.env.USER_SESSION_SECRET || "development";
 config.user_session_timeout_seconds = 30 * 24 * 60 * 60; // seconds (30 days)
