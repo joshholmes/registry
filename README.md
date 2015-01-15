@@ -1,6 +1,13 @@
 # Registry
 
-The registry service provides identity and discovery services for Nitrogen security principals.
+The registry service provides identity and discovery services for security principals in Nitrogen (devices, applications, and users).
+
+## Installation
+
+1. `git clone https://github.com/nitrogenjs/registry`
+2. `cd frontdoor`
+3. `npm install`
+4. `node server.js`
 
 ## How to contribute
 
