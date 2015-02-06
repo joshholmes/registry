@@ -134,7 +134,7 @@ if (!redisServersJson) {
         }
     };
 } else {
-    config.redis_servers = JSON.parse(redisServersJson);
+    config.redis_servers = eval(redisServersJson);
 }
 
 console.log('archive_provider: using local storage.');
