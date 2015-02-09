@@ -126,7 +126,7 @@ config.access_token_signing_key = process.env.ACCESS_TOKEN_SIGNING_KEY || '12345
 config.refresh_token_threshold = 0.1;
 
 config.redis_servers = {
-    "redis-1": {
+    "n2-redis-1": {
         "host": process.env.REDIS_HOST || "localhost",
         "port": process.env.REDIS_PORT || 6379
     }
