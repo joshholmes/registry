@@ -125,17 +125,12 @@ config.access_token_signing_key = process.env.ACCESS_TOKEN_SIGNING_KEY || '12345
 // refresh it with a new token via the response header.
 config.refresh_token_threshold = 0.1;
 
-var redisServersJson = process.env.REDIS_SERVERS;
-if (!redisServersJson) {
-    config.redis_servers = {
-        "redis": {
-            "host": "localhost",
-            "port": 6379
-        }
-    };
-} else {
-    config.redis_servers = eval(redisServersJson);
-}
+config.redis_servers = {
+    "redis-1": {
+        "host": process.env.REDIS_HOST || "localhost",
+        "port": process.env.REDIS_PORT || 6379
+    }
+};
 
 console.log('archive_provider: using local storage.');
 config.archive_providers = [ new localProviders.NullArchiveProvider(config, log) ];
