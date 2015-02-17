@@ -128,7 +128,8 @@ config.refresh_token_threshold = 0.1;
 config.redis_servers = {
     "n2-redis-1": {
         "host": process.env.REDIS_HOST || "localhost",
-        "port": process.env.REDIS_PORT || 6379
+        "port": process.env.REDIS_PORT || 6379,
+        "password": process.env.REDIS_PASSWORD
     }
 };
 
