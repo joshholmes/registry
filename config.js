@@ -13,7 +13,7 @@ var config = null;
 if (process.env.NODE_ENV === "production") {
     config = {
         internal_port: process.env.PORT || 8080,
-        web_admin_uri: "https://admin.nitrogen.io",
+        web_admin_uri: process.env.WEB_ADMIN_URI || "https://admin.nitrogen.io",
         protocol: process.env.PROTOCOL || "https"
     };
 
@@ -128,7 +128,8 @@ config.refresh_token_threshold = 0.1;
 config.redis_servers = {
     "n2-redis-1": {
         "host": process.env.REDIS_HOST || "localhost",
-        "port": process.env.REDIS_PORT || 6379
+        "port": process.env.REDIS_PORT || 6379,
+        "password": process.env.REDIS_PASSWORD
     }
 };
 
