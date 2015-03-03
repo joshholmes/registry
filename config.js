@@ -35,7 +35,7 @@ if (process.env.NODE_ENV === "production") {
         external_port: process.env.PORT || 3031,
         protocol: process.env.PROTOCOL || "http",
         mongodb_connection_string: "mongodb://localhost/nitrogen_dev",
-        web_admin_uri: "http://localhost:9000"
+        web_admin_uri: process.env.HOST_NAME || "http://localhost:9000"
     };
 }
 
